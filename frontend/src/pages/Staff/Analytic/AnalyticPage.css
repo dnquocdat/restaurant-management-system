@@ -1,0 +1,155 @@
+/* Dashboard.css */
+
+/* Container Styles */
+.dashboard-container {
+  min-height: 100vh;
+  background-color: #f3f4f6; /* Equivalent to bg-gray-100 */
+  padding: 1.5rem; /* Equivalent to p-6 */
+}
+
+.dashboard-content {
+  max-width: 1280px; /* Equivalent to max-w-7xl */
+  margin: 0 auto;
+}
+
+/* Header Styles */
+.dashboard-header {
+  margin-bottom: 2rem; /* Equivalent to mb-8 */
+}
+
+.dashboard-title {
+  text-align: center;
+  font-size: 40px; /* Equivalent to text-3xl */
+  font-weight: 700; /* Equivalent to font-bold */
+  margin-bottom: 1rem; /* Equivalent to mb-4 */
+}
+
+.dashboard-tabs {
+  display: flex;
+  gap: 1rem; /* Equivalent to space-x-4 */
+}
+
+/* Tab Button Styles */
+.tab-button {
+  /* border: 2px #000; */
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* Equivalent to space-x-2 */
+  padding: 0.5rem 1rem; /* Equivalent to px-4 py-2 */
+  border-radius: 0.75rem; /* Equivalent to rounded-lg */
+  background-color: #f3f4f6; /* Equivalent to bg-gray-100 */
+  color: #4b5563; /* Equivalent to text-gray-600 */
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s; /* Equivalent to transition-all duration-300 */
+}
+
+.tab-button:hover {
+  background-color: #e5e7eb; /* Equivalent to hover:bg-gray-200 */
+}
+
+.tab-button.active {
+  background-color: #2563eb; /* Equivalent to bg-blue-600 */
+  color: #ffffff; /* Equivalent to text-white */
+}
+
+.tab-icon {
+  font-size: 1.25rem; /* Equivalent to text-xl */
+}
+
+/* Stat Cards Styles */
+.dashboard-stat-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem; /* Equivalent to gap-6 */
+  margin-bottom: 2rem; /* Equivalent to mb-8 */
+}
+
+@media (min-width: 768px) {
+  .dashboard-stat-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.stat-card {
+  background-color: #ffffff; /* Equivalent to bg-white */
+  padding: 1.5rem; /* Equivalent to p-6 */
+  border-radius: 1.5rem; /* Equivalent to rounded-xl */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Equivalent to shadow-md */
+}
+
+.stat-card-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-title {
+  color: #6b7280; /* Equivalent to text-gray-500 */
+  font-size: 0.75rem; /* Equivalent to text-sm */
+}
+
+.stat-value {
+  font-size: 1.5rem; /* Equivalent to text-2xl */
+  font-weight: 700; /* Equivalent to font-bold */
+  margin-top: 0.5rem; /* Equivalent to mt-2 */
+}
+
+.stat-icon {
+  font-size: 1.875rem; /* Equivalent to text-3xl */
+  color: #2563eb; /* Equivalent to text-blue-600 */
+}
+
+/* Chart Styles */
+.dashboard-chart {
+  background-color: #ffffff; /* Equivalent to bg-white */
+  padding: 1.5rem; /* Equivalent to p-6 */
+  border-radius: 1rem; /* Equivalent to rounded-xl */
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); /* Equivalent to shadow-md */
+  margin-bottom: 2rem; /* Equivalent to mb-8 */
+}
+
+/* Table Styles */
+.table-container {
+  background-color: #ffffff; /* Equivalent to bg-white */
+  border-radius: 1.5rem; /* Equivalent to rounded-xl */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Equivalent to shadow-md */
+  overflow: hidden; /* Equivalent to overflow-hidden */
+  margin-bottom: 2rem; /* Equivalent to mb-8 */
+}
+
+.statistics-table {
+  width: 100%;
+  border-collapse: collapse; /* Equivalent to divide-y divide-gray-200 */
+}
+
+.statistics-table thead {
+  background-color: #f9fafb; /* Equivalent to bg-gray-50 */
+}
+
+.statistics-table th {
+  text-align: left;
+  padding: 0.75rem 1.5rem; /* Equivalent to px-6 py-3 */
+  font-size: 0.75rem; /* Equivalent to text-xs */
+  font-weight: 500; /* Equivalent to font-medium */
+  color: #6b7280; /* Equivalent to text-gray-500 */
+  text-transform: uppercase; /* Equivalent to uppercase */
+  letter-spacing: 0.05em; /* Equivalent to tracking-wider */
+}
+
+.statistics-table tbody tr {
+  background-color: #ffffff;
+}
+
+.statistics-table tbody tr:hover {
+  background-color: #f9fafb; /* Equivalent to hover:bg-gray-50 */
+}
+
+.statistics-table td {
+  padding: 1rem 1.5rem; /* Equivalent to px-6 py-4 */
+  white-space: nowrap; /* Equivalent to whitespace-nowrap */
+  color: #1f2937; /* Equivalent to text-gray-800 */
+}
+
+.statistics-table td:nth-child(3) {
+  color: #10b981; /* Example: Green color for revenue */
+}

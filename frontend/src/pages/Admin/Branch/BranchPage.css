@@ -1,0 +1,207 @@
+.branch-management-container {
+  font-family: Arial, sans-serif;
+  padding-top: 20px;
+  max-width: 1000px;
+  margin: auto;
+}
+
+.form-container {
+  background-color: #fff;
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+}
+
+.controls {
+  display: flex;
+  gap: 15px;
+}
+
+.area-select {
+  padding: 10px 15px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  width: 200px;
+}
+
+.toggle-branch-list-btn {
+  padding: 10px 15px;
+  background-color: rgb(26, 96, 215);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.toggle-branch-list-btn .icon {
+  margin-right: 8px;
+}
+
+.branch-list {
+  margin-top: 25px;
+}
+
+.branch-list-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 15px;
+}
+
+.branch-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 25px;
+}
+
+.branch-card {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.branch-card:hover {
+  transform: translateY(-5px);
+}
+
+.branch-info {
+  margin-bottom: 15px;
+}
+
+.branch-actions button {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  margin-left: 15px;
+  color: #333;
+  font-size: 18px;
+}
+
+.edit-btn:hover {
+  color: #f39c12;
+}
+
+.delete-btn:hover {
+  color: #e74c3c;
+}
+
+.branch-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.form-fields .field {
+  margin-bottom: 10px;
+}
+
+.opening-hours .field {
+  display: flex;
+  flex-direction: column;
+}
+
+.opening-hours .time-inputs {
+  display: flex;
+  gap: 16px;
+}
+
+.op .label {
+  font-weight: 600;
+  font-size: 16px;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.input,
+.textarea {
+  width: 100%;
+  padding: 12px 15px;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-top: 8px;
+  box-sizing: border-box;
+}
+
+.input.error,
+.textarea.error {
+  border-color: #e74c3c;
+}
+
+.error-message {
+  color: #e74c3c;
+  font-size: 14px;
+  margin-top: 5px;
+}
+
+.form-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: space-between;
+}
+
+.save-btn,
+.cancel-btn {
+  padding: 12px 25px;
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  width: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.save-btn {
+  background-color: #27ae60;
+  color: white;
+}
+
+.save-btn:disabled {
+  background-color: #bdc3c7;
+}
+
+.cancel-btn {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.cancel-btn:hover {
+  background-color: #c0392b;
+}
+
+.spinner {
+  animation: spin 1s infinite linear;
+  font-size: 18px;
+  margin-left: 10px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

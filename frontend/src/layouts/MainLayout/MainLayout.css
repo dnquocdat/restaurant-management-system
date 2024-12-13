@@ -1,0 +1,261 @@
+/* Reset some default styles for consistency across browsers */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Container to hold the entire layout */
+.container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header Styling */
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(90deg, #d2b5a0, rgb(186, 140, 129));
+  border-bottom: 2px solid #e0e0e0;
+  padding: 15px 30px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Logo Styling */
+.logo-main {
+  height: 60px;
+  width: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.logo-main img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Navigation Bar Styling */
+.nav-bar {
+  display: flex;
+  gap: 25px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.nav-bar a {
+  text-decoration: none;
+  color: #333;
+  position: relative;
+  transition: color 0.3s;
+  font-weight: 800;
+}
+
+.nav-bar a::after {
+  content: "";
+  position: absolute;
+  width: 0%;
+  height: 2px;
+  background-color: #41362c;
+  left: 0;
+  bottom: -5px;
+  transition: width 0.3s;
+}
+
+.nav-bar a:hover {
+  color: #41362c;
+}
+
+.nav-bar a:hover::after {
+  width: 100%;
+}
+
+/* User Handle Styling */
+.handle-user {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+}
+
+.handle-user svg {
+  width: 28px;
+  height: 28px;
+  color: #555;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+
+.handle-user svg:hover {
+  color: #f4a261;
+}
+
+/* User Options Dropdown */
+.option-user {
+  list-style: none;
+  padding: 10px 0;
+  display: none;
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background-color: #ffffff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  width: 180px;
+  transition: opacity 0.3s;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.handle-user:hover .option-user {
+  display: block;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.option-user li {
+  padding: 10px 20px;
+  transition: background-color 0.3s;
+}
+
+.option-user li:hover {
+  background-color: #f9f9f9;
+}
+
+.option-user a {
+  text-decoration: none;
+  color: #333;
+  display: block;
+}
+
+/* Shopping Cart Icon */
+.handle-user .cart-icon a {
+  position: relative;
+}
+
+.handle-user .cart-icon a svg {
+  color: #555;
+  transition: color 0.3s;
+}
+
+.handle-user .cart-icon a svg:hover {
+  color: #f4a261;
+}
+
+/* Content Main Styling */
+.content-main {
+  flex: 1;
+  min-height: 90vh;
+  padding: 20px 30px;
+  background-color: #fdfdfd;
+}
+
+/* Footer Styling */
+.footer {
+  background-color: #222;
+  color: #ccc;
+  padding: 40px 30px;
+}
+
+.footer-content {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.footer-section {
+  flex: 1 1 250px;
+  margin: 20px 10px;
+}
+
+.footer-section h3 {
+  margin-bottom: 15px;
+  font-size: 20px;
+  color: #f4a261;
+  position: relative;
+}
+
+.footer-section h3::after {
+  content: "";
+  position: absolute;
+  width: 50px;
+  height: 3px;
+  background-color: #f4a261;
+  left: 0;
+  bottom: -5px;
+}
+
+.footer-section p,
+.footer-section a {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #ccc;
+}
+
+.footer-section a {
+  text-decoration: none;
+  color: #ccc;
+  transition: color 0.3s;
+}
+
+.footer-section a:hover {
+  color: #f4a261;
+}
+
+.social-icons {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+}
+
+.social-icons svg {
+  font-size: 22px;
+  color: #f4a261;
+  cursor: pointer;
+  transition: color 0.3s, transform 0.3s;
+}
+
+.social-icons svg:hover {
+  color: #e76f51;
+  transform: scale(1.2);
+}
+
+.footer-bottom {
+  margin-top: 30px;
+  border-top: 1px solid #444;
+  padding-top: 15px;
+  font-size: 13px;
+  color: #aaa;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .nav-bar {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .footer-content {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .footer-section {
+    margin: 15px 0;
+    text-align: center;
+  }
+}

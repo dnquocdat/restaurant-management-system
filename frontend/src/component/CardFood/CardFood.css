@@ -1,0 +1,154 @@
+.dish-card {
+  background-color: white;
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.dish-card:hover {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.2);
+}
+
+.dish-image-container {
+  position: relative;
+  width: 100%;
+  height: 200px !important; /* Adjust as needed */
+  /* overflow: hidden; */
+}
+
+.dish-image-container .dish-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.dish-image:hover {
+  transform: scale(1.05);
+}
+
+.dish-details {
+  padding: 1rem;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: start !important;
+  height: calc(100% - 200px);
+}
+
+.dish-name {
+  font-size: 25px !important;
+  font-weight: 600;
+  color: #1f2937; /* Gray-800 */
+  margin-bottom: 0.5rem;
+}
+
+.dish-restaurant {
+  font-size: 0.875rem;
+  color: #4b5563; /* Gray-600 */
+  margin-bottom: 0.5rem;
+}
+
+.dish-description {
+  font-size: 0.875rem;
+  color: #6b7280; /* Gray-500 */
+  margin-bottom: 1rem;
+}
+
+.dish-footer {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dish-price {
+  color: #4f46e5; /* Indigo-600 */
+  font-weight: 600;
+}
+
+.order-button {
+  background-color: #4f46e5; /* Indigo-600 */
+  color: white;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.375rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.order-button:hover {
+  background-color: #4338ca; /* Indigo-700 */
+}
+
+.open-modal-button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.open-modal-button:hover {
+  background-color: #0056b3;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 20px 30px;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 90%;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h2 {
+  margin-top: 0;
+}
+
+.branch-list {
+  list-style-type: none;
+  padding: 0;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.branch-list li {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+  cursor: pointer;
+}
+
+.branch-list li:hover {
+  background-color: #f0f0f0;
+}
+
+.close-modal-button {
+  margin-top: 20px;
+  padding: 8px 16px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.close-modal-button:hover {
+  background-color: #c82333;
+}

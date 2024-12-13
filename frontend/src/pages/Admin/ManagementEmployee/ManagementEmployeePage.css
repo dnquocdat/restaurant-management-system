@@ -1,0 +1,255 @@
+/* General Styles */
+.employee-management-container {
+  min-height: 100vh;
+  background-color: #f4f6f9;
+  padding: 32px;
+}
+
+.employee-management-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+}
+
+.heading {
+  font-size: 36px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 32px;
+}
+
+/* Brand Selection */
+.brand-selection {
+  margin-bottom: 32px;
+}
+
+.label {
+  font-size: 14px;
+  color: #6b7280;
+  margin: 8px;
+  display: block;
+}
+
+.select {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fafafa;
+  transition: border-color 0.3s ease;
+}
+
+.select:focus {
+  border-color: #0066cc;
+  outline: none;
+}
+
+/* Employee List */
+.employee-list {
+  margin-top: 32px;
+}
+
+.employee-list .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.add-button {
+  background-color: #0066cc;
+  color: white;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.3s ease;
+}
+
+.add-button:hover {
+  background-color: #005bb5;
+}
+
+.add-button .icon {
+  margin-right: 8px;
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+th,
+td {
+  padding: 14px;
+  text-align: left;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 16px;
+  color: #4b5563;
+}
+
+tr:hover {
+  background-color: #f1f5f9;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.edit-button,
+.delete-button {
+  background: none;
+  border-radius: 8px;
+  color: #0066cc;
+  cursor: pointer;
+  font-size: 18px;
+  margin-right: 12px;
+  transition: color 0.3s ease;
+}
+
+.edit-button:hover,
+.delete-button:hover {
+  color: #004d99;
+}
+
+.delete-button {
+  color: #e53e3e;
+}
+
+.delete-button:hover {
+  color: #d92d2b;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 32px;
+  border-radius: 12px;
+  width: 480px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #6b7280;
+  transition: color 0.3s ease;
+}
+
+.close-button:hover {
+  color: #e53e3e;
+}
+
+.error {
+  color: #e53e3e;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.input {
+  width: 100%;
+  padding: 12px;
+  font-size: 14px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fafafa;
+  transition: border-color 0.3s ease;
+}
+
+.input:focus {
+  border-color: #0066cc;
+  outline: none;
+}
+
+.input-error {
+  border-color: #e53e3e;
+}
+
+.submit-button,
+.cancel-button,
+.confirm-button,
+.delete-button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submit-button {
+  background-color: #0066cc;
+  color: white;
+}
+
+.submit-button:hover {
+  background-color: #005bb5;
+}
+
+.confirm-button {
+  background-color: rgb(220, 38, 38);
+}
+
+.confirm-button:hover {
+  background-color: red;
+}
+
+.cancel-button {
+  background-color: #e2e8f0;
+  color: #4b5563;
+}
+
+.cancel-button:hover {
+  background-color: #d1d5db;
+}
+
+.delete-button {
+  background-color: #e53e3e;
+  color: white;
+}
+
+.delete-button:hover {
+  background-color: #d92d2b;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 24px;
+}

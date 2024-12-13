@@ -1,0 +1,295 @@
+/* InvoiceList.css */
+
+/* Container */
+.invoice-list-container {
+  min-height: 100vh;
+  background-color: #f3f4f6; /* bg-gray-100 */
+  padding: 1rem; /* p-4 */
+}
+
+@media (min-width: 640px) {
+  /* sm:p-6 */
+  .invoice-list-container {
+    padding: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* lg:p-8 */
+  .invoice-list-container {
+    padding: 2rem;
+  }
+}
+
+/* Wrapper */
+.invoice-list-wrapper {
+  max-width: 1280px; /* max-w-7xl */
+  margin: 0 auto;
+}
+
+/* Title */
+.invoice-title {
+  text-align: center;
+  font-size: 40px; /* text-3xl */
+  font-weight: 700; /* font-bold */
+  color: #1f2937; /* text-gray-900 */
+  margin-bottom: 1.5rem; /* mb-6 */
+}
+
+/* Tab Navigation */
+.tab-navigation {
+  display: flex;
+  margin-bottom: 1.5rem; /* mb-6 */
+  gap: 1rem; /* space-x-4 */
+}
+
+.tab-button {
+  padding: 0.5rem 1rem; /* px-4 py-2 */
+  border-radius: 0.5rem; /* rounded-lg */
+  background-color: #ffffff; /* bg-white */
+  color: #4b5563; /* text-gray-600 */
+  cursor: pointer;
+  transition: background-color 0.1s, color 0.1s;
+}
+
+.tab-button.active {
+  background-color: #4f46e5; /* bg-indigo-600 */
+  color: #ffffff; /* text-white */
+}
+
+.tab-button:hover {
+  background-color: #e5e7eb; /* hover:bg-gray-200 */
+}
+
+/* Search Bar */
+.search-bar {
+  position: relative;
+  margin-bottom: 1.5rem; /* mb-6 */
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem; /* left-3 */
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af; /* text-gray-400 */
+}
+
+.search-input {
+  width: 100%;
+  padding-left: 2.5rem; /* pl-10 */
+  padding-right: 1rem; /* pr-4 */
+  padding-top: 0.5rem; /* py-2 */
+  padding-bottom: 0.5rem; /* py-2 */
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  border-radius: 0.5rem; /* rounded-lg */
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.search-input:focus {
+  border-color: transparent;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5); /* focus:ring-2 focus:ring-indigo-500 */
+}
+
+/* Table Container */
+.table-container {
+  background-color: #ffffff; /* bg-white */
+  border-radius: 0.5rem; /* rounded-lg */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06); /* shadow */
+  overflow: hidden;
+}
+
+/* Table */
+.invoice-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.invoice-table thead {
+  background-color: #f9fafb; /* bg-gray-50 */
+}
+
+.invoice-table th,
+.invoice-table td {
+  padding: 1rem; /* px-6 py-3 */
+  text-align: left;
+  font-size: 0.75rem; /* text-xs */
+  font-weight: 500; /* font-medium */
+  color: #6b7280; /* text-gray-500 */
+  text-transform: uppercase;
+  letter-spacing: 0.05em; /* tracking-wider */
+}
+
+.invoice-table tbody tr td {
+  padding: 1rem; /* px-6 py-4 */
+  white-space: nowrap;
+  font-size: 1rem;
+  color: #374151; /* text-gray-700 */
+}
+
+.invoice-table tbody tr:nth-child(even) {
+  background-color: #f9fafb; /* divide-y divide-gray-200 */
+}
+
+.invoice-table tbody tr:hover {
+  background-color: #f1f5f9; /* hover:bg-gray-100 */
+}
+
+/* View Details Button */
+.view-details-button {
+  margin-top: 1rem;
+  width: 70%;
+  background: #3182ce;
+  color: #ffffff;
+  padding: 10px 5px;
+  border-radius: 0.375rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.view-details-button:hover {
+  color: #312e81; /* hover:text-indigo-900 */
+}
+
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* bg-black bg-opacity-50 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem; /* p-4 */
+  z-index: 50;
+}
+
+/* Modal Content */
+.modal-content {
+  background-color: #ffffff; /* bg-white */
+  border-radius: 0.5rem; /* rounded-lg */
+  max-width: 32rem; /* max-w-2xl */
+  width: 100%;
+  max-height: 90vh; /* max-h-[90vh] */
+  overflow-y: auto;
+}
+
+/* Modal Header */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem; /* mb-4 */
+}
+
+.modal-title {
+  font-size: 1.5rem; /* text-2xl */
+  font-weight: 700; /* font-bold */
+  color: #1f2937; /* text-gray-900 */
+}
+
+/* Close Button */
+.modal-close-button {
+  background-color: transparent;
+  color: #9ca3af; /* text-gray-400 */
+  cursor: pointer;
+  transition: color 0.3s;
+  border: none;
+}
+
+.modal-close-button:hover {
+  color: #6b7280; /* hover:text-gray-500 */
+}
+
+.modal-close-icon {
+  font-size: 1.25rem; /* text-xl */
+}
+
+/* Modal Body */
+.modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem; /* space-y-4 */
+}
+
+/* Modal Section */
+.modal-section {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid #e5e7eb; /* border-b */
+  padding-bottom: 1rem; /* pb-4 */
+}
+
+.modal-label {
+  color: #4b5563; /* text-gray-600 */
+}
+
+.modal-value {
+  font-weight: 500; /* font-medium */
+  color: #1f2937; /* text-gray-900 */
+}
+
+/* Modal Items */
+.modal-items {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem; /* space-y-2 */
+}
+
+.modal-subtitle {
+  font-weight: 600; /* font-semibold */
+  color: #1f2937; /* text-gray-900 */
+}
+
+.modal-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem 0; /* py-2 */
+  border-bottom: 1px solid #e5e7eb; /* border-b */
+}
+
+.modal-item:last-child {
+  border-bottom: none; /* last:border-b-0 */
+}
+
+.modal-item-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.item-name {
+  font-weight: 500; /* font-medium */
+}
+
+.item-quantity {
+  font-size: 0.875rem; /* text-sm */
+  color: #6b7280; /* text-gray-500 */
+}
+
+.item-price {
+  font-weight: 500; /* font-medium */
+  color: #1f2937; /* text-gray-900 */
+}
+
+/* Modal Total */
+.modal-total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 1rem; /* pt-4 */
+  border-top: 1px solid #e5e7eb; /* border-t */
+}
+
+.total-label {
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 700; /* font-bold */
+}
+
+.total-amount {
+  font-size: 1.125rem; /* text-lg */
+  font-weight: 700; /* font-bold */
+  color: #4f46e5; /* text-indigo-600 */
+}
