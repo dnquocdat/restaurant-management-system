@@ -1,5 +1,13 @@
-import React, { useState } from "react";
-import { FiTrash2, FiPlus, FiX, FiEdit } from "react-icons/fi";
+import React, { useState, useEffect } from "react";
+import {
+  FiTrash2,
+  FiPlus,
+  FiX,
+  FiEdit,
+  FiFilter,
+  // FiSort,
+} from "react-icons/fi";
+import { FaSearch } from "react-icons/fa";
 import "./ManagementEmployeePage.css"; // Import the external CSS file
 
 const ManagementEmployeePage = () => {
@@ -8,6 +16,7 @@ const ManagementEmployeePage = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [formData, setFormData] = useState({
+    branchId: "",
     name: "",
     position: "",
     email: "",
@@ -15,7 +24,20 @@ const ManagementEmployeePage = () => {
   });
   const [formErrors, setFormErrors] = useState({});
 
-  const branchs = [
+  const [filterOptions, setFilterOptions] = useState({
+    branchId: "",
+    position: "",
+    sortBy: "",
+    sortOrder: "asc",
+  });
+  const [isFilterApplied, setIsFilterApplied] = useState(false);
+
+  const [searchTerm, setSearchTerm] = useState(""); // Thêm trạng thái tìm kiếm
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const employeesPerPage = 5; // Adjust as needed
+
+  const branches = [
     { id: 1, name: "Restaurant A" },
     { id: 2, name: "Restaurant B" },
     { id: 3, name: "Restaurant C" },
@@ -37,7 +59,7 @@ const ManagementEmployeePage = () => {
       name: "John Doe",
       position: "Manager",
       email: "john@example.com",
-      phone: "123-456-7890",
+      phone: "0123456789",
     },
     {
       id: 2,
@@ -45,7 +67,7 @@ const ManagementEmployeePage = () => {
       name: "Jane Smith",
       position: "Chef",
       email: "jane@example.com",
-      phone: "234-567-8901",
+      phone: "0234567890",
     },
     {
       id: 3,
@@ -53,9 +75,52 @@ const ManagementEmployeePage = () => {
       name: "Mike Johnson",
       position: "Waiter",
       email: "mike@example.com",
-      phone: "345-678-9012",
+      phone: "0345678901",
     },
+    // Add more employees as needed
   ]);
+
+  // Filtered and Sorted Employees
+  const [displayEmployees, setDisplayEmployees] = useState([]);
+
+  useEffect(() => {
+    let filtered = [...employees];
+
+    // Apply Search Filter
+    if (searchTerm.trim() !== "") {
+      filtered = filtered.filter((emp) =>
+        emp.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    // Apply Other Filters
+    if (isFilterApplied) {
+      if (filterOptions.branchId) {
+        filtered = filtered.filter(
+          (emp) => emp.branchId === parseInt(filterOptions.branchId)
+        );
+      }
+      if (filterOptions.position) {
+        filtered = filtered.filter(
+          (emp) => emp.position === filterOptions.position
+        );
+      }
+    }
+
+    // Apply Sorting
+    if (filterOptions.sortBy) {
+      filtered.sort((a, b) => {
+        if (a[filterOptions.sortBy] < b[filterOptions.sortBy])
+          return filterOptions.sortOrder === "asc" ? -1 : 1;
+        if (a[filterOptions.sortBy] > b[filterOptions.sortBy])
+          return filterOptions.sortOrder === "asc" ? 1 : -1;
+        return 0;
+      });
+    }
+
+    setDisplayEmployees(filtered);
+    setCurrentPage(1); // Reset to first page when filter/sort/search changes
+  }, [employees, isFilterApplied, filterOptions, searchTerm]);
 
   const validateForm = () => {
     const errors = {};
@@ -72,6 +137,9 @@ const ManagementEmployeePage = () => {
       errors.phone =
         "Invalid phone format (should be 10 digits starting with 0)";
     }
+    if (!formData.branchId) {
+      errors.branchId = "Branch is required";
+    }
     return errors;
   };
 
@@ -82,14 +150,19 @@ const ManagementEmployeePage = () => {
       if (selectedEmployee) {
         // Editing existing employee
         const updatedEmployees = employees.map((emp) =>
-          emp.id === selectedEmployee.id ? { ...emp, ...formData } : emp
+          emp.id === selectedEmployee.id
+            ? { ...emp, ...formData, branchId: parseInt(formData.branchId) }
+            : emp
         );
         setEmployees(updatedEmployees);
       } else {
         // Adding new employee
         const newEmployee = {
-          id: employees.length + 1,
-          branchId: parseInt(selectedBranch),
+          id:
+            employees.length > 0
+              ? Math.max(...employees.map((emp) => emp.id)) + 1
+              : 1,
+          branchId: parseInt(formData.branchId),
           name: formData.name,
           position: formData.position,
           email: formData.email,
@@ -100,8 +173,15 @@ const ManagementEmployeePage = () => {
 
       // Reset form and close modal
       setShowAddForm(false);
-      setFormData({ name: "", position: "", email: "", phone: "" });
+      setFormData({
+        branchId: "",
+        name: "",
+        position: "",
+        email: "",
+        phone: "",
+      });
       setSelectedEmployee(null); // Clear selected employee
+      setFormErrors({});
     } else {
       setFormErrors(errors);
     }
@@ -113,29 +193,139 @@ const ManagementEmployeePage = () => {
     setSelectedEmployee(null);
   };
 
+  // Pagination Logic
+  const indexOfLastEmployee = currentPage * employeesPerPage;
+  const indexOfFirstEmployee = indexOfLastEmployee - employeesPerPage;
+  const currentEmployees = displayEmployees.slice(
+    indexOfFirstEmployee,
+    indexOfLastEmployee
+  );
+  const totalPages = Math.ceil(displayEmployees.length / employeesPerPage);
+
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
   return (
     <div className="employee-management-container">
       <div className="employee-management-content">
         <h1 className="heading">Restaurant Employee Management</h1>
 
-        {/* Branch Selection */}
-        <div className="branch-selection">
-          <label htmlFor="branch" className="label">
-            Select Branch
-          </label>
-          <select
-            id="branch"
-            className="select"
-            value={selectedBranch}
-            onChange={(e) => setSelectedBranch(e.target.value)}
+        {/* Filter and Sort Section */}
+        <div className="filter-sort-section">
+          {/* Search Bar */}
+          <div className="search-bar-emp">
+            <FaSearch className="search-icon-emp" />
+            <input
+              type="text"
+              placeholder="Search by name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input-emp"
+            />
+            {searchTerm && (
+              <button
+                className="clear-search"
+                onClick={() => setSearchTerm("")}
+                aria-label="Clear Search"
+              >
+                <FiX />
+              </button>
+            )}
+          </div>
+          <div className="filter-sort-controls">
+            <div className="filter-field">
+              <label htmlFor="filter-branch" className="label">
+                Branch
+              </label>
+              <select
+                id="filter-branch"
+                className="select"
+                value={filterOptions.branchId}
+                onChange={(e) =>
+                  setFilterOptions({
+                    ...filterOptions,
+                    branchId: e.target.value,
+                  })
+                }
+              >
+                <option value="">--All Branches--</option>
+                {branches.map((branch) => (
+                  <option key={branch.id} value={branch.id}>
+                    {branch.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="filter-field">
+              <label htmlFor="filter-position" className="label">
+                Position
+              </label>
+              <select
+                id="filter-position"
+                className="select"
+                value={filterOptions.position}
+                onChange={(e) =>
+                  setFilterOptions({
+                    ...filterOptions,
+                    position: e.target.value,
+                  })
+                }
+              >
+                <option value="">--All Positions--</option>
+                {positions.map((position, index) => (
+                  <option key={index} value={position}>
+                    {position}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="filter-field">
+              <label htmlFor="sort-by" className="label">
+                Sort By
+              </label>
+              <select
+                id="sort-by"
+                className="select"
+                value={filterOptions.sortBy}
+                onChange={(e) =>
+                  setFilterOptions({ ...filterOptions, sortBy: e.target.value })
+                }
+              >
+                <option value="">--No Sorting--</option>
+                <option value="name">Name</option>
+                <option value="position">Position</option>
+                <option value="email">Email</option>
+                <option value="phone">Phone</option>
+              </select>
+            </div>
+
+            {/* <div className="filter-field">
+              <label htmlFor="sort-order" className="label">
+                Sort Order
+              </label>
+              <select
+                id="sort-order"
+                className="select"
+                value={filterOptions.sortOrder}
+                onChange={(e) =>
+                  setFilterOptions({
+                    ...filterOptions,
+                    sortOrder: e.target.value,
+                  })
+                }
+              >
+                <option value="asc">Ascending</option>
+                <option value="desc">Descending</option>
+              </select>
+            </div> */}
+          </div>
+          <button
+            onClick={() => setIsFilterApplied(true)}
+            className="filter-button"
           >
-            <option value="">--Select a branch--</option>
-            {branchs.map((branch) => (
-              <option key={branch.id} value={branch.id}>
-                {branch.name}
-              </option>
-            ))}
-          </select>
+            <FiFilter className="icon" /> Apply Filter
+          </button>
         </div>
 
         {/* Employee List */}
@@ -160,17 +350,12 @@ const ManagementEmployeePage = () => {
                 </tr>
               </thead>
               <tbody>
-                {employees
-                  .filter(
-                    (emp) =>
-                      !selectedBranch ||
-                      emp.branchId === parseInt(selectedBranch)
-                  )
-                  .map((employee) => (
+                {currentEmployees.length > 0 ? (
+                  currentEmployees.map((employee) => (
                     <tr key={employee.id}>
                       <td>{employee.name}</td>
                       <td>
-                        {branchs.find((b) => b.id === employee.branchId)?.name}
+                        {branches.find((b) => b.id === employee.branchId)?.name}
                       </td>
                       <td>{employee.position}</td>
                       <td>{employee.email}</td>
@@ -180,6 +365,7 @@ const ManagementEmployeePage = () => {
                           onClick={() => {
                             setSelectedEmployee(employee);
                             setFormData({
+                              branchId: employee.branchId.toString(),
                               name: employee.name,
                               position: employee.position,
                               email: employee.email,
@@ -188,6 +374,7 @@ const ManagementEmployeePage = () => {
                             setShowAddForm(true); // Open the modal for editing
                           }}
                           className="edit-button"
+                          style={{ margin: 0 }}
                         >
                           <FiEdit className="icon" />
                         </button>
@@ -202,10 +389,48 @@ const ManagementEmployeePage = () => {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="6" style={{ textAlign: "center" }}>
+                      No employees found.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="pagination">
+              <button
+                onClick={() => paginate(currentPage - 1)}
+                className="pagination-button"
+                disabled={currentPage === 1}
+              >
+                Previous
+              </button>
+              {[...Array(totalPages)].map((_, index) => (
+                <button
+                  key={index + 1}
+                  onClick={() => paginate(index + 1)}
+                  className={`pagination-button ${
+                    currentPage === index + 1 ? "active" : ""
+                  }`}
+                >
+                  {index + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => paginate(currentPage + 1)}
+                className="pagination-button"
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -226,6 +451,28 @@ const ManagementEmployeePage = () => {
               </button>
             </div>
             <form onSubmit={handleSubmit}>
+              <div className="form-field">
+                <label className="label">Branch</label>
+                <select
+                  className={`select ${
+                    formErrors.branchId ? "input-error" : ""
+                  }`}
+                  value={formData.branchId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, branchId: e.target.value })
+                  }
+                >
+                  <option value="">--Select Branch--</option>
+                  {branches.map((branch) => (
+                    <option key={branch.id} value={branch.id}>
+                      {branch.name}
+                    </option>
+                  ))}
+                </select>
+                {formErrors.branchId && (
+                  <p className="error">{formErrors.branchId}</p>
+                )}
+              </div>
               <div className="form-field">
                 <label className="label">Name</label>
                 <input

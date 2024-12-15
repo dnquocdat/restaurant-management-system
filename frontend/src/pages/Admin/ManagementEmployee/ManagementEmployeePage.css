@@ -21,6 +21,54 @@
   margin-bottom: 32px;
 }
 
+/* Search Bar */
+.search-bar-emp {
+  position: relative;
+  margin-bottom: 24px;
+  max-width: 400px;
+}
+
+.search-input-emp {
+  width: 100%;
+  padding-left: 2.5rem; /* pl-10 */
+  padding-right: 1rem; /* pr-4 */
+  padding-top: 0.5rem; /* py-2 */
+  padding-bottom: 0.5rem; /* py-2 */
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  border-radius: 0.5rem; /* rounded-lg */
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.search-input:focus {
+  border-color: #0066cc;
+  outline: none;
+}
+
+.search-icon-emp {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: #6b7280;
+}
+
+.clear-search {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.clear-search:hover {
+  color: #e53e3e;
+}
+
 /* Brand Selection */
 .brand-selection {
   margin-bottom: 32px;
@@ -252,4 +300,92 @@ tr:hover {
   display: flex;
   justify-content: space-between;
   margin-top: 24px;
+}
+
+/* Filter & Sort Section */
+.filter-sort-section {
+  margin-bottom: 32px;
+  padding: 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #fafafa;
+}
+
+.filter-sort-section h2 {
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.filter-sort-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.filter-field {
+  flex: 1 1 200px;
+}
+
+.filter-button,
+.reset-button {
+  margin-top: 16px;
+  background-color: #0066cc;
+  color: white;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.3s ease;
+  border: none;
+}
+
+.filter-button:hover {
+  background-color: #005bb5;
+}
+
+.reset-button {
+  background-color: #e53e3e;
+  margin-left: 8px;
+}
+
+.reset-button:hover {
+  background-color: #d92d2b;
+}
+
+.filter-button .icon,
+.reset-button .icon {
+  margin-right: 8px;
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin-top: 20px;
+  gap: 8px;
+}
+
+.pagination-button {
+  background-color: #e2e8f0;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.pagination-button:hover {
+  background-color: #cbd5e0;
+}
+
+.pagination-button.active {
+  background-color: #0066cc;
+  color: white;
+}
+
+.pagination-button:disabled {
+  background-color: #f1f5f9;
+  cursor: not-allowed;
 }

@@ -30,12 +30,12 @@ const DashboardPage = () => {
   // Main filter states
   const [region, setRegion] = useState("all");
   const [branch, setBranch] = useState("main");
-  const [periodType, setPeriodType] = useState("monthly");
+  const [periodType, setPeriodType] = useState("daily");
 
   // Temporary filter states for selections
   const [tempRegion, setTempRegion] = useState("all");
   const [tempBranch, setTempBranch] = useState("main");
-  const [tempPeriodType, setTempPeriodType] = useState("monthly");
+  const [tempPeriodType, setTempPeriodType] = useState("daily");
 
   // Dynamic filter states based on periodType
   const [dailyFilters, setDailyFilters] = useState({
@@ -353,7 +353,7 @@ const DashboardPage = () => {
   return (
     <div className="revenue-dashboard">
       <div className="dashboard-container">
-        <div className="header">
+        <div className="header-dashboard">
           <h1 className="title">Revenue Dashboard</h1>
           <div className="filters">
             {/* First: Select Region and Branch */}
@@ -531,14 +531,14 @@ const DashboardPage = () => {
               >
                 Apply
               </button>
-              <button
+              {/* <button
                 onClick={fetchData}
                 className="refresh-button"
                 aria-label="Refresh Dashboard"
               >
                 <FiRefreshCcw className="icon" />
                 Refresh
-              </button>
+              </button> */}
               <button
                 onClick={handleExport}
                 className="export-button"
