@@ -1,8 +1,11 @@
 import { Router } from "express";
 const router = Router();
 
-import { test } from '../controllers/auth.controller.js';
+import { test, registerUser } from '../controllers/auth.controller.js';
 
-router.get('/test', test);
+import asyncErrorHandler from "../utils/asyncErrorHandler.js";
+
+router.get('/test', asyncErrorHandler(test));
+router.post('/register', asyncErrorHandler(registerUser));
 
 export default router;

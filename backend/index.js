@@ -2,7 +2,7 @@ import express from 'express';
 // import bodyParser from 'body-parser';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import { globalErrorHandler } from './controllers/error.controller.js';
+import globalErrorHandler from './controllers/error.controller.js';
 import router from './routes/index.route.js';
 
 const app = express();
@@ -26,3 +26,5 @@ app.listen(PORT, () => {
 });
 
 app.use(globalErrorHandler);
+
+export default app;
