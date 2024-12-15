@@ -189,38 +189,51 @@ export const EmployeesPage = () => {
                     <FaStar className="icon" />
                     <div className="rating-container">
                       <span>Rating for</span>
-                      <select
-                        value={
-                          employeeRatings[employee.id]?.year || selectedYear
-                        }
-                        onChange={(e) => handleYearChange(employee.id, e)}
-                        className="select"
-                      >
-                        <option value="2024">2024</option>
-                        <option value="2023">2023</option>
-                      </select>
-                      <select
-                        value={
-                          employeeRatings[employee.id]?.quarter ||
-                          selectedQuarter
-                        }
-                        onChange={(e) => handleQuarterChange(employee.id, e)}
-                        className="select"
-                      >
-                        <option value="Q1">Q1</option>
-                        <option value="Q2">Q2</option>
-                        <option value="Q3">Q3</option>
-                        <option value="Q4">Q4</option>
-                      </select>
-                      <span className="rating-value">
-                        :{" "}
-                        {employee.ratings[
-                          employeeRatings[employee.id]?.year || selectedYear
-                        ]?.[
-                          employeeRatings[employee.id]?.quarter ||
+                      <div style={{ display: "flex", gap: "0.5rem" }}>
+                        <select
+                          value={
+                            employeeRatings[employee.id]?.year || selectedYear
+                          }
+                          onChange={(e) => handleYearChange(employee.id, e)}
+                          className="select"
+                        >
+                          <option value="2024">2024</option>
+                          <option value="2023">2023</option>
+                        </select>
+                        <select
+                          value={
+                            employeeRatings[employee.id]?.quarter ||
                             selectedQuarter
-                        ] || "No rating available"}
-                      </span>
+                          }
+                          onChange={(e) => handleQuarterChange(employee.id, e)}
+                          className="select"
+                        >
+                          <option value="Q1">Q1</option>
+                          <option value="Q2">Q2</option>
+                          <option value="Q3">Q3</option>
+                          <option value="Q4">Q4</option>
+                        </select>
+                        <span
+                          className="rating-value"
+                          style={{ display: "flex", alignItems: "center" }}
+                        >
+                          {" "}
+                          <span
+                            style={{
+                              fontSize: "1.2rem",
+                              fontWeight: "bold",
+                              color: "#4a5568",
+                            }}
+                          >
+                            {employee.ratings[
+                              employeeRatings[employee.id]?.year || selectedYear
+                            ]?.[
+                              employeeRatings[employee.id]?.quarter ||
+                                selectedQuarter
+                            ] || "No rating available"}
+                          </span>
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>

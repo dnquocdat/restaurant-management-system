@@ -156,12 +156,12 @@ body {
 }
 
 .dish-card .dish-actions button.delete-button {
-  color: #e53e3e;
-  border: 2px solid #e53e3e;
+  color: #e9dcdc;
+  border: 2px solid #ddd;
 }
 
 .dish-card .dish-actions button.delete-button:hover {
-  background-color: #d0b3b3;
+  background-color: #c42a2a;
 }
 .view-dish-details {
   margin-left: 0;

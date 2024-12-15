@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FiSearch, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { BsFilterLeft, BsSortDownAlt } from "react-icons/bs";
+// import axios from "axios"; // Uncomment when using axios for API calls
 import "./MenuPage.css";
 import { CardFood } from "../../../component/CardFood/CardFood";
 
@@ -15,6 +16,7 @@ const MenuPage = () => {
 
   const itemsPerPage = 6;
 
+  // Frontend Data (Keep your existing data)
   const dummyDishes = [
     {
       id: 1,
@@ -31,7 +33,7 @@ const MenuPage = () => {
       category: "appetizer",
       price: "12.99",
       description: "Crispy romaine lettuce with classic Caesar dressing",
-      https:
+      image:
         "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?ixlib=rb-4.0.3",
     },
     {
@@ -90,6 +92,36 @@ const MenuPage = () => {
     },
   ];
 
+  // Frontend Filtering Logic
+  const filteredDishes = dummyDishes
+    .filter((dish) => {
+      const categoryMatch =
+        selectedCategory === "all" || dish.category === selectedCategory;
+      const priceMatch =
+        priceRange === "all" ||
+        (priceRange === "0-15" && parseFloat(dish.price) <= 15) ||
+        (priceRange === "15-25" &&
+          parseFloat(dish.price) > 15 &&
+          parseFloat(dish.price) <= 25) ||
+        (priceRange === "25+" && parseFloat(dish.price) > 25);
+      const searchMatch =
+        searchQuery === "" ||
+        dish.name.toLowerCase().includes(searchQuery.toLowerCase());
+      return categoryMatch && priceMatch && searchMatch;
+    })
+    .sort((a, b) => {
+      return sortOrder === "asc"
+        ? parseFloat(a.price) - parseFloat(b.price)
+        : parseFloat(b.price) - parseFloat(a.price);
+    });
+
+  const totalPages = Math.ceil(filteredDishes.length / itemsPerPage);
+  const currentDishes = filteredDishes.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Optional: For search suggestions (if you want to keep it)
   useEffect(() => {
     if (searchQuery.length > 0) {
       const filtered = dummyDishes.filter((dish) =>
@@ -103,35 +135,64 @@ const MenuPage = () => {
     }
   }, [searchQuery]);
 
-  const filteredDishes = dummyDishes
-    .filter((dish) => {
-      const categoryMatch =
-        selectedCategory === "all" || dish.category === selectedCategory;
-      const priceMatch =
-        priceRange === "all" ||
-        (priceRange === "0-15" && dish.price <= 15) ||
-        (priceRange === "15-25" && dish.price > 15 && dish.price <= 25) ||
-        (priceRange === "25+" && dish.price > 25);
-      const searchMatch =
-        searchQuery === "" ||
-        dish.name.toLowerCase().includes(searchQuery.toLowerCase());
-      return categoryMatch && priceMatch && searchMatch;
-    })
-    .sort((a, b) => {
-      return sortOrder === "asc" ? a.price - b.price : b.price - a.price;
-    });
+  // Uncomment the following section when you want to enable backend integration
 
-  const totalPages = Math.ceil(filteredDishes.length / itemsPerPage);
-  const currentDishes = filteredDishes.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  /*
+  // Backend Data
+  const [dishes, setDishes] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  // Fetch dishes from backend
+  const fetchDishes = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.post("/api/dishes/filter", {
+        searchQuery,
+        selectedCategory,
+        priceRange,
+        sortOrder,
+        currentPage,
+        itemsPerPage,
+      });
+
+      setDishes(response.data.dishes);
+      setTotalPages(response.data.totalPages);
+    } catch (err) {
+      setError("Failed to fetch dishes. Please try again.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch dishes on initial load and whenever filters change
+  useEffect(() => {
+    fetchDishes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentPage, searchQuery, selectedCategory, priceRange, sortOrder]);
+
+  // Handle Filter Button Click
+  const handleFilter = () => {
+    setCurrentPage(1); // Reset to first page on new filter
+    fetchDishes();
+  };
+  */
+
+  // Handle Filter Button Click for Frontend (No Backend)
+  const handleFilterFrontend = () => {
+    setCurrentPage(1); // Reset to first page on new filter
+    // No action needed since filtering is handled on frontend
+  };
 
   return (
     <div className="menu-container">
+      {/* Search Section */}
       <div className="search-section">
         <div className="search-input-wrapper">
-          <FiSearch className="search-icon" />
+          <FiSearch className="search-icon" style={{ marginLeft: "0px" }} />
           <input
             type="text"
             value={searchQuery}
@@ -140,7 +201,6 @@ const MenuPage = () => {
             className="search-input"
             aria-label="Search dishes"
           />
-          {/* <FiSearch className="search-icon" /> */}
           {showSuggestions && suggestions.length > 0 && (
             <div className="suggestions-dropdown">
               {suggestions.map((dish) => (
@@ -158,8 +218,16 @@ const MenuPage = () => {
             </div>
           )}
         </div>
+        {/* Desktop Filter Button */}
+        <button
+          onClick={/* handleFilter */ handleFilterFrontend}
+          className="filter-button"
+          aria-label="Apply filters"
+        >
+          <BsFilterLeft style={{ marginRight: "0.5rem" }} /> Filter
+        </button>
       </div>
-
+      {/* Filters Section */}
       <div className="filters-section">
         <div className="filter-item">
           <BsFilterLeft className="filter-icon" />
@@ -204,13 +272,23 @@ const MenuPage = () => {
           </select>
         </div>
       </div>
-
+      {/* Mobile Filter Button */}
+      <button
+        onClick={/* handleFilter */ handleFilterFrontend}
+        className="filter-button mobile-filter"
+        aria-label="Apply filters"
+      >
+        <BsFilterLeft style={{ marginRight: "0.5rem" }} /> Apply Filters
+      </button>
+      {/* Dishes Grid */}
       <div className="dishes-grid">
-        {currentDishes.map((dish) => (
-          <CardFood dish={dish} key={dish.id} />
-        ))}
+        {filteredDishes
+          .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+          .map((dish) => (
+            <CardFood dish={dish} key={dish.id} />
+          ))}
       </div>
-
+      {/* Pagination */}
       {totalPages > 1 && (
         <div className="pagination">
           <button
@@ -236,6 +314,51 @@ const MenuPage = () => {
           </button>
         </div>
       )}
+      {/*       
+      // Uncomment the following section when integrating with backend
+
+      {loading && <div className="loading">Loading dishes...</div>}
+
+      {error && <div className="error">{error}</div>}
+
+      {!loading && !error && dishes.length > 0 && (
+        <div className="dishes-grid">
+          {dishes.map((dish) => (
+            <CardFood dish={dish} key={dish.id} />
+          ))}
+        </div>
+      )}
+
+      {!loading && !error && dishes.length === 0 && (
+        <div className="no-results">No dishes found.</div>
+      )}
+
+      {!loading && !error && totalPages > 1 && (
+        <div className="pagination">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="pagination-button"
+            aria-label="Previous page"
+          >
+            <FiChevronLeft className="pagination-icon" />
+          </button>
+          <span className="pagination-info">
+            Page {currentPage} of {totalPages}
+          </span>
+          <button
+            onClick={() =>
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+            }
+            disabled={currentPage === totalPages}
+            className="pagination-button"
+            aria-label="Next page"
+          >
+            <FiChevronRight className="pagination-icon" />
+          </button>
+        </div>
+      )}
+      */}
     </div>
   );
 };

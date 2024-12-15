@@ -69,7 +69,7 @@ export const CreateSlipPage = () => {
       <div className="reservation-wrapper">
         <h2 className="reservation-title">Reservation Form</h2>
         <form onSubmit={handleSubmit} className="reservation-form">
-          <div className="form-group">
+          <div className="form-group-create-slip">
             <label htmlFor="customerName" className="form-label">
               Customer Name
             </label>
@@ -90,7 +90,7 @@ export const CreateSlipPage = () => {
             )}
           </div>
 
-          <div className="form-group">
+          <div className="form-group-create-slip">
             <label htmlFor="numberOfGuests" className="form-label">
               Number of Guests
             </label>
@@ -112,7 +112,7 @@ export const CreateSlipPage = () => {
             )}
           </div>
 
-          <div className="form-group">
+          <div className="form-group-create-slip">
             <label htmlFor="date" className="form-label">
               Date
             </label>
@@ -127,7 +127,7 @@ export const CreateSlipPage = () => {
             />
           </div>
 
-          <div className="form-group">
+          <div className="form-group-create-slip">
             <label htmlFor="selectedTable" className="form-label">
               Select Table
             </label>

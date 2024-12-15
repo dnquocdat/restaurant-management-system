@@ -1,12 +1,13 @@
+// HistoryPage.js
 import React, { useState } from "react";
 import { FaStar, FaReceipt, FaCalendarAlt } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "./HistoryPage.css";
-import { Link } from "react-router-dom";
 
 export const HistoryPage = () => {
   const [activeTab, setActiveTab] = useState("orders");
   const navigate = useNavigate();
+
   const orderHistory = [
     {
       id: 1,
@@ -37,7 +38,6 @@ export const HistoryPage = () => {
       time: "19:00",
       guests: 4,
       tableNumber: "A12",
-      rating: 4,
     },
     {
       id: 2,
@@ -45,21 +45,52 @@ export const HistoryPage = () => {
       time: "20:30",
       guests: 2,
       tableNumber: "B08",
-      rating: 5,
     },
   ];
 
-  const [ratings, setRatings] = useState(
-    reservationHistory.reduce((acc, reservation) => {
-      acc[reservation.id] = reservation.rating;
-      return acc;
-    }, {})
-  );
+  // Initialize ratings state for each reservation and each criterion
+  const initialRatings = reservationHistory.reduce((acc, reservation) => {
+    acc[reservation.id] = {
+      service: 0,
+      location: 0,
+      foodQuality: 0,
+      price: 0,
+      ambience: 0,
+    };
+    return acc;
+  }, {});
 
-  const handleRatingChange = (reservationId, rating) => {
+  const [ratings, setRatings] = useState(initialRatings);
+
+  const handleRatingChange = (reservationId, criterion, rating) => {
     setRatings((prev) => ({
       ...prev,
-      [reservationId]: rating,
+      [reservationId]: {
+        ...prev[reservationId],
+        [criterion]: rating,
+      },
+    }));
+  };
+
+  const handleSubmit = (reservationId) => {
+    const reservationRatings = ratings[reservationId];
+    // Handle form submission logic here (e.g., send to backend)
+    console.log(
+      `Ratings for Reservation ${reservationId}:`,
+      reservationRatings
+    );
+    alert("Thank you for your feedback!");
+
+    // Optionally, reset the ratings after submission
+    setRatings((prev) => ({
+      ...prev,
+      [reservationId]: {
+        service: 0,
+        location: 0,
+        foodQuality: 0,
+        price: 0,
+        ambience: 0,
+      },
     }));
   };
 
@@ -90,8 +121,8 @@ export const HistoryPage = () => {
         {activeTab === "orders" ? (
           <div className="orders">
             {orderHistory.map((order) => (
-              <Link to={`/order-detail/${order.id}`}>
-                <div key={order.id} className="card">
+              <Link to={`/order-detail/${order.id}`} key={order.id}>
+                <div className="card">
                   <div className="card-header">
                     <div>
                       <h3>Order #{order.id}</h3>
@@ -129,21 +160,49 @@ export const HistoryPage = () => {
                     {reservation.guests === 1 ? "Guest" : "Guests"}
                   </p>
                 </div>
-                <div className="rating">
-                  <div className="stars">
-                    {[1, 2, 3, 4, 5].map((star) => (
-                      <button
-                        key={star}
-                        onClick={() => handleRatingChange(reservation.id, star)}
-                        className={`star ${
-                          star <= ratings[reservation.id] ? "active" : ""
-                        }`}
-                      >
-                        <FaStar />
-                      </button>
-                    ))}
-                  </div>
-                  <span>Your rating: {ratings[reservation.id]} stars</span>
+                <div className="rating-form">
+                  {[
+                    "service",
+                    "location",
+                    "foodQuality",
+                    "price",
+                    "ambience",
+                  ].map((criterion) => (
+                    <div key={criterion} className="rating-criterion">
+                      <label>
+                        {criterion.charAt(0).toUpperCase() + criterion.slice(1)}
+                        :
+                      </label>
+                      <div className="stars">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() =>
+                              handleRatingChange(
+                                reservation.id,
+                                criterion,
+                                star
+                              )
+                            }
+                            className={`star ${
+                              star <= ratings[reservation.id][criterion]
+                                ? "active"
+                                : ""
+                            }`}
+                          >
+                            <FaStar />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    className="submit-button"
+                    onClick={() => handleSubmit(reservation.id)}
+                  >
+                    Submit Ratings
+                  </button>
                 </div>
               </div>
             ))}

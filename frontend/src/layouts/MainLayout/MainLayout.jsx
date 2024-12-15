@@ -8,12 +8,14 @@ import {
 } from "react-icons/fa";
 import "./MainLayout.css";
 import { Link } from "react-router-dom";
+
 export const MainLayout = ({ children, title }) => {
   useEffect(() => {
     document.title = title;
-  }, []);
+  }, [title]);
 
   const [isAuthen, setIsAuthen] = useState(true);
+
   return (
     <div className="container">
       <header>
@@ -30,42 +32,44 @@ export const MainLayout = ({ children, title }) => {
           <Link to={"/contact"}>Contact Us</Link>
         </div>
         <div className="handle-user">
-          <div>
-            <RxAvatar />
+          <div className="avatar-container">
+            <div className="avatar-user">
+              <RxAvatar />
+            </div>
+            {isAuthen ? (
+              <ul className="option-user">
+                <li>
+                  <Link to={"/profile"}>Profile</Link>
+                </li>
+                <li>
+                  <Link to={"/activity-history"}>Activity History</Link>
+                </li>
+                <li>
+                  <Link
+                    to={"/"}
+                    onClick={() => {
+                      setIsAuthen(!isAuthen);
+                    }}
+                  >
+                    Log Out
+                  </Link>
+                </li>
+              </ul>
+            ) : (
+              <ul className="option-user">
+                <li>
+                  <Link to={"/login"}>Log In</Link>
+                </li>
+                <li>
+                  <Link to={"/login?tab=register"}>Register</Link>
+                </li>
+              </ul>
+            )}
           </div>
-          {isAuthen ? (
-            <ul className="option-user">
-              <li>
-                <Link to={"/profile"}>Profile</Link>
-              </li>
-              <li>
-                <Link to={"/activity-history"}>Activity History</Link>
-              </li>
-              <li>
-                <Link
-                  to={"/"}
-                  onClick={() => {
-                    setIsAuthen(!isAuthen);
-                  }}
-                >
-                  Log Out
-                </Link>
-              </li>
-            </ul>
-          ) : (
-            <ul className="option-user">
-              <li>
-                <Link to={"/login"}>Log In</Link>
-              </li>
-              <li>
-                <Link to={"/login?tab=register"}>Register</Link>
-              </li>
-            </ul>
-          )}
-          <div>
+          <div className="cart-icon">
             <Link to={"/cart"}>
               <FaShoppingCart />
-            </Link>{" "}
+            </Link>
           </div>
         </div>
       </header>

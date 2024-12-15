@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom"; // Thêm import này
 import { FaStar, FaTimes } from "react-icons/fa";
 import { BsFillChatSquareTextFill } from "react-icons/bs";
 import "./OrderDetailPage.css";
@@ -6,6 +7,7 @@ import "./OrderDetailPage.css";
 export const OrderDetailPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDish, setSelectedDish] = useState(null);
+  const navigate = useNavigate(); // Khởi tạo navigate
 
   const mockInvoiceData = [
     {
@@ -14,7 +16,7 @@ export const OrderDetailPage = () => {
       price: 24.99,
       quantity: 2,
       image:
-        "images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?ixlib=rb-4.0.3",
+        "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?ixlib=rb-4.0.3",
       description: "Fresh Atlantic salmon grilled to perfection with herbs",
     },
     {
@@ -23,7 +25,7 @@ export const OrderDetailPage = () => {
       price: 18.99,
       quantity: 1,
       image:
-        "images.unsplash.com/photo-1476124369491-e7addf5db371?ixlib=rb-4.0.3",
+        "https://images.unsplash.com/photo-1476124369491-e7addf5db371?ixlib=rb-4.0.3",
       description: "Creamy Italian risotto with wild mushrooms and truffle oil",
     },
     {
@@ -31,7 +33,8 @@ export const OrderDetailPage = () => {
       name: "Wagyu Beef Steak",
       price: 45.99,
       quantity: 2,
-      image: "images.unsplash.com/photo-1544025162-d76694265947?ixlib=rb-4.0.3",
+      image:
+        "https://images.unsplash.com/photo-1544025162-d76694265947?ixlib=rb-4.0.3",
       description: "Premium grade Wagyu beef cooked to your preference",
     },
   ];
@@ -46,6 +49,10 @@ export const OrderDetailPage = () => {
   const handleReviewClick = (dish) => {
     setSelectedDish(dish);
     setIsModalOpen(true);
+  };
+
+  const handleBack = () => {
+    navigate("/activity-history");
   };
 
   const ReviewModal = ({ dish, onClose }) => {
@@ -116,14 +123,19 @@ export const OrderDetailPage = () => {
   return (
     <div className="invoice-container">
       <div className="invoice-card">
-        <div className="invoice-content">
+        <div className="invoice-header">
           <h1>Order Invoice</h1>
+          <button onClick={handleBack} className="back-button">
+            &#8592; Back to Orders
+          </button>
+        </div>
 
+        <div className="invoice-content">
           <div className="invoice-items">
             {mockInvoiceData.map((dish) => (
               <div key={dish.id} className="dish-item">
                 <img
-                  src={`https://${dish.image}`}
+                  src={dish.image}
                   alt={dish.name}
                   className="dish-image"
                   onError={(e) => {
@@ -136,7 +148,7 @@ export const OrderDetailPage = () => {
                   <h3>{dish.name}</h3>
                   <p>{dish.description}</p>
                   <div className="dish-details">
-                    <div>
+                    <div className="dish-pricing">
                       <p>Price: ${dish.price.toFixed(2)}</p>
                       <p>Quantity: {dish.quantity}</p>
                       <p>

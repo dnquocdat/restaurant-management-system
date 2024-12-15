@@ -167,6 +167,7 @@ const ManagementDishPage = () => {
                     <button
                       onClick={() => handleViewDetails(dish)}
                       className="view-details-button"
+                      style={{ margin: 0 }}
                       aria-label={`View details for ${dish.name}`}
                     >
                       View Details
@@ -175,6 +176,7 @@ const ManagementDishPage = () => {
                     <button
                       onClick={() => handleEditDish(dish)}
                       className="edit-button"
+                      style={{ margin: 0 }}
                       aria-label={`Edit ${dish.name}`}
                     >
                       <FiEdit2 />
@@ -182,6 +184,7 @@ const ManagementDishPage = () => {
                     <button
                       onClick={() => handleDeleteDish(dish)}
                       className="delete-button"
+                      style={{ margin: 0, fontSize: 20 }}
                       aria-label={`Delete ${dish.name}`}
                     >
                       <FiTrash2 style={{ fontSize: 20 }} />

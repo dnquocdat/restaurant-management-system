@@ -84,6 +84,30 @@ header {
   position: relative;
 }
 
+.avatar-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.avatar-container svg {
+  width: 28px;
+  height: 28px;
+  color: #555;
+  transition: color 0.3s;
+}
+
+.avatar-container svg:hover {
+  color: #f4a261;
+}
+
+.avatar-container:hover .option-user {
+  display: block;
+  opacity: 1;
+  pointer-events: auto;
+}
+
 .handle-user svg {
   width: 28px;
   height: 28px;
@@ -97,12 +121,13 @@ header {
 }
 
 /* User Options Dropdown */
+
 .option-user {
   list-style: none;
   padding: 10px 0;
   display: none;
   position: absolute;
-  top: 40px;
+  top: 35px;
   right: 0;
   background-color: #ffffff;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -111,12 +136,7 @@ header {
   transition: opacity 0.3s;
   opacity: 0;
   pointer-events: none;
-}
-
-.handle-user:hover .option-user {
-  display: block;
-  opacity: 1;
-  pointer-events: auto;
+  margin-top: -5px;
 }
 
 .option-user li {
@@ -125,13 +145,25 @@ header {
 }
 
 .option-user li:hover {
-  background-color: #f9f9f9;
+  background-color: #b9a8a8;
 }
 
 .option-user a {
   text-decoration: none;
   color: #333;
   display: block;
+}
+
+/* Styling cho icon giỏ hàng */
+.cart-icon a svg {
+  color: #555;
+  transition: color 0.3s;
+  width: 28px;
+  height: 28px;
+}
+
+.cart-icon a svg:hover {
+  color: #f4a261;
 }
 
 /* Shopping Cart Icon */
@@ -153,6 +185,7 @@ header {
   flex: 1;
   min-height: 90vh;
   padding: 20px 30px;
+  padding-top: 0px;
   background-color: #fdfdfd;
 }
 

@@ -1,3 +1,4 @@
+/* Container Styles */
 .reservation-container {
   padding: 2rem;
   font-family: Arial, sans-serif;
@@ -9,6 +10,32 @@
   margin-bottom: 1rem;
 }
 
+/* Search Bar */
+.search-bar {
+  position: relative;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.search-input {
+  padding: 0.5rem 2.5rem 0.5rem 1rem;
+  width: 250px;
+  max-width: 100%;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}
+
+.search-icon {
+  position: absolute;
+  right: 10px;
+  font-size: 1.2rem;
+  color: #555;
+}
+
+/* Table Styles */
 .table-wrapper {
   overflow-x: auto;
 }
@@ -34,6 +61,7 @@
   border: none;
   cursor: pointer;
   color: #555;
+  font-size: 1rem;
 }
 
 .sort-button:disabled {
@@ -43,10 +71,15 @@
 
 .sort-icon {
   margin-left: 0.5rem;
+  transition: transform 0.2s;
 }
 
-.active-sort {
-  color: #007bff;
+.active-sort.asc .sort-icon {
+  transform: rotate(0deg);
+}
+
+.active-sort.desc .sort-icon {
+  transform: rotate(180deg);
 }
 
 .code-badge {
@@ -55,12 +88,23 @@
   color: white;
   border-radius: 1rem;
   font-size: 0.9rem;
+  text-decoration: none; /* Remove underline from Link */
 }
 
+.reservation-link {
+  text-decoration: none;
+}
+
+.reservation-link:hover .code-badge {
+  background-color: #0056b3;
+}
+
+/* Status Badges */
 .status-badge {
   padding: 0.3rem 0.6rem;
   border-radius: 1rem;
   font-size: 0.9rem;
+  transition: background-color 0.2s, color 0.2s;
 }
 
 .status-confirmed {
@@ -73,14 +117,31 @@
   color: black;
 }
 
-.view-button {
-  background: none;
-  border: none;
-  color: #007bff;
+/* Clickable Status */
+.clickable-status {
   cursor: pointer;
-  font-size: 1.2rem;
 }
 
+.clickable-status:hover {
+  background-color: #e0a800; /* Darker shade on hover */
+}
+
+/* Reservation Row Styles */
+.reservation-row {
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.reservation-row:hover {
+  background-color: #f1f1f1;
+}
+
+.reservation-row:focus {
+  outline: 2px solid #007bff;
+  background-color: #f1f1f1;
+}
+
+/* Loading and Error States */
 .loading-container,
 .error-container {
   display: flex;
@@ -109,11 +170,53 @@
   cursor: pointer;
 }
 
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+/* Pagination Styles */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.pagination-button {
+  padding: 0.5rem 0.75rem;
+  margin: 0 0.25rem;
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pagination-button:hover:not(.active-page) {
+  background-color: #e2e6ea;
+}
+
+.pagination-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.active-page {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.no-results {
+  text-align: center;
+  padding: 1rem;
+  color: #888;
+}
+.filter-bar {
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: flex-start;
+}
+
+.status-filter {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  font-size: 1rem;
 }

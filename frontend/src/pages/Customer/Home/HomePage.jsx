@@ -6,7 +6,7 @@ import {
   FaGlobeAsia,
   FaSearch,
 } from "react-icons/fa";
-import "./HomePage.css"; // Import the CSS file
+import "./HomePage.css";
 import { CardFood } from "../../../component/CardFood/CardFood";
 
 const HomePage = () => {

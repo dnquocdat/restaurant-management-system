@@ -44,7 +44,7 @@
 }
 
 /* Form Group */
-.form-group {
+.form-group-create-slip {
   display: flex;
   flex-direction: column;
 }

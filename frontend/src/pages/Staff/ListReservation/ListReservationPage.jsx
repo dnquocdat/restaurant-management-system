@@ -2,19 +2,30 @@ import React, { useState, useEffect } from "react";
 import {
   FaSort,
   FaSpinner,
-  FaEye,
   FaExclamationTriangle,
+  FaArrowLeft,
+  FaArrowRight,
 } from "react-icons/fa";
+import { AiOutlineSearch } from "react-icons/ai";
+import { useNavigate } from "react-router-dom";
 import "./ListReservationPage.css";
-import { Link } from "react-router-dom";
 
 export const ListReservationPage = () => {
+  // State variables
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [sortField, setSortField] = useState("date");
   const [sortDirection, setSortDirection] = useState("asc");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
+  const navigate = useNavigate();
+
+  // Constants for pagination
+  const reservationsPerPage = 10;
+
+  // Mock data
   const mockData = [
     {
       id: 1,
@@ -49,13 +60,15 @@ export const ListReservationPage = () => {
       email: "michael.b@example.com",
       phone: "+1 234-567-8902",
     },
+    // Add more mock data as needed
   ];
 
+  // Fetch data on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        // Simulate API call
+        // Simulate API call delay
         await new Promise((resolve) => setTimeout(resolve, 1000));
         setReservations(mockData);
         setError(null);
@@ -69,26 +82,101 @@ export const ListReservationPage = () => {
     fetchData();
   }, []);
 
+  // Handle sorting logic
   const handleSort = (field) => {
     if (sortField === field) {
+      // Toggle sort direction if same field is clicked
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
+      // Set new sort field and default to ascending
       setSortField(field);
       setSortDirection("asc");
     }
   };
 
-  const sortedReservations = [...reservations].sort((a, b) => {
+  // Handle search input change
+  const handleSearchChange = (e) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1); // Reset to first page on new search
+  };
+
+  // Filter reservations based on search query
+  const filteredReservations = reservations.filter(
+    (reservation) =>
+      reservation.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      reservation.id.toString().includes(searchQuery)
+  );
+
+  // Sort filtered reservations
+  const sortedReservations = [...filteredReservations].sort((a, b) => {
     const modifier = sortDirection === "asc" ? 1 : -1;
-    if (a[sortField] < b[sortField]) return -1 * modifier;
-    if (a[sortField] > b[sortField]) return 1 * modifier;
+    let aField = a[sortField];
+    let bField = b[sortField];
+
+    // Handle date sorting
+    if (sortField === "date") {
+      aField = new Date(aField);
+      bField = new Date(bField);
+    }
+
+    if (aField < bField) return -1 * modifier;
+    if (aField > bField) return 1 * modifier;
     return 0;
   });
 
-  const handleViewDetails = (id) => {
-    console.log(`Viewing details for reservation ${id}`);
+  // Pagination calculations
+  const indexOfLastReservation = currentPage * reservationsPerPage;
+  const indexOfFirstReservation = indexOfLastReservation - reservationsPerPage;
+  const currentReservations = sortedReservations.slice(
+    indexOfFirstReservation,
+    indexOfLastReservation
+  );
+  const totalPages = Math.ceil(
+    filteredReservations.length / reservationsPerPage
+  );
+
+  // Handle page change
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
   };
 
+  // Handle previous page
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  // Handle next page
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  // Handle status click to confirm status change
+  const handleStatusClick = (e, id) => {
+    e.stopPropagation(); // Prevent triggering row click
+    const reservation = reservations.find((res) => res.id === id);
+    if (reservation.status === "Pending") {
+      const confirmChange = window.confirm(
+        `Are you sure you want to confirm reservation ${reservation.code}?`
+      );
+      if (confirmChange) {
+        setReservations((prevReservations) =>
+          prevReservations.map((res) =>
+            res.id === id ? { ...res, status: "Confirmed" } : res
+          )
+        );
+      }
+    }
+  };
+
+  // Handle row click to navigate to order details
+  const handleRowClick = (id, status) => {
+    if (status === "Pending") {
+      return;
+    }
+    navigate("/staff/order", { state: { reservationId: id } });
+  };
+
+  // Loading state
   if (loading) {
     return (
       <div className="loading-container" role="status">
@@ -98,6 +186,7 @@ export const ListReservationPage = () => {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <div className="error-container" role="alert">
@@ -117,6 +206,20 @@ export const ListReservationPage = () => {
     <div className="reservation-container">
       <h1 className="reservation-title">Reservations</h1>
 
+      {/* Search Bar */}
+      <div className="search-bar">
+        <input
+          type="text"
+          placeholder="Search by Reservation Code or ID..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+          className="search-input"
+          aria-label="Search Reservations"
+        />
+        <AiOutlineSearch className="search-icon" />
+      </div>
+
+      {/* Reservations Table */}
       <div className="table-wrapper">
         <table className="reservation-table">
           <thead>
@@ -131,59 +234,134 @@ export const ListReservationPage = () => {
                 <th key={field}>
                   <button
                     className="sort-button"
-                    onClick={() => field !== "actions" && handleSort(field)}
-                    disabled={field === "actions"}
+                    onClick={() => handleSort(field)}
+                    aria-label={`Sort by ${label}`}
                   >
                     {label}
-                    {field !== "actions" && (
-                      <FaSort
-                        className={`sort-icon ${
-                          sortField === field ? "active-sort" : ""
-                        }`}
-                      />
-                    )}
+                    <FaSort
+                      className={`sort-icon ${
+                        sortField === field
+                          ? `active-sort ${sortDirection}`
+                          : ""
+                      }`}
+                    />
                   </button>
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {sortedReservations.map((reservation) => (
-              <tr key={reservation.id}>
-                <td>
-                  <span className="code-badge">{reservation.code}</span>
+            {currentReservations.length > 0 ? (
+              currentReservations.map((reservation) => (
+                <tr
+                  key={reservation.id}
+                  className="reservation-row"
+                  onClick={() =>
+                    handleRowClick(reservation.id, reservation.status)
+                  }
+                  role="button"
+                  tabIndex={0}
+                  onKeyPress={(e) => {
+                    if (e.key === "Enter") {
+                      handleRowClick(reservation.id, reservation.status);
+                    }
+                  }}
+                  aria-label={`View details for reservation ${reservation.code}`}
+                >
+                  <td>
+                    <span className="code-badge">{reservation.code}</span>
+                  </td>
+                  <td>{new Date(reservation.date).toLocaleDateString()}</td>
+                  <td>
+                    <div>{reservation.customerName}</div>
+                    <div className="email">{reservation.email}</div>
+                  </td>
+                  <td>{reservation.guestCount}</td>
+                  <td>
+                    <span
+                      className={`status-badge ${
+                        reservation.status === "Confirmed"
+                          ? "status-confirmed"
+                          : "status-pending"
+                      } ${
+                        reservation.status === "Pending"
+                          ? "clickable-status"
+                          : ""
+                      }`}
+                      onClick={(e) => handleStatusClick(e, reservation.id)}
+                      role={
+                        reservation.status === "Pending" ? "button" : "text"
+                      }
+                      tabIndex={reservation.status === "Pending" ? 0 : -1}
+                      onKeyPress={(e) => {
+                        if (
+                          e.key === "Enter" &&
+                          reservation.status === "Pending"
+                        ) {
+                          handleStatusClick(e, reservation.id);
+                        }
+                      }}
+                      aria-label={
+                        reservation.status === "Pending"
+                          ? `Click to confirm reservation ${reservation.code}`
+                          : ""
+                      }
+                    >
+                      {reservation.status}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="no-results">
+                  No reservations found.
                 </td>
-                <td>{new Date(reservation.date).toLocaleDateString()}</td>
-                <td>
-                  <div>{reservation.customerName}</div>
-                  <div className="email">{reservation.email}</div>
-                </td>
-                <td>{reservation.guestCount}</td>
-                <td>
-                  <span
-                    className={`status-badge ${
-                      reservation.status === "Confirmed"
-                        ? "status-confirmed"
-                        : "status-pending"
-                    }`}
-                  >
-                    {reservation.status}
-                  </span>
-                </td>
-                {/* <td>${reservation.amount.toFixed(2)}</td> */}
-                {/* <td>
-                  <button
-                    onClick={() => handleViewDetails(reservation.id)}
-                    className="view-button"
-                  >
-                    <FaEye />
-                  </button>
-                </td> */}
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <div className="pagination">
+          <button
+            onClick={handlePreviousPage}
+            disabled={currentPage === 1}
+            className="pagination-button"
+            aria-label="Previous Page"
+          >
+            <FaArrowLeft />
+          </button>
+
+          {/* Page Numbers */}
+          {[...Array(totalPages)].map((_, index) => {
+            const pageNumber = index + 1;
+            return (
+              <button
+                key={pageNumber}
+                onClick={() => handlePageChange(pageNumber)}
+                className={`pagination-button ${
+                  currentPage === pageNumber ? "active-page" : ""
+                }`}
+                aria-label={`Go to page ${pageNumber}`}
+              >
+                {pageNumber}
+              </button>
+            );
+          })}
+
+          <button
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages}
+            className="pagination-button"
+            aria-label="Next Page"
+          >
+            <FaArrowRight />
+          </button>
+        </div>
+      )}
     </div>
   );
 };

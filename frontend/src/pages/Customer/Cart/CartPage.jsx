@@ -286,7 +286,7 @@ export const CartPage = () => {
               <h3 className="section-subtitle">
                 <BsCreditCard className="icon" /> Payment Information
               </h3>
-              <div className="form-group">
+              <div className="form-group-checkout">
                 <label htmlFor="cardNumber">Card Number</label>
                 <input
                   type="text"
@@ -302,7 +302,7 @@ export const CartPage = () => {
                 )}
               </div>
               <div className="form-row">
-                <div className="form-group">
+                <div className="form-group-checkout">
                   <label htmlFor="expiryDate">Expiry Date</label>
                   <input
                     type="text"
@@ -317,7 +317,7 @@ export const CartPage = () => {
                     <p className="error-message">{errors.expiryDate}</p>
                   )}
                 </div>
-                <div className="form-group">
+                <div className="form-group-checkout">
                   <label htmlFor="cvv">CVV</label>
                   <input
                     type="text"
@@ -337,7 +337,7 @@ export const CartPage = () => {
             <h3 className="section-subtitle">
               <FaShippingFast className="icon" /> Shipping Information
             </h3>
-            <div className="form-group">
+            <div className="form-group-checkout">
               <label htmlFor="name">Full Name</label>
               <input
                 type="text"
@@ -348,7 +348,7 @@ export const CartPage = () => {
               />
               {errors.name && <p className="error-message">{errors.name}</p>}
             </div>
-            <div className="form-group">
+            <div className="form-group-checkout">
               <label htmlFor="phone">Phone Number</label>
               <input
                 type="text"
@@ -360,7 +360,7 @@ export const CartPage = () => {
               />
               {errors.phone && <p className="error-message">{errors.phone}</p>}
             </div>
-            <div className="form-group">
+            <div className="form-group-checkout">
               <label htmlFor="province">Province/City</label>
               <select
                 id="province"
@@ -379,7 +379,7 @@ export const CartPage = () => {
                 <p className="error-message">{errors.province}</p>
               )}
             </div>
-            <div className="form-group">
+            <div className="form-group-checkout">
               <label htmlFor="district">District</label>
               <select
                 id="district"
@@ -399,7 +399,7 @@ export const CartPage = () => {
                 <p className="error-message">{errors.district}</p>
               )}
             </div>
-            <div className="form-group">
+            <div className="form-group-checkout">
               <label htmlFor="ward">Ward</label>
               <select
                 id="ward"
@@ -417,7 +417,7 @@ export const CartPage = () => {
               </select>
               {errors.ward && <p className="error-message">{errors.ward}</p>}
             </div>
-            <div className="form-group">
+            <div className="form-group-checkout">
               <label htmlFor="address">Address</label>
               <input
                 id="address"

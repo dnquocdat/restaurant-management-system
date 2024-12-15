@@ -36,7 +36,7 @@ export const ProfilePage = () => {
   };
 
   return (
-    <div className="profile-container">
+    <div className="profile-container" style={{ minHeight: "90vh" }}>
       <h1>Manage Profile</h1>
       <div className="tabs">
         <button
@@ -54,7 +54,7 @@ export const ProfilePage = () => {
       </div>
 
       {activeTab === "personal-info" && (
-        <div className="tab-content">
+        <div className="tab-content" style={{ minHeight: "80vh" }}>
           <h2>Personal Information</h2>
           <div className="personal-info-container">
             {/* Avatar Section */}
