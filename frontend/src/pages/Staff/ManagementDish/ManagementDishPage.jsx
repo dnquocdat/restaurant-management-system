@@ -49,6 +49,7 @@ const ManagementDishPage = () => {
     description: "",
     category: "",
     image: "",
+    isShip: false, // Thêm thuộc tính isShip
   });
 
   const handleSearch = (e) => {
@@ -204,7 +205,7 @@ const ManagementDishPage = () => {
                 {formMode === "add" ? "Add New Dish" : "Edit Dish"}
               </h2>
               <form onSubmit={handleSubmit} className="form">
-                <div className="form-group">
+                <div className="form-group-adddish">
                   <label htmlFor="name">Name</label>
                   <input
                     type="text"
@@ -216,7 +217,7 @@ const ManagementDishPage = () => {
                     }
                   />
                 </div>
-                <div className="form-group">
+                <div className="form-group-adddish">
                   <label htmlFor="price">Price</label>
                   <input
                     type="number"
@@ -229,7 +230,7 @@ const ManagementDishPage = () => {
                     }
                   />
                 </div>
-                <div className="form-group">
+                <div className="form-group-adddish">
                   <label htmlFor="description">Description</label>
                   <textarea
                     id="description"
@@ -240,7 +241,7 @@ const ManagementDishPage = () => {
                     }
                   />
                 </div>
-                <div className="form-group">
+                <div className="form-group-adddish">
                   <label htmlFor="category">Category</label>
                   <input
                     type="text"
@@ -252,7 +253,22 @@ const ManagementDishPage = () => {
                     }
                   />
                 </div>
-                <div className="form-group">
+
+                <div className="form-group-adddish checkbox-group">
+                  <label htmlFor="isShip" className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      id="isShip"
+                      checked={formData.isShip}
+                      onChange={(e) =>
+                        setFormData({ ...formData, isShip: e.target.checked })
+                      }
+                    />
+                    Available for Shipping
+                  </label>
+                </div>
+
+                <div className="form-group-adddish">
                   <label htmlFor="image">Image URL</label>
                   <input
                     type="text"

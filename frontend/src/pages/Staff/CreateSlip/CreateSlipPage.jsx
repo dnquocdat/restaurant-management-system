@@ -5,19 +5,12 @@ export const CreateSlipPage = () => {
   const [formData, setFormData] = useState({
     customerName: "",
     numberOfGuests: "",
-    selectedTable: "",
-    date: new Date().toLocaleDateString(),
+    time: "", // Thêm trường time
+    date: new Date().toISOString().split("T")[0],
   });
 
   const [errors, setErrors] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
-
-  const tables = [
-    { id: 1, name: "Table 1" },
-    { id: 2, name: "Table 2" },
-    { id: 3, name: "Table 3" },
-    { id: 4, name: "Table 4" },
-  ];
 
   const validateForm = () => {
     const newErrors = {};
@@ -30,12 +23,39 @@ export const CreateSlipPage = () => {
       newErrors.numberOfGuests = "Number of guests must be greater than 0";
     }
 
-    if (!formData.selectedTable) {
-      newErrors.selectedTable = "Please select a table";
+    if (!formData.time) {
+      newErrors.time = "Please select a time for your reservation";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const checkAvailability = (time) => {
+    // Giả sử đây là danh sách tất cả các bàn đã đặt tại các thời gian cụ thể.
+    const bookedSlots = [
+      { tableId: 1, time: "1:00 PM" },
+      { tableId: 2, time: "1:00 PM" },
+      { tableId: 3, time: "1:00 PM" },
+      // Thêm các bản ghi đặt bàn khác ở đây
+    ];
+
+    // Danh sách tất cả các bàn có sẵn (ví dụ: tổng cộng 4 bàn)
+    const allTables = [1, 2, 3, 4];
+
+    // Kiểm tra xem có bàn nào trống trong thời gian đã chọn không
+    const availableTable = allTables.find(
+      (tableId) =>
+        !bookedSlots.some(
+          (slot) => slot.tableId === tableId && slot.time === time
+        )
+    );
+
+    if (availableTable) {
+      return { isAvailable: true, availableTable }; // Trả về bàn có sẵn
+    } else {
+      return { isAvailable: false }; // Không có bàn trống
+    }
   };
 
   const handleInputChange = (e) => {
@@ -55,11 +75,24 @@ export const CreateSlipPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const isValid = validateForm();
+    const isValid = validateForm(); // Giả sử validateForm là hàm kiểm tra tính hợp lệ của form
 
     if (isValid) {
+      const result = checkAvailability(formData.time); // Gọi hàm kiểm tra bàn trống tại thời gian đã chọn
+
+      if (!result.isAvailable) {
+        // Nếu không có bàn trống
+        alert("Sorry, all tables are booked for the selected time.");
+        return;
+      }
+
+      // Nếu có bàn trống
+      alert(
+        `Table ${result.availableTable} is available at the selected time.`
+      );
       setIsSubmitted(true);
       setTimeout(() => setIsSubmitted(false), 3000);
+
       console.log("Form submitted:", formData);
     }
   };
@@ -117,40 +150,36 @@ export const CreateSlipPage = () => {
               Date
             </label>
             <input
-              type="text"
+              type="date" // Thay từ "text" thành "date"
               name="date"
               id="date"
               value={formData.date}
-              disabled
-              className="form-input disabled-input"
+              onChange={handleInputChange} // Thêm onChange để cập nhật giá trị khi người dùng chọn ngày
+              className="form-input"
               aria-label="Date input"
             />
           </div>
 
           <div className="form-group-create-slip">
-            <label htmlFor="selectedTable" className="form-label">
-              Select Table
+            <label htmlFor="time" className="form-label">
+              Time
             </label>
             <select
-              name="selectedTable"
-              id="selectedTable"
-              value={formData.selectedTable}
+              name="time"
+              id="time"
+              value={formData.time}
               onChange={handleInputChange}
-              className={`form-select ${
-                errors.selectedTable ? "input-error" : ""
-              }`}
-              aria-label="Table selection dropdown"
+              className={`form-select ${errors.time ? "input-error" : ""}`}
+              aria-label="Select reservation time"
             >
-              <option value="">Select a table</option>
-              {tables.map((table) => (
-                <option key={table.id} value={table.id}>
-                  {table.name}
-                </option>
-              ))}
+              <option value="">Select a time</option>
+              <option value="12:00 PM">12:00 PM</option>
+              <option value="1:00 PM">1:00 PM</option>
+              <option value="2:00 PM">2:00 PM</option>
+              <option value="3:00 PM">3:00 PM</option>
+              <option value="4:00 PM">4:00 PM</option>
             </select>
-            {errors.selectedTable && (
-              <p className="error-message">{errors.selectedTable}</p>
-            )}
+            {errors.time && <p className="error-message">{errors.time}</p>}
           </div>
 
           <div className="form-submit">

@@ -35,12 +35,13 @@
   position: relative;
 }
 
-.search-icon {
+.search-icon-order {
   position: absolute;
   left: 0.75rem; /* Equivalent to left-3 */
   top: 50%;
   transform: translateY(-50%);
   color: #9ca3af; /* Equivalent to text-gray-400 */
+  font-size: 20px;
 }
 
 .search-input {
@@ -403,4 +404,59 @@
   .cart-sidebar {
     width: 24rem; /* Equivalent to md:w-96 */
   }
+}
+
+.discount-section {
+  margin: 1rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.discount-label {
+  font-size: 1rem;
+  color: #4b5563;
+}
+
+.discount-input {
+  padding: 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.discount-input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.apply-discount-button {
+  background-color: #3b82f6;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.apply-discount-button:hover {
+  background-color: #2563eb;
+}
+
+.cart-footer div {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem; /* Khoảng cách giữa các dòng */
+}
+
+.cart-discount {
+  color: #ef4444; /* Màu đỏ cho dòng giảm giá */
+  font-weight: 500;
+}
+
+.cart-total-final {
+  font-size: 1.25rem; /* Tăng kích thước font cho Total */
+  font-weight: bold;
+  color: #1f2937; /* Màu đậm */
 }

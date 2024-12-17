@@ -222,6 +222,7 @@ const MenuPage = () => {
         <button
           onClick={/* handleFilter */ handleFilterFrontend}
           className="filter-button"
+          style={{ margin: 0 }}
           aria-label="Apply filters"
         >
           <BsFilterLeft style={{ marginRight: "0.5rem" }} /> Filter
@@ -273,13 +274,7 @@ const MenuPage = () => {
         </div>
       </div>
       {/* Mobile Filter Button */}
-      <button
-        onClick={/* handleFilter */ handleFilterFrontend}
-        className="filter-button mobile-filter"
-        aria-label="Apply filters"
-      >
-        <BsFilterLeft style={{ marginRight: "0.5rem" }} /> Apply Filters
-      </button>
+
       {/* Dishes Grid */}
       <div className="dishes-grid">
         {filteredDishes

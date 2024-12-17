@@ -8,10 +8,11 @@ export const ProfilePage = () => {
   );
   const [isEditing, setIsEditing] = useState(false);
   const [userInfo, setUserInfo] = useState({
-    username: "dangngocquocdat10112004",
-    fullName: "Dang Ngoc Quoc Dat",
-    dob: "1990-01-01",
-    gender: "Other",
+    name: "Dang Ngoc Quoc Dat",
+    email: "dangngocquocdat10112004@gmail.com",
+    address: "123 Main St, City, Country",
+    phoneNumber: "+1234567890",
+    memberCard: "Gold",
   });
 
   const handleTabClick = (tab) => {
@@ -72,48 +73,54 @@ export const ProfilePage = () => {
 
             {/* Form Section */}
             <div className="form-section">
-              <div className="form-group">
-                <label>Username</label>
+              <div className="form-group-prfcus">
+                <label>Name</label>
                 <input
                   type="text"
-                  value={userInfo.username}
-                  name="username"
-                  onChange={handleInputChange}
-                  readOnly
-                />
-              </div>
-              <div className="form-group">
-                <label>Full Name</label>
-                <input
-                  type="text"
-                  value={userInfo.fullName}
-                  name="fullName"
+                  value={userInfo.name}
+                  name="name"
                   onChange={handleInputChange}
                   readOnly={!isEditing}
                 />
               </div>
-              <div className="form-group">
-                <label>Date of Birth</label>
+              <div className="form-group-prfcus">
+                <label>Email</label>
                 <input
-                  type="date"
-                  value={userInfo.dob}
-                  name="dob"
+                  type="email"
+                  value={userInfo.email}
+                  name="email"
                   onChange={handleInputChange}
                   readOnly={!isEditing}
                 />
               </div>
-              <div className="form-group">
-                <label>Gender</label>
-                <select
-                  value={userInfo.gender}
-                  name="gender"
+              <div className="form-group-prfcus">
+                <label>Address</label>
+                <input
+                  type="text"
+                  value={userInfo.address}
+                  name="address"
                   onChange={handleInputChange}
-                  disabled={!isEditing}
-                >
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
+                  readOnly={!isEditing}
+                />
+              </div>
+              <div className="form-group-prfcus">
+                <label>Phone Number</label>
+                <input
+                  type="text"
+                  value={userInfo.phoneNumber}
+                  name="phoneNumber"
+                  onChange={handleInputChange}
+                  readOnly={!isEditing}
+                />
+              </div>
+              <div className="form-group-prfcus">
+                <label>Member Card</label>
+                <input
+                  type="text"
+                  value={userInfo.memberCard}
+                  name="memberCard"
+                  disabled
+                />
               </div>
               <button className="edit-button" onClick={handleEditToggle}>
                 {isEditing ? "Save" : "Edit"}
@@ -126,23 +133,15 @@ export const ProfilePage = () => {
       {activeTab === "security" && (
         <div className="tab-content">
           <h2>Account and Security</h2>
-          <div className="form-group">
-            <label>Email</label>
-            <input
-              type="email"
-              value="dangngocquocdat10112004@gmail.com"
-              readOnly
-            />
-          </div>
-          <div className="form-group">
+          <div className="form-group-prfcus">
             <label>Current Password</label>
             <input type="password" placeholder="Enter current password" />
           </div>
-          <div className="form-group">
+          <div className="form-group-prfcus">
             <label>New Password</label>
             <input type="password" placeholder="Enter new password" />
           </div>
-          <div className="form-group">
+          <div className="form-group-prfcus">
             <label>Confirm New Password</label>
             <input type="password" placeholder="Confirm new password" />
           </div>

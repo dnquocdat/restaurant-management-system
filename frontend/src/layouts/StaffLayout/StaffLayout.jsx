@@ -8,7 +8,7 @@ import {
   FiFileText,
 } from "react-icons/fi";
 import { IoIosAddCircle } from "react-icons/io";
-import { FaUser, FaEdit } from "react-icons/fa";
+import { FaUser, FaEdit, FaAddressCard } from "react-icons/fa";
 import { Link } from "react-router-dom";
 import "./StaffLayout.css";
 
@@ -40,6 +40,12 @@ export const StaffLayout = ({ children, title }) => {
       path: "/staff/create-slip",
     },
     { icon: FiFileText, label: "Bills", id: "bills", path: "/staff/bill" },
+    {
+      icon: FaAddressCard,
+      label: "Management Customer",
+      id: "customer",
+      path: "/staff/customer",
+    },
   ];
 
   const navigationStaffItems = [

@@ -1,11 +1,13 @@
-// HistoryPage.js
 import React, { useState } from "react";
-import { FaStar, FaReceipt, FaCalendarAlt } from "react-icons/fa";
+import { FaStar, FaReceipt, FaCalendarAlt, FaSearch } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 import "./HistoryPage.css";
 
 export const HistoryPage = () => {
   const [activeTab, setActiveTab] = useState("orders");
+  const [searchQuery, setSearchQuery] = useState(""); // for search by order ID
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 2; // Number of items per page
   const navigate = useNavigate();
 
   const orderHistory = [
@@ -29,6 +31,17 @@ export const HistoryPage = () => {
       total: 14.98,
       status: "Delivered",
     },
+    {
+      id: 3,
+      date: "2024-01-12",
+      items: [
+        { name: "Veggie Burger", price: 10.99 },
+        { name: "Onion Rings", price: 5.99 },
+      ],
+      total: 16.98,
+      status: "Pending",
+    },
+    // Add more orders for testing pagination
   ];
 
   const reservationHistory = [
@@ -94,6 +107,30 @@ export const HistoryPage = () => {
     }));
   };
 
+  // Handle search input change
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+    setCurrentPage(1); // Reset to first page on search change
+  };
+
+  // Filter orders by search query
+  const filteredOrders = orderHistory.filter((order) =>
+    order.id.toString().includes(searchQuery)
+  );
+
+  // Pagination logic
+  const indexOfLastOrder = currentPage * itemsPerPage;
+  const indexOfFirstOrder = indexOfLastOrder - itemsPerPage;
+  const currentOrders = filteredOrders.slice(
+    indexOfFirstOrder,
+    indexOfLastOrder
+  );
+
+  // Handle page change
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   return (
     <div className="activity-history-container">
       <h1 className="activity-history-title">Activity History</h1>
@@ -119,33 +156,64 @@ export const HistoryPage = () => {
 
       <div className="content">
         {activeTab === "orders" ? (
-          <div className="orders">
-            {orderHistory.map((order) => (
-              <Link to={`/order-detail/${order.id}`} key={order.id}>
-                <div className="card">
-                  <div className="card-header">
-                    <div>
-                      <h3>Order #{order.id}</h3>
-                      <p>{order.date}</p>
-                    </div>
-                    <span className="status">{order.status}</span>
-                  </div>
-                  <div className="card-body">
-                    {order.items.map((item, index) => (
-                      <div key={index} className="item">
-                        <span>{item.name}</span>
-                        <span>${item.price.toFixed(2)}</span>
+          <>
+            <div className="search-bar-his">
+              <div className="searchid-icon">
+                <FaSearch />
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder="Search by Order ID"
+              />
+            </div>
+            <div className="orders">
+              {currentOrders.map((order) => (
+                <Link to={`/order-detail/${order.id}`} key={order.id}>
+                  <div className="card">
+                    <div className="card-header">
+                      <div>
+                        <h3>Order #{order.id}</h3>
+                        <p>{order.date}</p>
                       </div>
-                    ))}
-                    <div className="total">
-                      <span>Total</span>
-                      <span>${order.total.toFixed(2)}</span>
+                      <span className="status">{order.status}</span>
+                    </div>
+                    <div className="card-body">
+                      {order.items.map((item, index) => (
+                        <div key={index} className="item">
+                          <span>{item.name}</span>
+                          <span>${item.price.toFixed(2)}</span>
+                        </div>
+                      ))}
+                      <div className="total">
+                        <span>Total</span>
+                        <span>${order.total.toFixed(2)}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+
+            {/* Pagination */}
+            <div className="pagination">
+              {Array.from(
+                { length: Math.ceil(filteredOrders.length / itemsPerPage) },
+                (_, index) => index + 1
+              ).map((pageNumber) => (
+                <button
+                  key={pageNumber}
+                  onClick={() => handlePageChange(pageNumber)}
+                  className={`page-button ${
+                    pageNumber === currentPage ? "active" : ""
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              ))}
+            </div>
+          </>
         ) : (
           <div className="reservations">
             {reservationHistory.map((reservation) => (

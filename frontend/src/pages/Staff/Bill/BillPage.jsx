@@ -16,6 +16,7 @@ const mockInvoices = [
     date: "2024-01-15",
     customerName: "John Doe",
     amount: 1500.0,
+    discount: 0.1, // 10% discount
     items: [
       { name: "Product A", quantity: 2, price: 500 },
       { name: "Product B", quantity: 1, price: 500 },
@@ -28,6 +29,7 @@ const mockInvoices = [
     date: "2024-01-16",
     customerName: "Jane Smith",
     amount: 2500.0,
+    discount: 0.2, // 20% discount
     items: [
       { name: "Service X", quantity: 1, price: 1500 },
       { name: "Service Y", quantity: 2, price: 500 },
@@ -43,6 +45,7 @@ const mockOnlineInvoices = [
     date: "2024-01-17",
     customerName: "Alice Johnson",
     amount: 3000.0,
+    discount: 0.15, // 15% discount
     items: [
       { name: "Digital Service A", quantity: 1, price: 2000 },
       { name: "Digital Product B", quantity: 2, price: 500 },
@@ -55,14 +58,18 @@ const mockOnlineInvoices = [
     date: "2024-01-18",
     customerName: "Bob Wilson",
     amount: 1800.0,
+    discount: 0.1, // 10% discount
     items: [{ name: "Online Course", quantity: 1, price: 1800 }],
   },
 ];
+
 export const BillPage = () => {
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("table");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 2; // Số lượng hóa đơn mỗi trang
 
   const filteredInvoices = mockInvoices.filter((invoice) =>
     invoice.invoiceNumber.toLowerCase().includes(searchQuery.toLowerCase())
@@ -82,6 +89,24 @@ export const BillPage = () => {
     setSelectedInvoice(null);
   };
 
+  // Phân trang
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentInvoices =
+    activeTab === "table"
+      ? filteredInvoices.slice(indexOfFirstItem, indexOfLastItem)
+      : filteredOnlineInvoices.slice(indexOfFirstItem, indexOfLastItem);
+
+  const totalPages = Math.ceil(
+    (activeTab === "table"
+      ? filteredInvoices.length
+      : filteredOnlineInvoices.length) / itemsPerPage
+  );
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
   return (
     <div className="invoice-list-container">
       <div className="invoice-list-wrapper">
@@ -91,13 +116,19 @@ export const BillPage = () => {
         <div className="tab-navigation">
           <button
             className={`tab-button ${activeTab === "table" ? "active" : ""}`}
-            onClick={() => setActiveTab("table")}
+            onClick={() => {
+              setActiveTab("table");
+              setCurrentPage(1);
+            }}
           >
             Invoice Table
           </button>
           <button
             className={`tab-button ${activeTab === "online" ? "active" : ""}`}
-            onClick={() => setActiveTab("online")}
+            onClick={() => {
+              setActiveTab("online");
+              setCurrentPage(1);
+            }}
           >
             Online Invoices
           </button>
@@ -105,7 +136,7 @@ export const BillPage = () => {
 
         {/* Search Bar */}
         <div className="search-bar">
-          <FaSearch className="search-icon" style={{ marginLeft: 25 }} />
+          <FaSearch className="search-icon" />
           <input
             type="text"
             placeholder="Search by Invoice ID"
@@ -115,73 +146,53 @@ export const BillPage = () => {
           />
         </div>
 
-        {activeTab === "table" ? (
-          /* Regular Invoice Table */
-          <div className="table-container">
-            <table className="invoice-table">
-              <thead>
-                <tr>
-                  <th>Table Invoice ID</th>
-                  <th>Customer</th>
-                  <th>Date</th>
-                  <th>Amount</th>
-                  <th>Actions</th>
+        {/* Invoice Table */}
+        <div className="table-container">
+          <table className="invoice-table">
+            <thead>
+              <tr>
+                <th>Invoice ID</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Amount</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentInvoices.map((invoice) => (
+                <tr key={invoice.id}>
+                  <td>{invoice.invoiceNumber}</td>
+                  <td>{invoice.customerName}</td>
+                  <td>{invoice.date}</td>
+                  <td>${invoice.amount.toFixed(2)}</td>
+                  <td>
+                    <button
+                      onClick={() => handleViewDetails(invoice)}
+                      className="view-details-button"
+                    >
+                      View Details
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filteredInvoices.map((invoice) => (
-                  <tr key={invoice.id}>
-                    <td>{invoice.invoiceNumber}</td>
-                    <td>{invoice.customerName}</td>
-                    <td>{invoice.date}</td>
-                    <td>${invoice.amount.toFixed(2)}</td>
-                    <td>
-                      <button
-                        onClick={() => handleViewDetails(invoice)}
-                        className="view-details-button"
-                      >
-                        View Details
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          /* Online Invoice Table */
-          <div className="table-container">
-            <table className="invoice-table">
-              <thead>
-                <tr>
-                  <th>Online Invoice ID</th>
-                  <th>Customer</th>
-                  <th>Date</th>
-                  <th>Amount</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredOnlineInvoices.map((invoice) => (
-                  <tr key={invoice.id}>
-                    <td>{invoice.invoiceNumber}</td>
-                    <td>{invoice.customerName}</td>
-                    <td>{invoice.date}</td>
-                    <td>${invoice.amount.toFixed(2)}</td>
-                    <td>
-                      <button
-                        onClick={() => handleViewDetails(invoice)}
-                        className="view-details-button"
-                      >
-                        View Details
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="pagination">
+          {Array.from({ length: totalPages }, (_, index) => (
+            <button
+              key={index + 1}
+              className={`page-button ${
+                currentPage === index + 1 ? "active" : ""
+              }`}
+              onClick={() => handlePageChange(index + 1)}
+            >
+              {index + 1}
+            </button>
+          ))}
+        </div>
 
         {/* Modal */}
         {isModalOpen && selectedInvoice && (
@@ -227,6 +238,29 @@ export const BillPage = () => {
                   <span className="total-label">Total:</span>
                   <span className="total-amount">
                     ${selectedInvoice.amount.toFixed(2)}
+                  </span>
+                </div>
+
+                {/* Add Discount and Final Amount */}
+                <div className="modal-discount">
+                  <span className="discount-label">Discount Applied:</span>
+                  <span className="discount-amount">
+                    {selectedInvoice.discount * 100}% (
+                    {(
+                      selectedInvoice.amount * selectedInvoice.discount
+                    ).toFixed(2)}
+                    )
+                  </span>
+                </div>
+
+                <div className="modal-final">
+                  <span className="final-label">Final Amount:</span>
+                  <span className="final-amount">
+                    $
+                    {(
+                      selectedInvoice.amount *
+                      (1 - selectedInvoice.discount)
+                    ).toFixed(2)}
                   </span>
                 </div>
               </div>

@@ -101,19 +101,19 @@
   flex: 1;
 }
 
-.form-group {
+.form-group-prfcus {
   margin-bottom: 15px;
 }
 
-.form-group label {
+.form-group-prfcus label {
   display: block;
   margin-bottom: 5px;
   font-weight: bold;
   color: #ddd;
 }
 
-.form-group input,
-.form-group select {
+.form-group-prfcus input,
+.form-group-prfcus select {
   width: 100%;
   padding: 8px;
   border: 1px solid #555;

@@ -11,7 +11,7 @@
 }
 
 /* Search Bar */
-.search-bar {
+.search-bar-rs {
   position: relative;
   margin-bottom: 1rem;
   display: flex;
@@ -28,10 +28,10 @@
   font-size: 1rem;
 }
 
-.search-icon {
+.search-icon-rs {
   position: absolute;
-  right: 10px;
-  font-size: 1.2rem;
+  left: 10px;
+  font-size: 25px;
   color: #555;
 }
 

@@ -14,6 +14,8 @@ export const OrderPage = () => {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [memberId, setMemberId] = useState("");
+  const [discount, setDiscount] = useState(0);
   const [notification, setNotification] = useState({
     show: false,
     message: "",
@@ -137,8 +139,30 @@ export const OrderPage = () => {
     setCart(cart.filter((item) => item.id !== itemId));
   };
 
+  const fakeDiscountCodes = {
+    MEMBER123: 10, // 10% discount
+    MEMBER456: 15, // 15% discount
+    MEMBER789: 20, // 20% discount
+  };
+
+  // Function to validate and apply discount
+  const applyDiscount = () => {
+    if (fakeDiscountCodes[memberId]) {
+      setDiscount(fakeDiscountCodes[memberId]);
+      showNotification(`Discount of ${fakeDiscountCodes[memberId]}% applied!`);
+    } else {
+      setDiscount(0);
+      showNotification("Invalid Member ID. No discount applied.");
+    }
+  };
+
   const getTotalAmount = () => {
-    return cart.reduce((total, item) => total + item.price * item.quantity, 0);
+    const subtotal = cart.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0
+    );
+    const discountAmount = subtotal * (discount / 100);
+    return subtotal - discountAmount; // Return as a number
   };
 
   const filteredMenu = menuCategories.map((category) => ({
@@ -156,7 +180,7 @@ export const OrderPage = () => {
           <h1 className="title">Food Menu</h1>
           <div className="header-controls">
             <div className="search-box">
-              <FiSearch className="search-icon" />
+              <FiSearch className="search-icon-order" />
               <input
                 type="text"
                 placeholder="Search menu..."
@@ -309,11 +333,75 @@ export const OrderPage = () => {
                   )}
                 </div>
 
+                {/* Member ID Search for Discount */}
+                <div className="discount-section">
+                  <label htmlFor="memberId" className="discount-label">
+                    Enter Member ID for Discount:
+                  </label>
+                  <input
+                    type="text"
+                    id="memberId"
+                    className="discount-input"
+                    value={memberId}
+                    onChange={(e) => setMemberId(e.target.value)}
+                    placeholder="Enter Member ID"
+                  />
+                  <button
+                    onClick={applyDiscount}
+                    className="apply-discount-button"
+                  >
+                    Apply
+                  </button>
+                </div>
+
                 <div className="cart-footer">
+                  {/* Tổng giá ban đầu */}
                   <div className="cart-total">
-                    <span>Total:</span>
-                    <span>${getTotalAmount().toFixed(2)}</span>
+                    <span>Subtotal:</span>
+                    <span>
+                      $
+                      {cart
+                        .reduce(
+                          (total, item) => total + item.price * item.quantity,
+                          0
+                        )
+                        .toFixed(2)}
+                    </span>
                   </div>
+
+                  {/* Hiển thị mức giảm giá nếu có */}
+                  {discount > 0 && (
+                    <div className="cart-discount">
+                      <span>Discount ({discount}%):</span>
+                      <span>
+                        -$
+                        {(
+                          cart.reduce(
+                            (total, item) => total + item.price * item.quantity,
+                            0
+                          ) *
+                          (discount / 100)
+                        ).toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Tổng giá sau giảm */}
+                  <div className="cart-total-final">
+                    <span>Total:</span>
+                    <span>
+                      $
+                      {(
+                        cart.reduce(
+                          (total, item) => total + item.price * item.quantity,
+                          0
+                        ) *
+                        (1 - discount / 100)
+                      ).toFixed(2)}
+                    </span>
+                  </div>
+
+                  {/* Nút Thanh Toán */}
                   <button
                     className="checkout-button"
                     disabled={cart.length === 0}

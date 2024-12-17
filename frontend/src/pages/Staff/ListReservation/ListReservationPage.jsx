@@ -31,6 +31,8 @@ export const ListReservationPage = () => {
       id: 1,
       code: "RES001",
       date: "2024-02-15",
+      time: "18:00", // Added time field
+      tableNumber: 5, // Added tableNumber field
       customerName: "John Smith",
       guestCount: 2,
       status: "Confirmed",
@@ -42,6 +44,8 @@ export const ListReservationPage = () => {
       id: 2,
       code: "RES002",
       date: "2024-02-16",
+      time: "19:30", // Added time field
+      tableNumber: 3, // Added tableNumber field
       customerName: "Emma Wilson",
       guestCount: 4,
       status: "Pending",
@@ -53,6 +57,8 @@ export const ListReservationPage = () => {
       id: 3,
       code: "RES003",
       date: "2024-02-17",
+      time: "20:00", // Added time field
+      tableNumber: 7, // Added tableNumber field
       customerName: "Michael Brown",
       guestCount: 3,
       status: "Confirmed",
@@ -207,7 +213,7 @@ export const ListReservationPage = () => {
       <h1 className="reservation-title">Reservations</h1>
 
       {/* Search Bar */}
-      <div className="search-bar">
+      <div className="search-bar-rs">
         <input
           type="text"
           placeholder="Search by Reservation Code or ID..."
@@ -216,7 +222,7 @@ export const ListReservationPage = () => {
           className="search-input"
           aria-label="Search Reservations"
         />
-        <AiOutlineSearch className="search-icon" />
+        <AiOutlineSearch className="search-icon-rs" />
       </div>
 
       {/* Reservations Table */}
@@ -227,6 +233,8 @@ export const ListReservationPage = () => {
               {[
                 { field: "code", label: "Reservation Code" },
                 { field: "date", label: "Date" },
+                { field: "time", label: "Time" }, // New Time column
+                { field: "tableNumber", label: "Table Number" }, // New Table Number column
                 { field: "customerName", label: "Customer Name" },
                 { field: "guestCount", label: "Guests" },
                 { field: "status", label: "Status" },
@@ -250,6 +258,7 @@ export const ListReservationPage = () => {
               ))}
             </tr>
           </thead>
+
           <tbody>
             {currentReservations.length > 0 ? (
               currentReservations.map((reservation) => (
@@ -272,6 +281,9 @@ export const ListReservationPage = () => {
                     <span className="code-badge">{reservation.code}</span>
                   </td>
                   <td>{new Date(reservation.date).toLocaleDateString()}</td>
+                  <td>{reservation.time}</td> {/* New time field */}
+                  <td>{reservation.tableNumber}</td>{" "}
+                  {/* New tableNumber field */}
                   <td>
                     <div>{reservation.customerName}</div>
                     <div className="email">{reservation.email}</div>
@@ -314,7 +326,7 @@ export const ListReservationPage = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="5" className="no-results">
+                <td colSpan="7" className="no-results">
                   No reservations found.
                 </td>
               </tr>
@@ -324,44 +336,25 @@ export const ListReservationPage = () => {
       </div>
 
       {/* Pagination Controls */}
-      {totalPages > 1 && (
-        <div className="pagination">
-          <button
-            onClick={handlePreviousPage}
-            disabled={currentPage === 1}
-            className="pagination-button"
-            aria-label="Previous Page"
-          >
-            <FaArrowLeft />
-          </button>
-
-          {/* Page Numbers */}
-          {[...Array(totalPages)].map((_, index) => {
-            const pageNumber = index + 1;
-            return (
-              <button
-                key={pageNumber}
-                onClick={() => handlePageChange(pageNumber)}
-                className={`pagination-button ${
-                  currentPage === pageNumber ? "active-page" : ""
-                }`}
-                aria-label={`Go to page ${pageNumber}`}
-              >
-                {pageNumber}
-              </button>
-            );
-          })}
-
-          <button
-            onClick={handleNextPage}
-            disabled={currentPage === totalPages}
-            className="pagination-button"
-            aria-label="Next Page"
-          >
-            <FaArrowRight />
-          </button>
-        </div>
-      )}
+      <div className="pagination-container">
+        <button
+          onClick={handlePreviousPage}
+          disabled={currentPage === 1}
+          className="pagination-button"
+        >
+          <FaArrowLeft />
+        </button>
+        <span className="pagination-info">
+          Page {currentPage} of {totalPages}
+        </span>
+        <button
+          onClick={handleNextPage}
+          disabled={currentPage === totalPages}
+          className="pagination-button"
+        >
+          <FaArrowRight />
+        </button>
+      </div>
     </div>
   );
 };

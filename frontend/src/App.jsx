@@ -34,6 +34,7 @@ import { EmployeesPage } from "./pages/Staff/Employees/EmployeesPage";
 import { CartProvider } from "./component/CardContext/CardContext";
 import { StaffLogInPage } from "./pages/Staff/LogIn/StaffLogInPage";
 import ManagementDishPage from "./pages/Staff/ManagementDish/ManagementDishPage";
+import { ManagementCustomerPage } from "./pages/Staff/ManagementCustomer/ManagementCustomerPage";
 
 // end staff
 
@@ -183,6 +184,14 @@ function App() {
               element={
                 <StaffLayout title="Bill">
                   <BillPage />
+                </StaffLayout>
+              }
+            />
+            <Route
+              path="/staff/customer"
+              element={
+                <StaffLayout title="Customer">
+                  <ManagementCustomerPage />
                 </StaffLayout>
               }
             />
