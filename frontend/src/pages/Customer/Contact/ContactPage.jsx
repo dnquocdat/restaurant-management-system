@@ -33,6 +33,10 @@ export const ContactPage = () => {
         link: "https://instagram.com",
       },
     ],
+    parkingInfo: {
+      motorbike: "Motorbike parking available near the front entrance.",
+      car: "Car parking available in the basement with 24/7 security.",
+    },
   };
 
   return (
@@ -72,6 +76,19 @@ export const ContactPage = () => {
               ))}
             </div>
           </div>
+          <div className="info-item">
+            <FaDirections className="icon" aria-hidden="true" />
+            <div>
+              <h3>Parking Information</h3>
+              <p>
+                <strong>Motorbike:</strong> {contactInfo.parkingInfo.motorbike}
+              </p>
+              <p>
+                <strong>Car:</strong> {contactInfo.parkingInfo.car}
+              </p>
+            </div>
+          </div>
+
           <div className="social-media">
             <h3>Follow Us</h3>
             <div className="social-icons">

@@ -1,12 +1,23 @@
 import React, { useState } from "react";
 import { FiCheck } from "react-icons/fi";
+import {
+  FiClock,
+  FiUser,
+  FiPhone,
+  FiCalendar,
+  FiMessageSquare,
+} from "react-icons/fi";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import "./CreateSlip.css";
 export const CreateSlipPage = () => {
   const [formData, setFormData] = useState({
     customerName: "",
     numberOfGuests: "",
-    time: "", // Thêm trường time
-    date: new Date().toISOString().split("T")[0],
+    phone: "",
+    time: "",
+    date: new Date(),
+    specialRequests: "", // Thêm trường này
   });
 
   const [errors, setErrors] = useState({});
@@ -18,6 +29,11 @@ export const CreateSlipPage = () => {
       newErrors.customerName = "Customer name is required";
     }
 
+    // Kiểm tra số điện thoại
+    if (!formData.phone || !/^\d{10}$/.test(formData.phone)) {
+      newErrors.phone = "Valid 10-digit phone number required";
+    }
+
     const guests = Number(formData.numberOfGuests);
     if (isNaN(guests) || guests <= 0) {
       newErrors.numberOfGuests = "Number of guests must be greater than 0";
@@ -25,6 +41,11 @@ export const CreateSlipPage = () => {
 
     if (!formData.time) {
       newErrors.time = "Please select a time for your reservation";
+    }
+
+    if (formData.specialRequests.length > 500) {
+      newErrors.specialRequests =
+        "Special requests must be under 500 characters";
     }
 
     setErrors(newErrors);
@@ -93,7 +114,11 @@ export const CreateSlipPage = () => {
       setIsSubmitted(true);
       setTimeout(() => setIsSubmitted(false), 3000);
 
-      console.log("Form submitted:", formData);
+      const submissionData = {
+        ...formData,
+        date: formData.date.toISOString().split("T")[0], // Chuyển thành chuỗi định dạng YYYY-MM-DD
+      };
+      console.log("Form submitted:", submissionData);
     }
   };
 
@@ -106,80 +131,129 @@ export const CreateSlipPage = () => {
             <label htmlFor="customerName" className="form-label">
               Customer Name
             </label>
-            <input
-              type="text"
-              name="customerName"
-              id="customerName"
-              value={formData.customerName}
-              onChange={handleInputChange}
-              className={`form-input ${
-                errors.customerName ? "input-error" : ""
-              }`}
-              placeholder="Enter customer name"
-              aria-label="Customer name input"
-            />
+            <div className="input-container">
+              <FiUser className="input-icon" />
+              <input
+                type="text"
+                name="customerName"
+                id="customerName"
+                value={formData.customerName}
+                onChange={handleInputChange}
+                className={`form-input ${
+                  errors.customerName ? "input-error" : ""
+                }`}
+                placeholder="Enter customer name"
+                aria-label="Customer name input"
+              />
+            </div>
             {errors.customerName && (
               <p className="error-message">{errors.customerName}</p>
             )}
           </div>
 
           <div className="form-group-create-slip">
-            <label htmlFor="numberOfGuests" className="form-label">
-              Number of Guests
+            <label htmlFor="phone" className="form-label">
+              Phone Number
             </label>
-            <input
-              type="number"
-              name="numberOfGuests"
-              id="numberOfGuests"
-              value={formData.numberOfGuests}
-              onChange={handleInputChange}
-              className={`form-input ${
-                errors.numberOfGuests ? "input-error" : ""
-              }`}
-              placeholder="Enter number of guests"
-              min="1"
-              aria-label="Number of guests input"
-            />
-            {errors.numberOfGuests && (
-              <p className="error-message">{errors.numberOfGuests}</p>
-            )}
+            <div className="input-container">
+              <FiPhone className="input-icon" />
+              <input
+                type="tel"
+                name="phone"
+                id="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                className={`form-input ${errors.phone ? "input-error" : ""}`}
+                placeholder="Enter phone number"
+                aria-label="Phone number input"
+              />
+            </div>
+            {errors.phone && <p className="error-message">{errors.phone}</p>}
           </div>
 
           <div className="form-group-create-slip">
             <label htmlFor="date" className="form-label">
               Date
             </label>
-            <input
-              type="date" // Thay từ "text" thành "date"
-              name="date"
-              id="date"
-              value={formData.date}
-              onChange={handleInputChange} // Thêm onChange để cập nhật giá trị khi người dùng chọn ngày
-              className="form-input"
-              aria-label="Date input"
-            />
+            <div className="input-container">
+              <FiCalendar className="input-icon" />
+              <DatePicker
+                selected={formData.date}
+                onChange={(date) => setFormData({ ...formData, date })}
+                className="form-input"
+                minDate={new Date()} // Ngày nhỏ nhất là ngày hiện tại
+                dateFormat="yyyy-MM-dd" // Định dạng ngày
+                aria-label="Date input"
+              />
+            </div>
           </div>
 
           <div className="form-group-create-slip">
             <label htmlFor="time" className="form-label">
               Time
             </label>
-            <select
-              name="time"
-              id="time"
-              value={formData.time}
-              onChange={handleInputChange}
-              className={`form-select ${errors.time ? "input-error" : ""}`}
-              aria-label="Select reservation time"
-            >
-              <option value="">Select a time</option>
-              <option value="12:00 PM">12:00 PM</option>
-              <option value="1:00 PM">1:00 PM</option>
-              <option value="2:00 PM">2:00 PM</option>
-              <option value="3:00 PM">3:00 PM</option>
-              <option value="4:00 PM">4:00 PM</option>
-            </select>
+            <div className="input-container">
+              <FiClock className="input-icon" />
+              <select
+                name="time"
+                id="time"
+                value={formData.time}
+                onChange={handleInputChange}
+                className={`form-input ${errors.time ? "input-error" : ""}`}
+                aria-label="Select reservation time"
+              >
+                <option value="">Select a time</option>
+                <option value="12:00 PM">12:00 PM</option>
+                <option value="1:00 PM">1:00 PM</option>
+                <option value="2:00 PM">2:00 PM</option>
+                <option value="3:00 PM">3:00 PM</option>
+                <option value="4:00 PM">4:00 PM</option>
+              </select>
+            </div>
             {errors.time && <p className="error-message">{errors.time}</p>}
+          </div>
+
+          <div className="form-group-create-slip">
+            <label htmlFor="numberOfGuests" className="form-label">
+              Number of Guests
+            </label>
+            <div className="input-container">
+              <FiUser className="input-icon" />
+              <input
+                type="number"
+                name="numberOfGuests"
+                id="numberOfGuests"
+                value={formData.numberOfGuests}
+                onChange={handleInputChange}
+                className={`form-input ${
+                  errors.numberOfGuests ? "input-error" : ""
+                }`}
+                placeholder="Enter number of guests"
+                min="1"
+                aria-label="Number of guests input"
+              />
+            </div>
+            {errors.numberOfGuests && (
+              <p className="error-message">{errors.numberOfGuests}</p>
+            )}
+          </div>
+
+          <div className="form-group-create-slip">
+            <label htmlFor="specialRequests" className="form-label">
+              Special Requests
+            </label>
+            <div className="input-container">
+              <FiMessageSquare className="input-icon" />
+              <textarea
+                id="specialRequests"
+                name="specialRequests"
+                value={formData.specialRequests}
+                onChange={handleInputChange}
+                className="form-input"
+                placeholder="Enter any special requests (optional)"
+                aria-label="Special requests input"
+              ></textarea>
+            </div>
           </div>
 
           <div className="form-submit">

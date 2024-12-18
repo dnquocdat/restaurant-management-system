@@ -22,6 +22,7 @@ export const ProfileStaffPage = () => {
     address: "123 Main St, City, Country",
     salary: "50000",
     department: "Engineering",
+    branch: "Head Office", // Default branch
   });
 
   const [errors, setErrors] = useState({});
@@ -401,6 +402,11 @@ export const ProfileStaffPage = () => {
               "Department",
               formData.department,
               <FaBriefcase className="field-icon-style" />
+            )}
+            {renderField(
+              "Branch",
+              formData.branch,
+              <FaMapMarkerAlt className="field-icon-style" />
             )}
           </div>
         )}

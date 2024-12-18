@@ -15,13 +15,22 @@ const ManagementEmployeePage = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [detailedEmployee, setDetailedEmployee] = useState(null);
+
   const [formData, setFormData] = useState({
     branchId: "",
     name: "",
     position: "",
     email: "",
     phone: "",
+    address: "",
+    gender: "",
+    hire_date: "",
+    quit_date: "",
+    date_of_birth: "",
   });
+
   const [formErrors, setFormErrors] = useState({});
 
   const [filterOptions, setFilterOptions] = useState({
@@ -60,6 +69,11 @@ const ManagementEmployeePage = () => {
       position: "Manager",
       email: "john@example.com",
       phone: "0123456789",
+      address: "123 Main St, City A",
+      gender: "Male",
+      hire_date: "2022-01-15",
+      quit_date: null,
+      date_of_birth: "1990-06-20",
     },
     {
       id: 2,
@@ -68,16 +82,12 @@ const ManagementEmployeePage = () => {
       position: "Chef",
       email: "jane@example.com",
       phone: "0234567890",
+      address: "456 Elm St, City B",
+      gender: "Female",
+      hire_date: "2020-09-10",
+      quit_date: null,
+      date_of_birth: "1988-12-12",
     },
-    {
-      id: 3,
-      branchId: 2,
-      name: "Mike Johnson",
-      position: "Waiter",
-      email: "mike@example.com",
-      phone: "0345678901",
-    },
-    // Add more employees as needed
   ]);
 
   // Filtered and Sorted Employees
@@ -140,6 +150,13 @@ const ManagementEmployeePage = () => {
     if (!formData.branchId) {
       errors.branchId = "Branch is required";
     }
+
+    if (!formData.address.trim()) errors.address = "Address is required";
+    if (!formData.gender) errors.gender = "Gender is required";
+    if (!formData.hire_date) errors.hire_date = "Hire date is required";
+    if (!formData.date_of_birth)
+      errors.date_of_birth = "Date of birth is required";
+
     return errors;
   };
 
@@ -179,6 +196,11 @@ const ManagementEmployeePage = () => {
         position: "",
         email: "",
         phone: "",
+        address: "",
+        gender: "",
+        hire_date: "",
+        quit_date: "",
+        date_of_birth: "",
       });
       setSelectedEmployee(null); // Clear selected employee
       setFormErrors({});
@@ -258,7 +280,7 @@ const ManagementEmployeePage = () => {
 
             <div className="filter-field">
               <label htmlFor="filter-position" className="label">
-                Position
+                Department
               </label>
               <select
                 id="filter-position"
@@ -271,7 +293,7 @@ const ManagementEmployeePage = () => {
                   })
                 }
               >
-                <option value="">--All Positions--</option>
+                <option value="">--All Departments--</option>
                 {positions.map((position, index) => (
                   <option key={index} value={position}>
                     {position}
@@ -280,7 +302,7 @@ const ManagementEmployeePage = () => {
               </select>
             </div>
 
-            <div className="filter-field">
+            {/* <div className="filter-field">
               <label htmlFor="sort-by" className="label">
                 Sort By
               </label>
@@ -298,7 +320,7 @@ const ManagementEmployeePage = () => {
                 <option value="email">Email</option>
                 <option value="phone">Phone</option>
               </select>
-            </div>
+            </div> */}
 
             {/* <div className="filter-field">
               <label htmlFor="sort-order" className="label">
@@ -343,7 +365,7 @@ const ManagementEmployeePage = () => {
                 <tr>
                   <th>Name</th>
                   <th>Branch</th>
-                  <th>Position</th>
+                  <th>Department</th>
                   <th>Email</th>
                   <th>Phone</th>
                   <th>Actions</th>
@@ -363,6 +385,15 @@ const ManagementEmployeePage = () => {
                       <td className="actions">
                         <button
                           onClick={() => {
+                            setDetailedEmployee(employee); // Set the employee for details modal
+                            setShowDetailsModal(true); // Show details modal
+                          }}
+                          className="details-button-employee"
+                        >
+                          View Details
+                        </button>
+                        <button
+                          onClick={() => {
                             setSelectedEmployee(employee);
                             setFormData({
                               branchId: employee.branchId.toString(),
@@ -370,7 +401,13 @@ const ManagementEmployeePage = () => {
                               position: employee.position,
                               email: employee.email,
                               phone: employee.phone,
+                              address: employee.address || "",
+                              gender: employee.gender || "",
+                              hire_date: employee.hire_date || "",
+                              quit_date: employee.quit_date || "",
+                              date_of_birth: employee.date_of_birth || "",
                             });
+
                             setShowAddForm(true); // Open the modal for editing
                           }}
                           className="edit-button"
@@ -402,7 +439,7 @@ const ManagementEmployeePage = () => {
           </div>
 
           {/* Pagination Controls */}
-          {totalPages > 1 && (
+          {totalPages > 0 && (
             <div className="pagination">
               <button
                 onClick={() => paginate(currentPage - 1)}
@@ -535,6 +572,92 @@ const ManagementEmployeePage = () => {
                   <p className="error">{formErrors.phone}</p>
                 )}
               </div>
+
+              <div className="form-field">
+                <label className="label">Address</label>
+                <input
+                  type="text"
+                  className={`input ${formErrors.address ? "input-error" : ""}`}
+                  value={formData.address || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
+                />
+                {formErrors.address && (
+                  <p className="error">{formErrors.address}</p>
+                )}
+              </div>
+
+              <div className="form-field">
+                <label className="label">Gender</label>
+                <select
+                  className={`select ${formErrors.gender ? "input-error" : ""}`}
+                  value={formData.gender || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, gender: e.target.value })
+                  }
+                >
+                  <option value="">--Select Gender--</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                {formErrors.gender && (
+                  <p className="error">{formErrors.gender}</p>
+                )}
+              </div>
+
+              <div className="form-field">
+                <label className="label">Hire Date</label>
+                <input
+                  type="date"
+                  className={`input ${
+                    formErrors.hire_date ? "input-error" : ""
+                  }`}
+                  value={formData.hire_date || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, hire_date: e.target.value })
+                  }
+                />
+                {formErrors.hire_date && (
+                  <p className="error">{formErrors.hire_date}</p>
+                )}
+              </div>
+
+              <div className="form-field">
+                <label className="label">Quit Date</label>
+                <input
+                  type="date"
+                  className={`input ${
+                    formErrors.quit_date ? "input-error" : ""
+                  }`}
+                  value={formData.quit_date || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, quit_date: e.target.value })
+                  }
+                />
+                {formErrors.quit_date && (
+                  <p className="error">{formErrors.quit_date}</p>
+                )}
+              </div>
+
+              <div className="form-field">
+                <label className="label">Date of Birth</label>
+                <input
+                  type="date"
+                  className={`input ${
+                    formErrors.date_of_birth ? "input-error" : ""
+                  }`}
+                  value={formData.date_of_birth || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, date_of_birth: e.target.value })
+                  }
+                />
+                {formErrors.date_of_birth && (
+                  <p className="error">{formErrors.date_of_birth}</p>
+                )}
+              </div>
+
               <div className="form-buttons">
                 <button type="submit" className="submit-button">
                   {selectedEmployee ? "Update" : "Add"} Employee
@@ -571,6 +694,67 @@ const ManagementEmployeePage = () => {
                 className="cancel-button"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Details Modal */}
+      {showDetailsModal && detailedEmployee && (
+        <div className="modal-detail-employee-overlay">
+          <div className="modal-detail-employee-content">
+            <div className="modal-detail-employee-header">
+              <h3>Employee Details</h3>
+              <button
+                onClick={() => setShowDetailsModal(false)} // Close modal
+                className="modal-detail-employee-close-button"
+              >
+                <FiX className="icon" />
+              </button>
+            </div>
+            <div className="modal-detail-employee-body">
+              <p>
+                <strong>Name:</strong> {detailedEmployee.name}
+              </p>
+              <p>
+                <strong>Branch:</strong>{" "}
+                {branches.find((b) => b.id === detailedEmployee.branchId)?.name}
+              </p>
+              <p>
+                <strong>Position:</strong> {detailedEmployee.position}
+              </p>
+              <p>
+                <strong>Email:</strong> {detailedEmployee.email}
+              </p>
+              <p>
+                <strong>Phone:</strong> {detailedEmployee.phone}
+              </p>
+              <p>
+                <strong>Address:</strong> {detailedEmployee.address}
+              </p>
+              <p>
+                <strong>Gender:</strong> {detailedEmployee.gender}
+              </p>
+              <p>
+                <strong>Hire Date:</strong> {detailedEmployee.hire_date}
+              </p>
+              <p>
+                <strong>Quit Date:</strong>{" "}
+                {detailedEmployee.quit_date
+                  ? detailedEmployee.quit_date
+                  : "N/A"}
+              </p>
+              <p>
+                <strong>Date of Birth:</strong> {detailedEmployee.date_of_birth}
+              </p>
+            </div>
+            <div className="modal-detail-employee-footer">
+              <button
+                onClick={() => setShowDetailsModal(false)} // Close modal
+                className="modal-detail-employee-close-button"
+              >
+                Close
               </button>
             </div>
           </div>

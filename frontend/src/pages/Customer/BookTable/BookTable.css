@@ -26,24 +26,25 @@
 
 .booking-form .input-icon {
   position: absolute;
-  top: 12px;
+  top: 50%;
   left: 12px;
+  transform: translateY(-50%); /* Centers the icon vertically */
   color: #ccc;
 }
 
-.input-field {
+.booking-form .input-field {
   width: 100%;
-  padding: 12px 16px;
-  padding-left: 40px;
+  padding: 10px 12px 10px 40px; /* Left padding adjusted for the icon */
   border: 1px solid #ccc;
-  border-radius: 8px;
-  outline: none;
-  transition: border 0.3s;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box; /* Ensures padding doesn't increase field size */
+  margin: 7px 0;
 }
 
-.input-field:focus {
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3);
+.booking-form .input-field:focus {
+  border-color: #007bff; /* Highlight on focus */
+  outline: none;
 }
 
 .error-border {

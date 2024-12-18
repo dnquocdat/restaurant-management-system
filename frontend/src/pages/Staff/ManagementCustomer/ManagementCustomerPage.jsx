@@ -59,7 +59,7 @@ const mockCustomers = [
       card_issuer: 101,
       branch_created: 1,
       card_type_id: 2, // Bronze
-      member_id: 1,
+      member_id: "member1", // Sửa thành chuỗi
       member_name: "John Doe",
       member_phone_number: "123-456-7890",
       member_gender: "Male",
@@ -79,7 +79,7 @@ const mockCustomers = [
       card_issuer: 102,
       branch_created: 2,
       card_type_id: 1, // None
-      member_id: 2,
+      member_id: "", // Ban đầu là rỗng
       member_name: "Jane Smith",
       member_phone_number: "098-765-4321",
       member_gender: "Female",
@@ -99,7 +99,7 @@ const mockCustomers = [
       card_issuer: 101,
       branch_created: 1,
       card_type_id: 3, // Silver
-      member_id: 3,
+      member_id: "member2", // Sửa thành chuỗi
       member_name: "Alice Johnson",
       member_phone_number: "555-123-4567",
       member_gender: "Female",
@@ -207,6 +207,40 @@ export const ManagementCustomerPage = () => {
     closeEditModal();
   };
 
+  const handleCreateMemberId = (customer) => {
+    const confirmation = window.confirm(
+      `Are you sure you want to create a new Member ID for ${customer.name}?`
+    );
+    if (!confirmation) {
+      return; // Nếu không xác nhận, thoát hàm
+    }
+
+    // Tìm member_id lớn nhất
+    const currentIds = customers
+      .map((c) => c.memberCard.member_id)
+      .filter((id) => id.startsWith("member")) // Chỉ lấy các member_id hợp lệ
+      .map((id) => parseInt(id.replace("member", ""), 10)); // Lấy số từ chuỗi
+
+    const maxId = currentIds.length > 0 ? Math.max(...currentIds) : 0;
+    const newMemberId = `member${maxId + 1}`;
+
+    // Cập nhật khách hàng
+    setCustomers((prev) =>
+      prev.map((c) =>
+        c.id === customer.id
+          ? {
+              ...c,
+              memberCard: {
+                ...c.memberCard,
+                member_id: newMemberId, // Gán ID mới
+                card_type_id: 2, // Chuyển sang Bronze
+              },
+            }
+          : c
+      )
+    );
+  };
+
   // Modal state for Edit Card Level
   const [isEditCardLevelModalOpen, setIsEditCardLevelModalOpen] =
     useState(false);
@@ -272,12 +306,14 @@ export const ManagementCustomerPage = () => {
                 <th>NAME</th>
                 <th>EMAIL</th>
                 <th>PHONE</th>
-                <th>Member Card</th>
-                <th>Adjust Level</th>
+                <th>Total Points</th>
+                <th>Level Card</th>
+                <th>MemberCard ID</th>
                 <th>ISSUER</th>
                 <th>ACTIONS</th>
               </tr>
             </thead>
+
             <tbody>
               {currentCustomers.map((customer) => (
                 <tr key={customer.id}>
@@ -285,6 +321,9 @@ export const ManagementCustomerPage = () => {
                   <td>{customer.name}</td>
                   <td>{customer.email}</td>
                   <td>{customer.phone}</td>
+                  <td style={{ textAlign: "center" }}>
+                    {customer.memberCard.total_points}
+                  </td>
                   <td
                     className={`member-card ${getMemberCardRank(
                       customer.memberCard.card_type_id
@@ -293,13 +332,18 @@ export const ManagementCustomerPage = () => {
                     {getMemberCardRank(customer.memberCard.card_type_id)}
                   </td>
                   <td>
-                    <button
-                      onClick={() => handleEditCardLevel(customer)}
-                      className="edit-card-level-button"
-                    >
-                      Adjust
-                    </button>
+                    {customer.memberCard.member_id === "" ? (
+                      <button
+                        onClick={() => handleCreateMemberId(customer)}
+                        className="create-member-button"
+                      >
+                        Create
+                      </button>
+                    ) : (
+                      customer.memberCard.member_id
+                    )}
                   </td>
+
                   <td>
                     <button
                       onClick={() =>
@@ -329,13 +373,6 @@ export const ManagementCustomerPage = () => {
                   </td>
                 </tr>
               ))}
-              {currentCustomers.length === 0 && (
-                <tr>
-                  <td colSpan="7" className="no-results">
-                    No customers found.
-                  </td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>

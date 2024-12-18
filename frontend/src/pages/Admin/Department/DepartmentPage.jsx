@@ -272,14 +272,14 @@ const DepartmentPage = () => {
           />
         </div>
         <div className="sort-buttons">
-          <button onClick={() => handleSort("name")} className="sort-button">
+          {/* <button onClick={() => handleSort("name")} className="sort-button">
             Sort by Name{" "}
             {sortConfig.key === "name"
               ? sortConfig.direction === "ascending"
                 ? "↑"
                 : "↓"
               : ""}
-          </button>
+          </button> */}
           <button onClick={() => handleSort("salary")} className="sort-button">
             Sort by Salary{" "}
             {sortConfig.key === "salary"
@@ -344,7 +344,7 @@ const DepartmentPage = () => {
                   <span className="error">{addFormErrors.salary}</span>
                 )}
               </div>
-              <div className="form-group-dpm">
+              {/* <div className="form-group-dpm">
                 <label htmlFor="image">Image:</label>
                 <input
                   type="file"
@@ -361,7 +361,7 @@ const DepartmentPage = () => {
                     className="image-preview"
                   />
                 )}
-              </div>
+              </div> */}
               <div className="modal-actions">
                 <button type="submit" className="add-button">
                   <FiPlus /> Add Department
@@ -383,7 +383,7 @@ const DepartmentPage = () => {
       <div className="department-list">
         {sortedDepartments.map((department) => (
           <div key={department.id} className="department-card">
-            <div className="department-image">
+            {/* <div className="department-image">
               <img
                 src={department.image}
                 alt={`${department.name} Header`}
@@ -392,7 +392,7 @@ const DepartmentPage = () => {
                     "https://images.unsplash.com/photo-1497366216548-37526070297c";
                 }}
               />
-            </div>
+            </div> */}
 
             <div className="department-content">
               <div className="department-title">
@@ -445,7 +445,7 @@ const DepartmentPage = () => {
                 )}
               </div>
 
-              {isEditing && selectedDepartment?.id === department.id && (
+              {/* {isEditing && selectedDepartment?.id === department.id && (
                 <div className="edit-image-section">
                   <label htmlFor="edit-image">Edit Image:</label>
                   <input
@@ -464,7 +464,7 @@ const DepartmentPage = () => {
                     />
                   )}
                 </div>
-              )}
+              )} */}
 
               <div className="department-info">
                 <div className="info-item">

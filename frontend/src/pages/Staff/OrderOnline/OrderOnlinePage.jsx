@@ -21,28 +21,81 @@ export const OrderOnlinePage = () => {
     {
       id: "ORD001",
       customerName: "John Smith",
-      items: ["Burger", "Fries", "Coke"],
+      items: [
+        { name: "Burger", quantity: 2, price: 5.0 },
+        { name: "Fries", quantity: 1, price: 3.5 },
+        { name: "Coke", quantity: 1, price: 2.0 },
+      ],
       totalAmount: 25.99,
+      discount: 0.2,
       status: "pending",
       orderTime: "2024-01-20T10:30:00",
     },
     {
       id: "ORD002",
       customerName: "Emma Wilson",
-      items: ["Pizza", "Salad"],
-      totalAmount: 32.5,
+      items: [
+        { name: "Pizza", quantity: 1, price: 12.0 },
+        { name: "Garlic Bread", quantity: 2, price: 3.5 },
+        { name: "Lemonade", quantity: 1, price: 2.5 },
+      ],
+      totalAmount: 27.5,
+      discount: 0.1,
       status: "in-progress",
       orderTime: "2024-01-20T11:15:00",
     },
     {
       id: "ORD003",
       customerName: "Michael Brown",
-      items: ["Pasta", "Garlic Bread", "Wine"],
-      totalAmount: 45.75,
+      items: [
+        { name: "Pasta", quantity: 1, price: 10.0 },
+        { name: "Wine", quantity: 1, price: 20.0 },
+        { name: "Cheesecake", quantity: 2, price: 4.5 },
+      ],
+      totalAmount: 39.0,
+      discount: 0.15,
       status: "completed",
       orderTime: "2024-01-20T09:45:00",
     },
-    // Add more mock orders as needed
+    {
+      id: "ORD004",
+      customerName: "Sophia Green",
+      items: [
+        { name: "Salad", quantity: 1, price: 6.5 },
+        { name: "Soup", quantity: 2, price: 4.0 },
+        { name: "Iced Tea", quantity: 1, price: 2.0 },
+      ],
+      totalAmount: 20.5,
+      discount: 0.05,
+      status: "cancelled",
+      orderTime: "2024-01-20T08:30:00",
+    },
+    {
+      id: "ORD005",
+      customerName: "Oliver Taylor",
+      items: [
+        { name: "Steak", quantity: 1, price: 25.0 },
+        { name: "Mashed Potatoes", quantity: 1, price: 5.5 },
+        { name: "Beer", quantity: 2, price: 4.0 },
+      ],
+      totalAmount: 38.5,
+      discount: 0.25,
+      status: "pending",
+      orderTime: "2024-01-20T12:00:00",
+    },
+    {
+      id: "ORD006",
+      customerName: "Ava Martinez",
+      items: [
+        { name: "Fish Tacos", quantity: 2, price: 6.5 },
+        { name: "Rice", quantity: 1, price: 2.5 },
+        { name: "Margarita", quantity: 2, price: 8.0 },
+      ],
+      totalAmount: 31.0,
+      discount: 0.1,
+      status: "completed",
+      orderTime: "2024-01-20T13:30:00",
+    },
   ];
 
   useEffect(() => {
@@ -197,7 +250,6 @@ export const OrderOnlinePage = () => {
             <tr>
               <th>Order ID</th>
               <th>Customer</th>
-              <th>Items</th>
               <th>Total</th>
               <th>Status</th>
               <th>Actions</th>
@@ -208,26 +260,43 @@ export const OrderOnlinePage = () => {
               <tr key={order.id}>
                 <td>{order.id}</td>
                 <td>{order.customerName}</td>
-                <td>
-                  <div className="items-list">
-                    {order.items.map((item, index) => (
-                      <span key={index} className="item-tag">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </td>
                 <td>${order.totalAmount.toFixed(2)}</td>
                 <td>
                   <StatusBadge status={order.status} />
                 </td>
-                <td>
+                <td
+                  style={{
+                    display: "flex",
+                    gap: "10px",
+                    padding: "10px",
+                    boxSizing: "border-box",
+                  }}
+                >
+                  <button
+                    onClick={() => {
+                      setSelectedOrder(order);
+                      setIsModalOpen("details");
+                    }}
+                    className="details-button-orderonline"
+                    style={{
+                      color: "white",
+                      padding: "0 10px",
+                      borderRadius: "7px",
+                      border: "none",
+                      background: "#3182ce",
+                    }}
+                    aria-label="View order details"
+                  >
+                    View Details
+                  </button>
+
                   <button
                     onClick={() => {
                       setSelectedOrder(order);
                       setIsModalOpen(true);
                     }}
                     className="edit-button"
+                    style={{ margin: 0 }}
                     aria-label="Edit order status"
                   >
                     <AiOutlineEdit />
@@ -273,6 +342,81 @@ export const OrderOnlinePage = () => {
             setSelectedOrder(null);
           }}
         />
+      )}
+
+      {isModalOpen === "details" && selectedOrder && (
+        <div className="modal-overlay">
+          <div className="modal-content" role="dialog" aria-modal="true">
+            <div className="modal-header">
+              <h2 className="modal-title">
+                Order Details - {selectedOrder.id}
+              </h2>
+              <button
+                onClick={() => {
+                  setIsModalOpen(false);
+                  setSelectedOrder(null);
+                }}
+                className="close-button"
+                aria-label="Close modal"
+              >
+                x
+              </button>
+            </div>
+
+            <div className="modal-body">
+              <div className="modal-section">
+                <span className="modal-label">Customer:</span>
+                <span className="modal-value">
+                  {selectedOrder.customerName}
+                </span>
+              </div>
+
+              <div className="modal-items">
+                <h3 className="modal-subtitle">Items:</h3>
+                {selectedOrder.items.map((item, index) => (
+                  <div key={index} className="modal-item">
+                    <div className="modal-item-details">
+                      <p className="item-name">{item.name}</p>
+                      <p className="item-quantity">Quantity: {item.quantity}</p>
+                    </div>
+                    <p className="item-price">
+                      ${(item.price * item.quantity).toFixed(2)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="modal-total">
+                <span className="total-label">Total:</span>
+                <span className="total-amount">
+                  ${selectedOrder.totalAmount.toFixed(2)}
+                </span>
+              </div>
+
+              <div className="modal-discount">
+                <span className="discount-label">Discount Applied:</span>
+                <span className="discount-amount">
+                  {selectedOrder.discount * 100}% ( $
+                  {(selectedOrder.totalAmount * selectedOrder.discount).toFixed(
+                    2
+                  )}
+                  )
+                </span>
+              </div>
+
+              <div className="modal-final">
+                <span className="final-label">Final Amount:</span>
+                <span className="final-amount">
+                  $
+                  {(
+                    selectedOrder.totalAmount *
+                    (1 - selectedOrder.discount)
+                  ).toFixed(2)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
