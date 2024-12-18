@@ -36,7 +36,7 @@ export const registerUser = async (req, res) => {
         throw new CustomError("BAD_REQUEST", "Please fill in all fields", STATUS_CODE.BAD_REQUEST);
     }
 
-    const userCheckSql = 'SELECT user_email FROM Users WHERE user_email = ? LIMIT 1';
+    const userCheckSql = 'SELECT user_email FROM online_account WHERE user_email = ? LIMIT 1';
     const [existingRows] = await db.query(userCheckSql, [user_email]);
     if (existingRows.length > 0) {
         throw new CustomError("BAD_REQUEST", "User already exists", STATUS_CODE.BAD_REQUEST);
@@ -65,7 +65,7 @@ export const loginUser = async (req, res) => {
         throw new CustomError("BAD_REQUEST", "Please fill in all fields", STATUS_CODE.BAD_REQUEST);
     }
 
-    const userCheckSql = 'SELECT * FROM Users WHERE user_email = ? LIMIT 1';
+    const userCheckSql = 'SELECT * FROM online_account WHERE user_email = ? LIMIT 1';
     const [existingRows] = await db.query(userCheckSql, [user_email]);
 
     if (existingRows.length === 0) {
@@ -103,7 +103,7 @@ export const loginUser = async (req, res) => {
 
     const { user_password: password, refresh_token, verify_code, ...others } = user;
 
-    const updateRefreshTokenSql = 'UPDATE Users SET refresh_token = ? WHERE user_id = ?';
+    const updateRefreshTokenSql = 'UPDATE online_account SET refresh_token = ? WHERE user_id = ?';
     await db.query(updateRefreshTokenSql, [refreshToken, user.user_id]);
 
     return formatResponse(
@@ -131,7 +131,7 @@ export const requestRefreshToken = async (req, res) => {
             throw new CustomError("UNAUTHORIZED", "Unauthorized!", STATUS_CODE.UNAUTHORIZED, err.message);
         }
 
-        const userCheckSql = 'SELECT * FROM Users WHERE user_id = ? LIMIT 1';
+        const userCheckSql = 'SELECT * FROM online_account WHERE user_id = ? LIMIT 1';
         const [existingRows] = await db.query(userCheckSql, [user.user_id]);
 
         if (existingRows.length === 0 || refreshToken !== existingRows[0].refresh_token) {
@@ -163,7 +163,7 @@ export const requestRefreshToken = async (req, res) => {
             sameSite: "strict",
         });
 
-        const updateRefreshTokenSql = 'UPDATE Users SET refresh_token = ? WHERE user_id = ?';
+        const updateRefreshTokenSql = 'UPDATE online_account SET refresh_token = ? WHERE user_id = ?';
         await db.query(updateRefreshTokenSql, [newRefreshToken, user.user_id]);
 
         return formatResponse(res, "Success", "Refresh token successfully!", STATUS_CODE.SUCCESS, {
@@ -173,10 +173,10 @@ export const requestRefreshToken = async (req, res) => {
 };
 
 export const logoutUser = async (req, res) => {
-    const userCheckSql = 'SELECT * FROM Users WHERE refresh_token = ? LIMIT 1';
+    const userCheckSql = 'SELECT * FROM online_account WHERE refresh_token = ? LIMIT 1';
     const [existingRows] = await db.query(userCheckSql, [req.cookies.tokenLogout]);
     if (existingRows.length > 0) {
-        const updateRefreshTokenSql = 'UPDATE Users SET refresh_token = NULL WHERE user_id = ?';
+        const updateRefreshTokenSql = 'UPDATE online_account SET refresh_token = NULL WHERE user_id = ?';
         await db.query(updateRefreshTokenSql, [existingRows[0].user_id]);
     }
     res.clearCookie("refreshToken");
