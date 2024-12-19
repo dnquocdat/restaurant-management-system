@@ -45,6 +45,7 @@ import ManagementEmployeePage from "./pages/Admin/ManagementEmployee/ManagementE
 import DepartmentPage from "./pages/Admin/Department/DepartmentPage";
 import DashboardPage from "./pages/Admin/Dashboard/DashboardPage";
 import BranchPage from "./pages/Admin/Branch/BranchPage";
+import DishPage from "./pages/Admin/Dish/DishPage";
 
 function App() {
   return (
@@ -254,6 +255,14 @@ function App() {
               element={
                 <AdminLayout title="Department">
                   <DepartmentPage />
+                </AdminLayout>
+              }
+            />
+            <Route
+              path="/admin/dish"
+              element={
+                <AdminLayout title="Dish">
+                  <DishPage />
                 </AdminLayout>
               }
             />

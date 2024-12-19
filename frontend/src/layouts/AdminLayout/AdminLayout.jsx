@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { FiLogOut, FiUsers } from "react-icons/fi";
 import { MdDashboard } from "react-icons/md";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { FaComputer, FaCodeBranch } from "react-icons/fa6";
+import { BiFoodMenu } from "react-icons/bi";
 
 import "./AdminLayout.css";
 
@@ -31,13 +32,24 @@ export const AdminLayout = ({ children, title }) => {
       path: "/admin/department",
     },
     {
+      icon: BiFoodMenu,
+      label: "Dish Management",
+      id: "dishs",
+      path: "/admin/dish",
+    },
+    {
       icon: FaCodeBranch,
       label: "Branchs",
       id: "branchs",
       path: "/admin/branch",
     },
   ];
+  const navigate = useNavigate();
 
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Xóa token
+    navigate("/login");
+  };
   return (
     <div className="dashboard-layout">
       {/* Header */}
@@ -55,7 +67,7 @@ export const AdminLayout = ({ children, title }) => {
             <h1 className="dashboard-title">ADMIN</h1>
           </div>
           <div className="header-right">
-            <button className="logout-button">
+            <button className="logout-button" onClick={handleLogout}>
               <FiLogOut size={20} className="icon" />
               <span>Logout</span>
             </button>

@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { FiEye, FiEyeOff, FiMail, FiLock, FiUser } from "react-icons/fi";
+import { toast } from "react-toastify";
+
 import "./LogInPage.css";
 
 export const LogInPage = () => {
@@ -16,7 +19,7 @@ export const LogInPage = () => {
     confirmNewPassword: "",
   });
   const [errors, setErrors] = useState({});
-
+  const navigate = useNavigate();
   const validateEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
@@ -83,14 +86,94 @@ export const LogInPage = () => {
     setErrors(newErrors);
   };
 
-  const handleSubmit = (e) => {
+  const [searchParams] = useSearchParams(); // Lấy query params từ URL
+
+  useEffect(() => {
+    const tab = searchParams.get("tab"); // Lấy giá trị 'tab' từ query params
+    if (tab === "register") {
+      setIsLogin(false); // Chuyển sang màn hình Register nếu tab=register
+    }
+  }, [searchParams]);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (forgotPasswordStep > 0) {
-      handleForgotPasswordSubmit();
-    } else {
-      // Handle login or signup submission
-      console.log("Form submitted:", formData);
-      // Implement actual submission logic here
+    try {
+      if (forgotPasswordStep > 0) {
+        handleForgotPasswordSubmit();
+      } else {
+        if (isLogin) {
+          // Gọi API đăng nhập
+          const response = await fetch("http://localhost:3000/api/auth/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              user_email: formData.username,
+              user_password: formData.password,
+            }),
+            // credentials: "include", // Gửi cookies khi gọi API
+          });
+
+          if (!response.ok) {
+            throw new Error("Login failed");
+          }
+
+          const data = await response.json();
+          console.log(data);
+          // localStorage.setItem("user_id", data.data.user.user_id); // Lưu token vào localStorage
+          localStorage.setItem("token", data.data.access_token); // Lưu token vào localStorage
+          const { is_staff, is_admin } = data.data.user;
+
+          // Chuyển hướng dựa vào vai trò người dùng
+          if (is_staff == 1) {
+            navigate("/staff/dashboard"); // Staff dashboard
+          } else if (is_admin == 1) {
+            navigate("/admin/dashboard"); // Admin dashboard
+          } else {
+            navigate("/"); // customer
+          }
+
+          toast.success(`Login Successful!`, {
+            position: "top-right",
+            autoClose: 1500,
+          });
+        } else {
+          // Gọi API đăng ký
+          const response = await fetch(
+            "http://localhost:3000/api/auth/register",
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                user_name: formData.username,
+                user_email: formData.email,
+                user_password: formData.password,
+                user_phone_number: "0123123123",
+                user_address: "hcmus",
+              }),
+            }
+          );
+          // alert("Register Successfull!");
+          toast.success(`Register Successfull!`, {
+            position: "top-right",
+            autoClose: 1500,
+          });
+
+          if (!response.ok) {
+            throw new Error("Registration failed");
+          }
+
+          const data = await response.json();
+          console.log("Registration successful", data);
+          toggleForm(); // Chuyển sang màn hình đăng nhập sau khi đăng ký thành công
+        }
+      }
+    } catch (error) {
+      console.error(error);
+      alert(error.message); // Hiển thị lỗi
     }
   };
 

@@ -9,9 +9,20 @@ export const CardFood = ({ dish }) => {
   const { addToCart } = useContext(CartContext);
 
   const handleAddCart = (e) => {
-    e.stopPropagation();
+    e.stopPropagation(); // Ngăn sự kiện click từ lan ra ngoài
+    const token = localStorage.getItem("token"); // Lấy token từ localStorage
+
+    if (!token) {
+      toast.warning("Please log in to add items to the cart.", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+      navigate("/login");
+      return;
+    }
+
+    // Nếu có token, thêm sản phẩm vào giỏ hàng
     addToCart(dish);
-    // console.log(dish);
     toast.success(`${dish.name} added to cart!`, {
       position: "top-right",
       autoClose: 1500,

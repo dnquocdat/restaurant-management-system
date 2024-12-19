@@ -10,6 +10,14 @@ import {
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import "./CreateSlip.css";
+import { toast } from "react-toastify";
+
+// time picker
+import dayjs from "dayjs";
+import { DesktopTimePicker } from "@mui/x-date-pickers/DesktopTimePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+
 export const CreateSlipPage = () => {
   const [formData, setFormData] = useState({
     customerName: "",
@@ -19,7 +27,17 @@ export const CreateSlipPage = () => {
     date: new Date(),
     specialRequests: "", // Thêm trường này
   });
-
+  const resetForm = () => {
+    setFormData({
+      customerName: "",
+      numberOfGuests: "",
+      phone: "",
+      time: "",
+      date: new Date(),
+      specialRequests: "",
+    });
+    setErrors({});
+  };
   const [errors, setErrors] = useState({});
   const [isSubmitted, setIsSubmitted] = useState(false);
 
@@ -39,8 +57,8 @@ export const CreateSlipPage = () => {
       newErrors.numberOfGuests = "Number of guests must be greater than 0";
     }
 
-    if (!formData.time) {
-      newErrors.time = "Please select a time for your reservation";
+    if (!formData.time || !/^\d{2}:\d{2}:\d{2}$/.test(formData.time)) {
+      newErrors.time = "Valid time (HH:mm:ss) is required";
     }
 
     if (formData.specialRequests.length > 500) {
@@ -94,31 +112,54 @@ export const CreateSlipPage = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const isValid = validateForm(); // Giả sử validateForm là hàm kiểm tra tính hợp lệ của form
 
-    if (isValid) {
-      const result = checkAvailability(formData.time); // Gọi hàm kiểm tra bàn trống tại thời gian đã chọn
+    const isValid = validateForm();
+    if (!isValid) return;
 
-      if (!result.isAvailable) {
-        // Nếu không có bàn trống
-        alert("Sorry, all tables are booked for the selected time.");
-        return;
+    const result = checkAvailability(formData.time); // Check table availability
+    if (!result.isAvailable) {
+      alert("Sorry, all tables are booked for the selected time.");
+      return;
+    }
+
+    const body = {
+      cus_name: formData.customerName,
+      guests_number: parseInt(formData.numberOfGuests, 10),
+      phone_number: formData.phone,
+      arrival_time: formData.time,
+      arrival_date: formData.date.toISOString().split("T")[0], // Convert date to YYYY-MM-DD
+      notes: formData.specialRequests,
+    };
+    console.log(body);
+    try {
+      const response = await fetch("http://localhost:3000/api/reservation/1", {
+        //:branchId lấy trong staff
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
       }
 
-      // Nếu có bàn trống
-      alert(
-        `Table ${result.availableTable} is available at the selected time.`
-      );
-      setIsSubmitted(true);
-      setTimeout(() => setIsSubmitted(false), 3000);
-
-      const submissionData = {
-        ...formData,
-        date: formData.date.toISOString().split("T")[0], // Chuyển thành chuỗi định dạng YYYY-MM-DD
-      };
-      console.log("Form submitted:", submissionData);
+      const responseData = await response.json();
+      console.log("Reservation Successful:", responseData);
+      toast.success(`Reservation successfully!`, {
+        position: "top-right",
+        autoClose: 1500,
+      });
+      // setIsSubmitted(true); // Show success message
+      // setTimeout(() => setIsSubmitted(false), 3000);
+      resetForm();
+    } catch (error) {
+      console.error("Error submitting reservation:", error);
+      alert("Failed to submit reservation. Please try again.");
     }
   };
 
@@ -193,22 +234,27 @@ export const CreateSlipPage = () => {
               Time
             </label>
             <div className="input-container">
-              <FiClock className="input-icon" />
-              <select
-                name="time"
-                id="time"
-                value={formData.time}
-                onChange={handleInputChange}
-                className={`form-input ${errors.time ? "input-error" : ""}`}
-                aria-label="Select reservation time"
-              >
-                <option value="">Select a time</option>
-                <option value="12:00 PM">12:00 PM</option>
-                <option value="1:00 PM">1:00 PM</option>
-                <option value="2:00 PM">2:00 PM</option>
-                <option value="3:00 PM">3:00 PM</option>
-                <option value="4:00 PM">4:00 PM</option>
-              </select>
+              <LocalizationProvider dateAdapter={AdapterDayjs}>
+                <DesktopTimePicker
+                  value={
+                    formData.time ? dayjs(`2000-01-01T${formData.time}`) : null
+                  }
+                  onChange={(newValue) => {
+                    const formattedTime = dayjs(newValue).format("HH:mm:ss"); // Convert time to 24-hour format
+                    setFormData({ ...formData, time: formattedTime });
+                  }}
+                  ampm={true} // Enable AM/PM format for user input
+                  renderInput={(params) => (
+                    <input
+                      {...params}
+                      className={`form-input ${
+                        errors.time ? "input-error" : ""
+                      }`}
+                      aria-label="Select reservation time"
+                    />
+                  )}
+                />
+              </LocalizationProvider>
             </div>
             {errors.time && <p className="error-message">{errors.time}</p>}
           </div>

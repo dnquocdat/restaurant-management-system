@@ -9,7 +9,7 @@ import {
 } from "react-icons/fi";
 import { IoIosAddCircle } from "react-icons/io";
 import { FaUser, FaEdit, FaAddressCard } from "react-icons/fa";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./StaffLayout.css";
 
 export const StaffLayout = ({ children, title }) => {
@@ -71,6 +71,12 @@ export const StaffLayout = ({ children, title }) => {
       hidden: true,
     },
   ];
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Xóa token
+    navigate("/login");
+  };
 
   return (
     <div className="dashboard-layout">
@@ -89,7 +95,7 @@ export const StaffLayout = ({ children, title }) => {
             <h1 className="dashboard-title">STAFF</h1>
           </div>
           <div className="header-right">
-            <button className="logout-button">
+            <button className="logout-button" onClick={handleLogout}>
               <FiLogOut size={20} className="icon" />
               <span>Logout</span>
             </button>

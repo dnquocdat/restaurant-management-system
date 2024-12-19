@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { FaStar, FaReceipt, FaCalendarAlt, FaSearch } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 import "./HistoryPage.css";
+import { toast } from "react-toastify";
 
 export const HistoryPage = () => {
   const [activeTab, setActiveTab] = useState("orders");
@@ -9,6 +10,7 @@ export const HistoryPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 2; // Number of items per page
   const navigate = useNavigate();
+  const [ratingSubmitted, setRatingSubmitted] = useState({});
 
   const orderHistory = [
     {
@@ -85,16 +87,47 @@ export const HistoryPage = () => {
     }));
   };
 
-  const handleSubmit = (reservationId) => {
+  const handleSubmitReservation = async (reservationId) => {
     const reservationRatings = ratings[reservationId];
-    // Handle form submission logic here (e.g., send to backend)
-    console.log(
-      `Ratings for Reservation ${reservationId}:`,
-      reservationRatings
-    );
-    alert("Thank you for your feedback!");
+    const body = {
+      service_rating: reservationRatings.service.toString(),
+      location_rating: reservationRatings.location.toString(),
+      food_rating: reservationRatings.foodQuality.toString(),
+      price_rating: reservationRatings.price.toString(),
+      ambiance_rating: reservationRatings.ambience.toString(),
+    };
+    console.log(body);
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/reservation/${reservationId}/review`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(body),
+        }
+      );
 
-    // Optionally, reset the ratings after submission
+      if (response.ok) {
+        setRatingSubmitted((prev) => ({
+          ...prev,
+          [reservationId]: true,
+        }));
+        toast.success(`Thank you for your feedback!`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      } else {
+        alert("Failed to submit your feedback. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error submitting feedback:", error);
+      alert("An error occurred. Please try again later.");
+    }
+
+    // Optionally reset the ratings after submission
     setRatings((prev) => ({
       ...prev,
       [reservationId]: {
@@ -267,7 +300,7 @@ export const HistoryPage = () => {
                   ))}
                   <button
                     className="submit-button"
-                    onClick={() => handleSubmit(reservation.id)}
+                    onClick={() => handleSubmitReservation(reservation.id)}
                   >
                     Submit Ratings
                   </button>

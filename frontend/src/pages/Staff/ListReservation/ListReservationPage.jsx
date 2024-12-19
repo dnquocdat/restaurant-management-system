@@ -9,7 +9,7 @@ import {
 import { AiOutlineSearch } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import "./ListReservationPage.css";
-
+import { toast } from "react-toastify";
 export const ListReservationPage = () => {
   // State variables
   const [reservations, setReservations] = useState([]);
@@ -31,11 +31,11 @@ export const ListReservationPage = () => {
       id: 1,
       code: "RES001",
       date: "2024-02-15",
-      time: "18:00", // Added time field
-      tableNumber: 5, // Added tableNumber field
+      time: "18:00",
+      tableNumber: 5,
       customerName: "John Smith",
       guestCount: 2,
-      status: "Confirmed",
+      status: "waiting_for_guest",
       amount: 150.0,
       email: "john.smith@example.com",
       phone: "+1 234-567-8900",
@@ -44,11 +44,11 @@ export const ListReservationPage = () => {
       id: 2,
       code: "RES002",
       date: "2024-02-16",
-      time: "19:30", // Added time field
-      tableNumber: 3, // Added tableNumber field
+      time: "19:30",
+      tableNumber: 3,
       customerName: "Emma Wilson",
       guestCount: 4,
-      status: "Pending",
+      status: "table_in_use",
       amount: 280.0,
       email: "emma.w@example.com",
       phone: "+1 234-567-8901",
@@ -57,16 +57,106 @@ export const ListReservationPage = () => {
       id: 3,
       code: "RES003",
       date: "2024-02-17",
-      time: "20:00", // Added time field
-      tableNumber: 7, // Added tableNumber field
+      time: "20:00",
+      tableNumber: 7,
       customerName: "Michael Brown",
       guestCount: 3,
-      status: "Confirmed",
+      status: "completed",
       amount: 210.0,
       email: "michael.b@example.com",
       phone: "+1 234-567-8902",
     },
-    // Add more mock data as needed
+    {
+      id: 4,
+      code: "RES004",
+      date: "2024-02-18",
+      time: "21:00",
+      tableNumber: 4,
+      customerName: "Sophia Davis",
+      guestCount: 5,
+      status: "canceled",
+      amount: 320.0,
+      email: "sophia.d@example.com",
+      phone: "+1 234-567-8903",
+    },
+    {
+      id: 5,
+      code: "RES005",
+      date: "2024-02-19",
+      time: "17:45",
+      tableNumber: 2,
+      customerName: "Chris Lee",
+      guestCount: 1,
+      status: "waiting_for_guest",
+      amount: 75.0,
+      email: "chris.lee@example.com",
+      phone: "+1 234-567-8904",
+    },
+    {
+      id: 6,
+      code: "RES006",
+      date: "2024-02-20",
+      time: "19:00",
+      tableNumber: 6,
+      customerName: "Olivia Johnson",
+      guestCount: 3,
+      status: "table_in_use",
+      amount: 180.0,
+      email: "olivia.j@example.com",
+      phone: "+1 234-567-8905",
+    },
+    {
+      id: 7,
+      code: "RES007",
+      date: "2024-02-21",
+      time: "20:30",
+      tableNumber: 1,
+      customerName: "James Carter",
+      guestCount: 6,
+      status: "completed",
+      amount: 450.0,
+      email: "james.c@example.com",
+      phone: "+1 234-567-8906",
+    },
+    {
+      id: 8,
+      code: "RES008",
+      date: "2024-02-22",
+      time: "18:15",
+      tableNumber: 8,
+      customerName: "Liam Martinez",
+      guestCount: 2,
+      status: "canceled",
+      amount: 120.0,
+      email: "liam.m@example.com",
+      phone: "+1 234-567-8907",
+    },
+    {
+      id: 9,
+      code: "RES009",
+      date: "2024-02-23",
+      time: "19:45",
+      tableNumber: 10,
+      customerName: "Isabella Hernandez",
+      guestCount: 4,
+      status: "waiting_for_guest",
+      amount: 300.0,
+      email: "isabella.h@example.com",
+      phone: "+1 234-567-8908",
+    },
+    {
+      id: 10,
+      code: "RES010",
+      date: "2024-02-24",
+      time: "20:15",
+      tableNumber: 9,
+      customerName: "Mason Garcia",
+      guestCount: 3,
+      status: "table_in_use",
+      amount: 270.0,
+      email: "mason.g@example.com",
+      phone: "+1 234-567-8909",
+    },
   ];
 
   // Fetch data on component mount
@@ -208,6 +298,70 @@ export const ListReservationPage = () => {
     );
   }
 
+  const deleteReservation = async (id) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/reservation/${id}`, //:id selected res
+        {
+          method: "DELETE",
+          headers: { authorization: `Bearer ${localStorage.getItem("token")}` },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to delete reservation");
+      }
+      // Cập nhật danh sách reservations sau khi xóa thành công
+      setReservations((prev) =>
+        prev.map((res) =>
+          res.id === id ? { ...res, status: "Canceled" } : res
+        )
+      );
+      toast.success(`Reservation ${id} has been deleted successfully.`, {
+        position: "top-right",
+        autoClose: 1500,
+      });
+    } catch (error) {
+      console.error("Error deleting reservation:", error);
+      alert("Failed to delete the reservation. Please try again.");
+    }
+  };
+
+  const updateReservationStatus = async (id, newStatus) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/reservation/${id}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({ status: newStatus }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update reservation status");
+      }
+      const updatedReservation = await response.json();
+
+      // Cập nhật trạng thái reservation trong danh sách
+      setReservations((prev) =>
+        prev.map((res) =>
+          res.id === id ? { ...res, status: "table_in_use" } : res
+        )
+      );
+
+      toast.success(`Reservation ${id} has been updated to ${newStatus}.`, {
+        position: "top-right",
+        autoClose: 1500,
+      });
+    } catch (error) {
+      console.error("Error updating reservation status:", error);
+      alert("Failed to update reservation status. Please try again.");
+    }
+  };
+
   return (
     <div className="reservation-container">
       <h1 className="reservation-title">Reservations</h1>
@@ -224,7 +378,6 @@ export const ListReservationPage = () => {
         />
         <AiOutlineSearch className="search-icon-rs" />
       </div>
-
       {/* Reservations Table */}
       <div className="table-wrapper">
         <table className="reservation-table">
@@ -238,6 +391,7 @@ export const ListReservationPage = () => {
                 { field: "customerName", label: "Customer Name" },
                 { field: "guestCount", label: "Guests" },
                 { field: "status", label: "Status" },
+                { field: "action", label: "Action" },
               ].map(({ field, label }) => (
                 <th key={field}>
                   <button
@@ -246,13 +400,13 @@ export const ListReservationPage = () => {
                     aria-label={`Sort by ${label}`}
                   >
                     {label}
-                    <FaSort
+                    {/* <FaSort
                       className={`sort-icon ${
                         sortField === field
                           ? `active-sort ${sortDirection}`
                           : ""
                       }`}
-                    />
+                    /> */}
                   </button>
                 </th>
               ))}
@@ -292,35 +446,86 @@ export const ListReservationPage = () => {
                   <td>
                     <span
                       className={`status-badge ${
-                        reservation.status === "Confirmed"
-                          ? "status-confirmed"
-                          : "status-pending"
+                        reservation.status === "waiting_for_guest"
+                          ? "status-waiting"
+                          : reservation.status === "table_in_use"
+                          ? "status-in-use"
+                          : reservation.status === "completed"
+                          ? "status-completed"
+                          : "status-canceled"
                       } ${
-                        reservation.status === "Pending"
+                        reservation.status === "waiting_for_guest"
                           ? "clickable-status"
                           : ""
                       }`}
-                      onClick={(e) => handleStatusClick(e, reservation.id)}
+                      onClick={(e) => {
+                        if (reservation.status === "waiting_for_guest") {
+                          handleStatusClick(e, reservation.id);
+                        }
+                      }}
                       role={
-                        reservation.status === "Pending" ? "button" : "text"
+                        reservation.status === "waiting_for_guest"
+                          ? "button"
+                          : "text"
                       }
-                      tabIndex={reservation.status === "Pending" ? 0 : -1}
+                      tabIndex={
+                        reservation.status === "waiting_for_guest" ? 0 : -1
+                      }
                       onKeyPress={(e) => {
                         if (
                           e.key === "Enter" &&
-                          reservation.status === "Pending"
+                          reservation.status === "waiting_for_guest"
                         ) {
                           handleStatusClick(e, reservation.id);
                         }
                       }}
                       aria-label={
-                        reservation.status === "Pending"
-                          ? `Click to confirm reservation ${reservation.code}`
+                        reservation.status === "waiting_for_guest"
+                          ? `Click to confirm or cancel reservation ${reservation.code}`
                           : ""
                       }
                     >
-                      {reservation.status}
+                      {reservation.status.replaceAll("_", " ")}{" "}
+                      {/* Hiển thị dạng thân thiện */}
                     </span>
+                  </td>
+                  {/* action */}
+                  <td>
+                    {reservation.status === "waiting_for_guest" && (
+                      <>
+                        <button
+                          className="confirm-res-button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const confirmAction = window.confirm(
+                              `Confirm table-in-use for reservation ${reservation.code}?`
+                            );
+                            if (confirmAction) {
+                              updateReservationStatus(
+                                reservation.id,
+                                "table_in_use"
+                              );
+                            }
+                          }}
+                        >
+                          Confirm
+                        </button>
+                        <button
+                          className="cancel-res-button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const cancelAction = window.confirm(
+                              `Cancel reservation ${reservation.code}?`
+                            );
+                            if (cancelAction) {
+                              deleteReservation(reservation.id); // Gọi API DELETE
+                            }
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    )}
                   </td>
                 </tr>
               ))

@@ -9,8 +9,15 @@ import {
 import { BsCheckCircle } from "react-icons/bs";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+
 import { GoogleMap, LoadScript, Marker } from "@react-google-maps/api";
 import "./BookTable.css";
+import { toast } from "react-toastify";
+// time picker
+import dayjs from "dayjs";
+import { DesktopTimePicker } from "@mui/x-date-pickers/DesktopTimePicker";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 
 export const BookTablePage = () => {
   const [formData, setFormData] = useState({
@@ -52,7 +59,10 @@ export const BookTablePage = () => {
     if (!formData.guests || formData.guests < 1) {
       newErrors.guests = "Number of guests required";
     }
-    if (!formData.time) newErrors.time = "Time is required";
+    if (!formData.time || !/^\d{2}:\d{2}:\d{2}$/.test(formData.time)) {
+      newErrors.time = "Valid time (HH:mm:ss) is required";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -61,7 +71,45 @@ export const BookTablePage = () => {
     e.preventDefault();
     if (validateForm()) {
       setSubmitted(true);
-      // Handle form submission logic here
+      handlePostReservation(); // Call API submission here
+    }
+  };
+
+  const handlePostReservation = async () => {
+    const body = {
+      cus_name: formData.name,
+      phone_number: formData.phone,
+      guests_number: parseInt(formData.guests, 10),
+      arrival_time: formData.time,
+      arrival_date: formData.date.toISOString().split("T")[0], // Convert Date to YYYY-MM-DD
+      notes: formData.specialRequests,
+    };
+    console.log(body);
+    try {
+      const response = await fetch("http://localhost:3000/api/reservation/1", {
+        // /:branchid lúc chọn ở đầu web
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log("Reservation Successful:", result);
+
+      toast.success(`Reservation submitted successfully!`, {
+        position: "top-right",
+        autoClose: 1500,
+      });
+    } catch (error) {
+      console.error("Error submitting reservation:", error);
+      alert("Failed to submit reservation. Please try again.");
     }
   };
 
@@ -138,24 +186,24 @@ export const BookTablePage = () => {
                 <div>
                   <label>Time</label>
                   <div className="input-container">
-                    <FiClock className="input-icon" />
-                    <select
-                      value={formData.time}
-                      onChange={(e) =>
-                        setFormData({ ...formData, time: e.target.value })
-                      }
-                      className={`input-field ${
-                        errors.time ? "error-border" : ""
-                      }`}
-                      aria-label="Select time"
-                    >
-                      <option value="">Select time</option>
-                      {popularTimes.map((time) => (
-                        <option key={time} value={time}>
-                          {time}
-                        </option>
-                      ))}
-                    </select>
+                    {/* <FiClock className="input-icon" /> */}
+                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                      <DesktopTimePicker
+                        value={
+                          formData.time
+                            ? dayjs(`2000-01-01T${formData.time}`)
+                            : null
+                        }
+                        onChange={(newValue) => {
+                          // Convert the selected time to 24-hour format
+                          const formattedTime =
+                            dayjs(newValue).format("HH:mm:ss");
+                          setFormData({ ...formData, time: formattedTime });
+                        }}
+                        ampm={true} // Allow AM/PM format for user interaction
+                        renderInput={(params) => <TextField {...params} />}
+                      />
+                    </LocalizationProvider>
                   </div>
                   {errors.time && (
                     <p className="error-message">{errors.time}</p>

@@ -8,6 +8,7 @@ import {
   // FiSort,
 } from "react-icons/fi";
 import { FaSearch } from "react-icons/fa";
+import { toast } from "react-toastify";
 import "./ManagementEmployeePage.css"; // Import the external CSS file
 
 const ManagementEmployeePage = () => {
@@ -209,8 +210,10 @@ const ManagementEmployeePage = () => {
     }
   };
 
-  const handleDelete = () => {
-    setEmployees(employees.filter((emp) => emp.id !== selectedEmployee.id));
+  const handleDelete = async () => {
+    if (!selectedEmployee) return;
+    await deleteEmployee(selectedEmployee.id); // Gọi API DELETE
+    setEmployees(employees.filter((emp) => emp.id !== selectedEmployee.id)); // Cập nhật danh sách employees
     setShowDeleteModal(false);
     setSelectedEmployee(null);
   };
@@ -225,6 +228,31 @@ const ManagementEmployeePage = () => {
   const totalPages = Math.ceil(displayEmployees.length / employeesPerPage);
 
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  const deleteEmployee = async (employeeId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/employee/${employeeId}`,
+        {
+          method: "DELETE",
+          headers: {
+            authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error(`Failed to delete employee with ID: ${employeeId}`);
+      }
+
+      toast.success(`Employee with ID: ${employeeId} deleted successfully!`, {
+        position: "top-right",
+        autoClose: 1500,
+      });
+    } catch (error) {
+      console.error("Error deleting employee:", error);
+      alert("Error deleting employee. Please try again.");
+    }
+  };
 
   return (
     <div className="employee-management-container">
@@ -354,7 +382,26 @@ const ManagementEmployeePage = () => {
         <div className="employee-list">
           <div className="header">
             <h2>Employees</h2>
-            <button onClick={() => setShowAddForm(true)} className="add-button">
+            <button
+              onClick={() => {
+                setShowAddForm(true);
+                setSelectedEmployee(null); // Đặt lại trạng thái để chuyển sang chế độ thêm mới
+                setFormData({
+                  // Reset formData
+                  branchId: "",
+                  name: "",
+                  position: "",
+                  email: "",
+                  phone: "",
+                  address: "",
+                  gender: "",
+                  hire_date: "",
+                  quit_date: "",
+                  date_of_birth: "",
+                });
+              }}
+              className="add-button"
+            >
               <FiPlus className="icon" /> Add Employee
             </button>
           </div>

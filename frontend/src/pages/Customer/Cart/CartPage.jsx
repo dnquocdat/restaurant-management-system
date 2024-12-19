@@ -6,11 +6,12 @@ import { FaShippingFast, FaMoneyBill } from "react-icons/fa";
 import "./CartPage.css";
 import { useNavigate } from "react-router-dom";
 import { CartContext } from "../../../component/CardContext/CardContext";
+import { toast } from "react-toastify";
 
 export const CartPage = () => {
   const [step, setStep] = useState(1);
   const [paymentMethod, setPaymentMethod] = useState("card");
-  const { cart, removeFromCart, updateQuantity, calculateSubtotal } =
+  const { cart, removeFromCart, updateQuantity, calculateSubtotal, clearCart } =
     useContext(CartContext); // Sử dụng Context
 
   const [formData, setFormData] = useState({
@@ -75,7 +76,7 @@ export const CartPage = () => {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value }); // set value input for name
+    setFormData((prevFormData) => ({ ...prevFormData, [name]: value })); // Sử dụng hàm cập nhật trạng thái dạng hàm
     validateField(name, value);
   };
 
@@ -83,24 +84,25 @@ export const CartPage = () => {
     let newErrors = { ...errors };
 
     switch (name) {
-      case "cardNumber":
-        newErrors.cardNumber = /^\d{16}$/.test(value)
-          ? ""
-          : "Invalid card number";
-        break;
-      case "expiryDate":
-        newErrors.expiryDate = /^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(value)
-          ? ""
-          : "Invalid expiry date (MM/YY)";
-        break;
-      case "cvv":
-        newErrors.cvv = /^\d{3,4}$/.test(value) ? "" : "Invalid CVV";
-        break;
+      // case "cardNumber":
+      //   newErrors.cardNumber = /^\d{16}$/.test(value)
+      //     ? ""
+      //     : "Invalid card number";
+      //   break;
+      // case "expiryDate":
+      //   newErrors.expiryDate = /^(0[1-9]|1[0-2])\/([0-9]{2})$/.test(value)
+      //     ? ""
+      //     : "Invalid expiry date (MM/YY)";
+      //   break;
+      // case "cvv":
+      //   newErrors.cvv = /^\d{3,4}$/.test(value) ? "" : "Invalid CVV";
+      //   break;
       case "phone":
-        newErrors.phone = /^[0-9]{10,15}$/.test(value)
+        newErrors.phone = /^[0-9]{10}$/.test(value)
           ? ""
-          : "Invalid phone number";
+          : "Phone number must be exactly 10 digits";
         break;
+
       case "province":
         newErrors.province = value ? "" : "Province is required";
         break;
@@ -245,13 +247,60 @@ export const CartPage = () => {
         return;
       }
 
-      // Xử lý gửi đơn hàng, ví dụ: gửi đến API
-      console.log("Order placed successfully!", formData);
-      alert("Order placed successfully!");
-      // Xoá giỏ hàng sau khi đặt hàng thành công (tùy chọn)
-      // setCart([]); // Nếu bạn muốn xoá giỏ hàng, cần thêm hàm trong CartContext
-      // Chuyển hướng người dùng đến trang xác nhận hoặc trang chủ
-      // navigate("/");
+      submitOrder();
+    };
+
+    const submitOrder = async () => {
+      // Chuẩn bị dữ liệu body từ formData và cart
+      const orderData = {
+        cus_name: formData.name,
+        phone_number: formData.phone,
+        address: `${formData.address}, ${formData.ward}, ${formData.district}, ${formData.province}`,
+        notes: "No additional notes",
+        listDish: cart.map((item) => ({
+          dish_id: item.id,
+          dish_name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+        })),
+      };
+
+      try {
+        const response = await fetch(
+          "http://localhost:3000/api/order/submit-online/1",
+          {
+            // đang gắn cứng 1
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify(orderData),
+          }
+        );
+
+        if (!response.ok) {
+          // Xử lý lỗi từ API
+          const errorData = await response.json();
+          throw new Error(
+            errorData.message || "Failed to submit order. Please try again."
+          );
+        }
+
+        const result = await response.json();
+        // alert("Order submitted successfully!");
+        toast.success(`Order submitted successfully!`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
+
+        clearCart();
+
+        // navigate("/activity-history");
+      } catch (error) {
+        console.error("Error submitting order:", error.message);
+        alert(`Error: ${error.message}`);
+      }
     };
 
     return (

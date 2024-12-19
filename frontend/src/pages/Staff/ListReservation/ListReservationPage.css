@@ -107,14 +107,24 @@
   transition: background-color 0.2s, color 0.2s;
 }
 
-.status-confirmed {
-  background-color: #28a745;
-  color: white;
+.status-waiting {
+  background-color: #ffcc00;
+  color: #000;
 }
 
-.status-pending {
-  background-color: #ffc107;
-  color: black;
+.status-in-use {
+  background-color: #00aaff;
+  color: #fff;
+}
+
+.status-completed {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.status-canceled {
+  background-color: #dc3545;
+  color: #fff;
 }
 
 /* Clickable Status */
@@ -219,4 +229,52 @@
   border: 1px solid #ccc;
   border-radius: 0.5rem;
   font-size: 1rem;
+}
+
+/* Confirm Button */
+.confirm-res-button {
+  padding: 8px 12px;
+  background-color: #28a745; /* Màu xanh lá */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.confirm-res-button:hover {
+  background-color: #218838; /* Màu xanh lá đậm hơn khi hover */
+}
+
+.confirm-res-button:focus {
+  outline: 2px solid #155724; /* Viền khi được focus */
+}
+
+/* Cancel Button */
+.cancel-res-button {
+  padding: 8px 12px;
+  background-color: #dc3545; /* Màu đỏ */
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.cancel-res-button:hover {
+  background-color: #c82333; /* Màu đỏ đậm hơn khi hover */
+}
+
+.cancel-res-button:focus {
+  outline: 2px solid #721c24; /* Viền khi được focus */
+}
+
+/* Đặt khoảng cách giữa các nút */
+.confirm-res-button,
+.cancel-res-button {
+  margin-right: 8px;
 }

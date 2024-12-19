@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { RxAvatar } from "react-icons/rx";
 import {
   FaShoppingCart,
@@ -8,14 +8,38 @@ import {
 } from "react-icons/fa";
 import "./MainLayout.css";
 import { Link } from "react-router-dom";
+import { CartContext } from "../../component/CardContext/CardContext";
 
 export const MainLayout = ({ children, title }) => {
   useEffect(() => {
     document.title = title;
   }, [title]);
+  const { clearCart } = useContext(CartContext); // Sử dụng Context
+  const [isAuthen, setIsAuthen] = useState(false);
+  useEffect(() => {
+    const checkAuthStatus = () => {
+      const token = localStorage.getItem("token");
+      setIsAuthen(!!token); // Cập nhật trạng thái isAuthen dựa trên token
+    };
 
-  const [isAuthen, setIsAuthen] = useState(true);
+    // Kiểm tra trạng thái khi component mount
+    checkAuthStatus();
 
+    // Lắng nghe sự thay đổi của localStorage
+    window.addEventListener("storage", checkAuthStatus);
+
+    // Cleanup khi component bị unmount
+    return () => {
+      window.removeEventListener("storage", checkAuthStatus);
+    };
+  }, []);
+
+  // Xử lý logout
+  const handleLogout = () => {
+    localStorage.removeItem("token"); // Xóa token
+    clearCart();
+    setIsAuthen(false); // Cập nhật trạng thái
+  };
   return (
     <div className="container">
       <header>
@@ -45,12 +69,7 @@ export const MainLayout = ({ children, title }) => {
                   <Link to={"/activity-history"}>Activity History</Link>
                 </li>
                 <li>
-                  <Link
-                    to={"/"}
-                    onClick={() => {
-                      setIsAuthen(!isAuthen);
-                    }}
-                  >
+                  <Link to={"/login"} onClick={handleLogout}>
                     Log Out
                   </Link>
                 </li>

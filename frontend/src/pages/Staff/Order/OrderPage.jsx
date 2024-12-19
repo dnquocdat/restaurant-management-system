@@ -9,6 +9,8 @@ import {
 import { IoIosCloseCircle } from "react-icons/io";
 import { motion, AnimatePresence } from "framer-motion";
 import "./OrderPage.css";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 export const OrderPage = () => {
   const [cart, setCart] = useState([]);
@@ -21,6 +23,12 @@ export const OrderPage = () => {
     message: "",
   });
   const [quantities, setQuantities] = useState({});
+
+  // thong tin sau nay se lay param hay url
+  const [customerName, setCustomerName] = useState("dn quoc dat"); // Tên khách hàng
+  const [branchId, setBranchId] = useState("1"); // Mã chi nhánh
+  const [waiterId, setWaiterId] = useState("12"); // ID người phục vụ
+  const navigate = useNavigate();
 
   const menuCategories = [
     {
@@ -139,22 +147,22 @@ export const OrderPage = () => {
     setCart(cart.filter((item) => item.id !== itemId));
   };
 
-  const fakeDiscountCodes = {
-    MEMBER123: 10, // 10% discount
-    MEMBER456: 15, // 15% discount
-    MEMBER789: 20, // 20% discount
-  };
+  // const fakeDiscountCodes = {
+  //   MEMBER123: 10, // 10% discount
+  //   MEMBER456: 15, // 15% discount
+  //   MEMBER789: 20, // 20% discount
+  // };
 
-  // Function to validate and apply discount
-  const applyDiscount = () => {
-    if (fakeDiscountCodes[memberId]) {
-      setDiscount(fakeDiscountCodes[memberId]);
-      showNotification(`Discount of ${fakeDiscountCodes[memberId]}% applied!`);
-    } else {
-      setDiscount(0);
-      showNotification("Invalid Member ID. No discount applied.");
-    }
-  };
+  // // Function to validate and apply discount
+  // const applyDiscount = () => {
+  //   if (fakeDiscountCodes[memberId]) {
+  //     setDiscount(fakeDiscountCodes[memberId]);
+  //     showNotification(`Discount of ${fakeDiscountCodes[memberId]}% applied!`);
+  //   } else {
+  //     setDiscount(0);
+  //     showNotification("Invalid Member ID. No discount applied.");
+  //   }
+  // };
 
   const getTotalAmount = () => {
     const subtotal = cart.reduce(
@@ -171,6 +179,54 @@ export const OrderPage = () => {
       item.name.toLowerCase().includes(searchQuery.toLowerCase())
     ),
   }));
+
+  const handleCheckout = async () => {
+    const body = {
+      cus_name: customerName,
+      member_card_id: memberId || null, // Member ID nếu có
+      branch_id: branchId,
+      waiter: waiterId,
+      listDish: cart.map((item) => ({
+        dish_id: item.id,
+        dish_name: item.name,
+        quantity: item.quantity,
+        price: item.price,
+      })),
+    };
+    console.log(body);
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/order/submit-dine-in/1`, // /:reservation slip id
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify(body),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        showNotification("Order submitted successfully!");
+        // toast.success(`Order submitted successfully!`, {
+        //   position: "top-right",
+        //   autoClose: 1500,
+        // });
+        setCart([]); // Reset cart sau khi gửi thành công
+        // navigate("/activity-history");
+      } else {
+        showNotification("Failed to submit the order.");
+        // toast.danger(`Failed to submit the order!`, {
+        //   position: "top-right",
+        //   autoClose: 1500,
+        // });
+      }
+    } catch (error) {
+      showNotification("Error submitting the order.");
+    }
+  };
 
   return (
     <div className="container-order">
@@ -346,12 +402,15 @@ export const OrderPage = () => {
                     onChange={(e) => setMemberId(e.target.value)}
                     placeholder="Enter Member ID"
                   />
-                  <button
-                    onClick={applyDiscount}
+                  {/* <button
+                    onClick={toast.success(`go!`, {
+                      position: "top-right",
+                      autoClose: 1500,
+                    })}
                     className="apply-discount-button"
                   >
                     Apply
-                  </button>
+                  </button> */}
                 </div>
 
                 <div className="cart-footer">
@@ -405,6 +464,7 @@ export const OrderPage = () => {
                   <button
                     className="checkout-button"
                     disabled={cart.length === 0}
+                    onClick={handleCheckout}
                   >
                     Proceed to Checkout
                   </button>

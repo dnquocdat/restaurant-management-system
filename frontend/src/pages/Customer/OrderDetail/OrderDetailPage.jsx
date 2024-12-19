@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"; // Thêm import này
 import { FaStar, FaTimes } from "react-icons/fa";
 import { BsFillChatSquareTextFill } from "react-icons/bs";
 import "./OrderDetailPage.css";
-
+import { toast } from "react-toastify";
 export const OrderDetailPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDish, setSelectedDish] = useState(null);
@@ -60,10 +60,43 @@ export const OrderDetailPage = () => {
     const [hover, setHover] = useState(0);
     const [review, setReview] = useState("");
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
       e.preventDefault();
-      console.log("Review submitted:", { dish, rating, review });
-      onClose();
+      if (!rating || !review.trim()) {
+        alert("Please fill in both rating and comment.");
+        return;
+      }
+      const body = {
+        rating: rating.toString(), // chuyển đổi rating thành chuỗi
+        comment: review,
+      };
+      console.log(body);
+      try {
+        const response = await fetch(
+          `http://localhost:3000/api/dish/${dish.id}/review`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+            body: JSON.stringify(body),
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to submit review");
+        }
+
+        toast.success(`Review submitted successfully!`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
+
+        onClose();
+      } catch (error) {
+        console.error("Error submitting review:", error.message);
+      }
     };
 
     return (

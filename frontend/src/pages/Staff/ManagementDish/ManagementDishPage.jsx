@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { FiEdit2, FiTrash2, FiSearch, FiPlus } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "react-toastify";
+
 import "./ManagementDishPage.css"; // Import file CSS
 
 const ManagementDishPage = () => {
@@ -36,6 +38,45 @@ const ManagementDishPage = () => {
         "images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=500",
     },
   ]);
+  const [availableDishes, setAvailableDishes] = useState([]);
+  const DishesFromDB = [
+    {
+      id: 4,
+      name: "Spaghetti Carbonara",
+      price: 12.99,
+      description: "Classic Italian pasta dish with creamy sauce and pancetta.",
+      category: "Pasta",
+      image:
+        "images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=500",
+    },
+    {
+      id: 5,
+      name: "Chicken Tikka Masala",
+      price: 15.99,
+      description: "Tender chicken pieces in a creamy tomato-based curry.",
+      category: "Indian",
+      image:
+        "images.unsplash.com/photo-1608752866955-472c77ed5af6?auto=format&fit=crop&w=500",
+    },
+    {
+      id: 6,
+      name: "Sushi Platter",
+      price: 22.5,
+      description: "Assorted sushi rolls with fresh fish and vegetables.",
+      category: "Japanese",
+      image:
+        "images.unsplash.com/photo-1593807181913-3ad0fbeebf7d?auto=format&fit=crop&w=500",
+    },
+    {
+      id: 7,
+      name: "Caesar Salad",
+      price: 8.99,
+      description: "Crisp romaine lettuce with Caesar dressing and croutons.",
+      category: "Salad",
+      image:
+        "images.unsplash.com/photo-1555992336-03a23cffe6e2?auto=format&fit=crop&w=500",
+    },
+  ];
 
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDish, setSelectedDish] = useState(null);
@@ -71,6 +112,7 @@ const ManagementDishPage = () => {
       category: "",
       image: "",
     });
+    setAvailableDishes(DishesFromDB);
     setIsModalOpen(true);
   };
 
@@ -89,8 +131,11 @@ const ManagementDishPage = () => {
   };
 
   const confirmDelete = () => {
-    setDishes(dishes.filter((dish) => dish.id !== selectedDish.id));
-    setIsDeleteModalOpen(false);
+    if (selectedDish) {
+      deleteDishFromBranch(selectedDish.id); // Thay 9 bằng branchId tương ứng
+      setDishes(dishes.filter((dish) => dish.id !== selectedDish.id));
+      setIsDeleteModalOpen(false);
+    }
   };
 
   const handleSubmit = (e) => {
@@ -108,12 +153,82 @@ const ManagementDishPage = () => {
         dishes.map((dish) => (dish.id === selectedDish.id ? newDish : dish))
       );
     }
+    addDishToBranch(formData.id, formData.isShip);
     setIsModalOpen(false);
   };
 
   const handleViewDetails = (dish) => {
     setSelectedDish(dish);
     setIsViewModalOpen(true);
+  };
+
+  const addDishToBranch = async (idDish, isShip) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/dish/${idDish}/branch/8`,
+        // 8 sẽ thanh thành /:branchID của staff
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+          body: JSON.stringify({
+            is_ship: isShip,
+          }),
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Dish added successfully:", result);
+        toast.success(`Dish added successfully!`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      } else {
+        console.error("Failed to add dish:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error adding dish:", error);
+    }
+  };
+
+  const deleteDishFromBranch = async (dishId) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3000/api/dish/${dishId}/branch/2`,
+        // 2 sẽ thay là /:branchID của staff
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log("Dish deleted successfully:", result);
+        toast.success(`Dish deleted successfully!`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      } else {
+        console.error("Failed to delete dish:", response.statusText);
+        toast.error("Failed to delete dish.", {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting dish:", error);
+      toast.error("Error deleting dish.", {
+        position: "top-right",
+        autoClose: 1500,
+      });
+    }
   };
 
   return (
@@ -205,81 +320,139 @@ const ManagementDishPage = () => {
                 {formMode === "add" ? "Add New Dish" : "Edit Dish"}
               </h2>
               <form onSubmit={handleSubmit} className="form">
-                <div className="form-group-adddish">
-                  <label htmlFor="name">Name</label>
-                  <input
-                    type="text"
-                    id="name"
-                    required
-                    value={formData.name}
-                    onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="form-group-adddish">
-                  <label htmlFor="price">Price</label>
-                  <input
-                    type="number"
-                    id="price"
-                    required
-                    step="0.01"
-                    value={formData.price}
-                    onChange={(e) =>
-                      setFormData({ ...formData, price: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="form-group-adddish">
-                  <label htmlFor="description">Description</label>
-                  <textarea
-                    id="description"
-                    required
-                    value={formData.description}
-                    onChange={(e) =>
-                      setFormData({ ...formData, description: e.target.value })
-                    }
-                  />
-                </div>
-                <div className="form-group-adddish">
-                  <label htmlFor="category">Category</label>
-                  <input
-                    type="text"
-                    id="category"
-                    required
-                    value={formData.category}
-                    onChange={(e) =>
-                      setFormData({ ...formData, category: e.target.value })
-                    }
-                  />
-                </div>
-
-                <div className="form-group-adddish checkbox-group">
-                  <label htmlFor="isShip" className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      id="isShip"
-                      checked={formData.isShip}
-                      onChange={(e) =>
-                        setFormData({ ...formData, isShip: e.target.checked })
-                      }
-                    />
-                    Available for Shipping
-                  </label>
-                </div>
-
-                <div className="form-group-adddish">
-                  <label htmlFor="image">Image URL</label>
-                  <input
-                    type="text"
-                    id="image"
-                    required
-                    value={formData.image}
-                    onChange={(e) =>
-                      setFormData({ ...formData, image: e.target.value })
-                    }
-                  />
-                </div>
+                {formMode === "add" && (
+                  <>
+                    <div className="form-group-adddish">
+                      <label htmlFor="availableDishes">Select a Dish</label>
+                      <select
+                        style={{
+                          padding: "5px",
+                          fontSize: "14px",
+                          border: "1px solid #ccc",
+                          borderRadius: "5px",
+                        }}
+                        id="availableDishes"
+                        required
+                        value={formData.name}
+                        onChange={(e) => {
+                          const selectedDish = availableDishes.find(
+                            (dish) => dish.name === e.target.value
+                          );
+                          setFormData({
+                            ...selectedDish,
+                            isShip: formData.isShip, // Giữ giá trị checkbox
+                          });
+                        }}
+                      >
+                        <option value="">-- Select a Dish --</option>
+                        {availableDishes.map((dish) => (
+                          <option key={dish.id} value={dish.name}>
+                            {dish.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="form-group-adddish checkbox-group">
+                      <label htmlFor="isShip" className="checkbox-label">
+                        <input
+                          type="checkbox"
+                          id="isShip"
+                          checked={formData.isShip}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              isShip: e.target.checked,
+                            })
+                          }
+                        />
+                        Available for Shipping
+                      </label>
+                    </div>
+                  </>
+                )}
+                {formMode === "edit" && (
+                  <>
+                    <div className="form-group-adddish">
+                      <label htmlFor="name">Name</label>
+                      <input
+                        type="text"
+                        id="name"
+                        required
+                        value={formData.name}
+                        onChange={(e) =>
+                          setFormData({ ...formData, name: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="form-group-adddish">
+                      <label htmlFor="price">Price</label>
+                      <input
+                        type="number"
+                        id="price"
+                        required
+                        step="0.01"
+                        value={formData.price}
+                        onChange={(e) =>
+                          setFormData({ ...formData, price: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="form-group-adddish">
+                      <label htmlFor="description">Description</label>
+                      <textarea
+                        id="description"
+                        required
+                        value={formData.description}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            description: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="form-group-adddish">
+                      <label htmlFor="category">Category</label>
+                      <input
+                        type="text"
+                        id="category"
+                        required
+                        value={formData.category}
+                        onChange={(e) =>
+                          setFormData({ ...formData, category: e.target.value })
+                        }
+                      />
+                    </div>
+                    {/* <div className="form-group-adddish checkbox-group">
+                      <label htmlFor="isShip" className="checkbox-label">
+                        <input
+                          type="checkbox"
+                          id="isShip"
+                          checked={formData.isShip}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              isShip: e.target.checked,
+                            })
+                          }
+                        />
+                        Available for Shipping
+                      </label>
+                    </div> */}
+                    <div className="form-group-adddish">
+                      <label htmlFor="image">Image URL</label>
+                      <input
+                        type="text"
+                        id="image"
+                        required
+                        value={formData.image}
+                        onChange={(e) =>
+                          setFormData({ ...formData, image: e.target.value })
+                        }
+                      />
+                    </div>
+                  </>
+                )}
                 <div className="form-actions">
                   <button type="submit" className="submit-button">
                     {formMode === "add" ? "Add Dish" : "Save Changes"}
