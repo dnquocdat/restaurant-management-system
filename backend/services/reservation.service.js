@@ -19,6 +19,13 @@ async function CancelReservation(reservation_id) {
     await db.query(query, [reservation_id]);
 }
 
+async function UpdateStatusReservation(reservation_id, status) {
+    const query = `
+        CALL UpdateStatusReservation(?, ?);
+    `;
+    await db.query(query, [reservation_id, status]);
+}
+
 async function createReviewForReservation({reservation_slip_id, service_rating, location_rating, food_rating, price_rating, ambiance_rating}) {
     const query = `
         CALL CreateReviewForReservation(?, ?, ?, ?, ?, ?);
@@ -26,4 +33,4 @@ async function createReviewForReservation({reservation_slip_id, service_rating, 
     await db.query(query, [reservation_slip_id, service_rating, location_rating, food_rating, price_rating, ambiance_rating]);
 }
 
-export { createReservationIfAvailable, CancelReservation, createReviewForReservation };
+export { createReservationIfAvailable, CancelReservation, createReviewForReservation, UpdateStatusReservation };

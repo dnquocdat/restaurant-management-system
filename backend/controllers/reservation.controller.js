@@ -8,7 +8,8 @@ import db from '../configs/db.js';
 import {
     createReservationIfAvailable,
     CancelReservation,
-    createReviewForReservation
+    createReviewForReservation,
+    UpdateStatusReservation
 } from '../services/reservation.service.js';
 
 import {
@@ -60,6 +61,17 @@ export const deleteReservation = async (req, res) => {
     await CancelReservation(reservation_slip_id);
 
     return formatResponse(res, "Success", "Reservation deleted successfully", STATUS_CODE.SUCCESS, {});
+}
+
+export const updateReservation = async (req, res) => {
+    const reservation_slip_id = req.params.reservationSlipId;
+    const status = req.body.status;
+
+    await checkReservationExists(reservation_slip_id);
+
+    await UpdateStatusReservation(reservation_slip_id, status);
+
+    return formatResponse(res, "Success", "Reservation updated successfully", STATUS_CODE.SUCCESS, {});
 }
 
 export const submitReview = async (req, res) => {
