@@ -6,7 +6,8 @@ import db from '../configs/db.js';
 
 // import { createUserInDb } from '../services/auth.service.js';
 import {
-    createReservationIfAvailable
+    createReservationIfAvailable,
+    CancelReservation
 } from '../services/reservation.service.js';
 
 export const submitReservation = async (req, res) => {
@@ -35,7 +36,7 @@ export const submitReservation = async (req, res) => {
     }
 
     const data = {
-        reservation_id: reservation.reservation_id,
+        reservation_id: reservation.reservation_slip_id,
         table_number: reservation.table_number,
         cus_name,
         phone_number,
@@ -47,3 +48,18 @@ export const submitReservation = async (req, res) => {
 
     return formatResponse(res, "Success", "Reservation submitted successfully", STATUS_CODE.CREATED, data);
 };
+
+export const deleteReservation = async (req, res) => {
+    const reservation_id = req.params.reservationId;
+
+    // Check reservation exists
+    const reservationCheckSql = 'SELECT reservation_slip_id FROM reservation_slips WHERE reservation_id = ? LIMIT 1';
+    const [reservationRows] = await db.query(reservationCheckSql, [reservation_id]);
+    if (reservationRows.length === 0) {
+        throw new CustomError("BAD_REQUEST", "Reservation does not exist", STATUS_CODE.BAD_REQUEST);
+    }
+
+    await CancelReservation(reservation_id);
+
+    return formatResponse(res, "Success", "Reservation deleted successfully", STATUS_CODE.OK, {});
+}

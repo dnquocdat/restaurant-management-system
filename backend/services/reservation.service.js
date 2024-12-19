@@ -1,6 +1,6 @@
 import db from '../configs/db.js';
 
-export async function createReservationIfAvailable({branch_id, cus_name, phone_number, guests_number, arrival_time, arrival_date, notes}) {
+async function createReservationIfAvailable({branch_id, cus_name, phone_number, guests_number, arrival_time, arrival_date, notes}) {
     const query = `
         CALL CreateReservationIfAvailable(?, ?, ?, ?, ?, ?, ?, @p_reservation_slip_id, @p_table_number);
     `;
@@ -11,3 +11,12 @@ export async function createReservationIfAvailable({branch_id, cus_name, phone_n
     );
     return outParams[0];
 }
+
+async function CancelReservation(reservation_id) {
+    const query = `
+        CALL CancelReservation(?);
+    `;
+    await db.query(query, [reservation_id]);
+}
+
+export { createReservationIfAvailable, CancelReservation };
