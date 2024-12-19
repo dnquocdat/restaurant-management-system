@@ -11,6 +11,11 @@ import {
 } from '../services/order.service.js';
 
 
+import {
+    checkBranchExists,
+    checkReservationExists
+} from '../services/check.service.js';
+
 
 export const submitOnline = async (req, res) => {
     const branch_id = parseInt(req.params.branchId, 10);
@@ -22,11 +27,7 @@ export const submitOnline = async (req, res) => {
     }
 
     // Check if branch exists
-    const branchCheckSql = 'SELECT branch_id FROM branches WHERE branch_id = ? LIMIT 1';
-    const [branchRows] = await db.query(branchCheckSql, [branch_id]);
-    if (branchRows.length === 0) {
-        throw new CustomError("BAD_REQUEST", "Branch does not exist", STATUS_CODE.BAD_REQUEST);
-    }
+    await checkBranchExists(branch_id);
 
     const employee_id = await getRandomEmployeeIdByDepartment('Shipping', branch_id);
 
@@ -71,11 +72,7 @@ export const submitDineIn = async (req, res) => {
     }
 
     // Check if reservation exists
-    const reservationCheckSql = 'SELECT reservation_slip_id FROM reservation_slips WHERE reservation_slip_id = ? LIMIT 1';
-    const [reservationRows] = await db.query(reservationCheckSql, [reservation_slip_id]);
-    if (reservationRows.length === 0) {
-        throw new CustomError("BAD_REQUEST", "Reservation does not exist", STATUS_CODE.BAD_REQUEST);
-    }
+    await checkReservationExists(reservation_slip_id); 
 
     // Check if user is the waiter of this reservation
     if (waiter != req.user.user_id) {
