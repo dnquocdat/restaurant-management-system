@@ -26,4 +26,12 @@ async function checkDishExists(dish_id) {
     } 
 }
 
+export const checkMenu = async (dish_id, branch_id) => {
+    const callProcedure = 'CALL check_menu_exists(?, ?);';
+    const [rows] = await db.query(callProcedure, [dish_id, branch_id]);
+    if (rows[0].length === 0 || rows[0][0].is_serve == 0) {
+        throw new CustomError("NOT_FOUND", "Dish not found in the specified branch's menu", STATUS_CODE.NOT_FOUND);
+    }
+};
+
 export { checkReservationExists, checkBranchExists, checkDishExists};

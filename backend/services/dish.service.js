@@ -23,3 +23,13 @@ export const addDishToMenu = async ({dish_id, branch_id, is_ship}) => {
     
     await db.query(callProcedure, [dish_id, branch_id, is_ship]);
 };
+
+export const removeDishFromMenu = async (dish_id, branch_id) => {
+    const callProcedure = 'CALL RemoveDishFromMenu(?, ?);';
+    await db.query(callProcedure, [dish_id, branch_id]);
+};
+
+// export const removeDish = async (dish_id) => {
+//     const callProcedure = 'CALL DeleteDish(?);';
+//     await db.query(callProcedure, [dish_id]);
+// };

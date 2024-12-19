@@ -8,13 +8,15 @@ import db from '../configs/db.js';
 import {
     checkBranchExists,
     checkReservationExists,
-    checkDishExists
+    checkDishExists,
+    checkMenu
 } from '../services/check.service.js';
 
 import {
     createDishReview,
     createDish,
-    addDishToMenu
+    addDishToMenu,
+    removeDishFromMenu
 } from '../services/dish.service.js';
 
 export const submitReview = async (req, res) => {
@@ -42,6 +44,9 @@ export const addDishtoMenu = async (req, res) => {
     const dish_id = parseInt(req.params.dishId, 10);
     const branch_id = parseInt(req.params.branchId, 10);
     const { is_ship } = req.body;
+
+    await checkDishExists(dish_id);
+    await checkBranchExists(branch_id);
 
     await addDishToMenu({
         dish_id,
@@ -97,3 +102,44 @@ export const submitDish = async (req, res) => {
         data
     );
 }
+
+export const removeDishFromMenuController = async (req, res) => {
+    const dish_id = parseInt(req.params.dishId, 10);
+    const branch_id = parseInt(req.params.branchId, 10);
+
+    await checkDishExists(dish_id);
+
+    await checkBranchExists(branch_id);
+
+    // Check if the dish exists in the branch's menu
+    await checkMenu(dish_id, branch_id);
+
+    // Remove the dish from the menu
+    await removeDishFromMenu(dish_id, branch_id);
+
+    return formatResponse(
+        res,
+        "Remove Dish from Menu",
+        "Dish removed from menu successfully",
+        STATUS_CODE.SUCCESS,
+        null
+    );
+}
+
+// export const deleteDish = async (req, res) => {
+//     const dish_id = parseInt(req.params.dishId, 10);
+
+//     // Check if dish exists
+//     await checkDishExists(dish_id);
+
+//     // Delete the dish
+//     await removeDish(dish_id);
+
+//     return formatResponse(
+//         res,
+//         "Delete Dish",
+//         "Dish deleted successfully",
+//         STATUS_CODE.SUCCESS,
+//         null
+//     );
+// };
