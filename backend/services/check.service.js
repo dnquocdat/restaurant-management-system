@@ -34,4 +34,13 @@ export const checkMenu = async (dish_id, branch_id) => {
     }
 };
 
+export async function checkEmployeeExists(employee_id) {
+    const sql = `CALL CheckEmployeeExists(?)`;
+    const params = [employee_id];
+    const [rows] = await db.query(sql, params);
+    if (rows[0].length === 0) {
+        throw new CustomError("NOT_FOUND", "Employee does not exist or has already quit", STATUS_CODE.NOT_FOUND);
+    }
+}
+
 export { checkReservationExists, checkBranchExists, checkDishExists};
