@@ -62,3 +62,51 @@ export const submitOnline = async (req, res) => {
 
     return formatResponse(res, "Success", "Order submitted successfully", STATUS_CODE.CREATED, data);
 };
+
+
+export const submitDineIn = async (req, res) => {
+    const reservation_slip_id = parseInt(req.params.reservationSlipId, 10);
+    const { cus_name, member_card_id, branch_id, waiter, listDish} = req.body;
+
+    // Validate required fields
+    if (!cus_name || !branch_id || !listDish || !waiter) {
+        throw new CustomError("BAD_REQUEST", "Please fill in all fields", STATUS_CODE.BAD_REQUEST);
+    }
+
+    // Check if reservation exists
+    const reservationCheckSql = 'SELECT reservation_slip_id FROM reservation_slips WHERE reservation_slip_id = ? LIMIT 1';
+    const [reservationRows] = await db.query(reservationCheckSql, [reservation_slip_id]);
+    if (reservationRows.length === 0) {
+        throw new CustomError("BAD_REQUEST", "Reservation does not exist", STATUS_CODE.BAD_REQUEST);
+    }
+
+    // Check if user is the waiter of this reservation
+    if (waiter != req.user.user_id) {
+        throw new CustomError("UNAUTHORIZED", "You are not the waiter of this reservation", STATUS_CODE.UNAUTHORIZED);
+    }
+
+    const order = await createOrderInDb({
+        branch_id: branch_id,
+        user_id: null,
+        cus_name: cus_name,
+        reservation_slip_id: reservation_slip_id,
+        order_type: 'dine-in',
+        status: 'billed',
+        dishes: listDish,
+        delivery_address: null,
+        delivery_phone: null,
+        shipper: null,
+        delivery_notes: null,
+        member_card_id: member_card_id
+    });
+
+    const data = {
+        order_id: order.order_id,
+        branch_id: branch_id,
+        member_card_id: member_card_id,
+        reservation_slip_id: reservation_slip_id,
+        created_at: order.order_created_at
+    };
+
+    return formatResponse(res, "Success", "Dine-in order submitted successfully", STATUS_CODE.CREATED, data);
+};

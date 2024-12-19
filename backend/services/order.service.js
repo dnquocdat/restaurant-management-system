@@ -11,9 +11,10 @@ async function createOrderInDb({
     delivery_address, 
     delivery_phone, 
     shipper, 
-    delivery_notes 
+    delivery_notes,
+    member_card_id
 }) {
-    const sql = 'CALL CreateOrder(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @p_order_id, @p_delivery_id, @p_order_created_at)';
+    const sql = 'CALL CreateOrder(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @p_order_id, @p_delivery_id, @p_order_created_at)';
     const params = [
         branch_id,
         user_id,
@@ -25,7 +26,8 @@ async function createOrderInDb({
         delivery_address,
         delivery_phone,
         shipper,
-        delivery_notes
+        delivery_notes,
+        member_card_id
     ];
     const [rows] = await db.execute(sql, params);
     // Handle OUT parameters as needed
