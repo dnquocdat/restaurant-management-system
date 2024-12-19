@@ -1,7 +1,4 @@
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import CustomError from '../utils/errors.js';
-import * as dotenv from 'dotenv';
 import STATUS_CODE from '../utils/constants.js';
 import formatResponse from '../utils/formatresponse.js';
 
