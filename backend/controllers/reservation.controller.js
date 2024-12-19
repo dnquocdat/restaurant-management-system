@@ -53,7 +53,7 @@ export const deleteReservation = async (req, res) => {
     const reservation_id = req.params.reservationId;
 
     // Check reservation exists
-    const reservationCheckSql = 'SELECT reservation_slip_id FROM reservation_slips WHERE reservation_id = ? LIMIT 1';
+    const reservationCheckSql = 'SELECT reservation_slip_id FROM reservation_slips WHERE reservation_slip_id = ? LIMIT 1';
     const [reservationRows] = await db.query(reservationCheckSql, [reservation_id]);
     if (reservationRows.length === 0) {
         throw new CustomError("BAD_REQUEST", "Reservation does not exist", STATUS_CODE.BAD_REQUEST);
@@ -61,5 +61,5 @@ export const deleteReservation = async (req, res) => {
 
     await CancelReservation(reservation_id);
 
-    return formatResponse(res, "Success", "Reservation deleted successfully", STATUS_CODE.OK, {});
+    return formatResponse(res, "Success", "Reservation deleted successfully", STATUS_CODE.SUCCESS, {});
 }
