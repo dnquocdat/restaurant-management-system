@@ -18,4 +18,12 @@ async function checkBranchExists(branch_id) {
     }
 }
 
-export { checkReservationExists, checkBranchExists };
+async function checkDishExists(dish_id) {
+    const dishCheckSql = 'CALL check_dish_exists(?)';
+    const [dishRows] = await db.query(dishCheckSql, [dish_id]);
+    if (dishRows[0].length === 0) {
+        throw new CustomError("BAD_REQUEST", "Dish does not exist", STATUS_CODE.BAD_REQUEST);
+    } 
+}
+
+export { checkReservationExists, checkBranchExists, checkDishExists};
