@@ -43,6 +43,7 @@ export const submitOnline = async (req, res) => {
         delivery_phone: phone_number,
         shipper: employee_id,
         delivery_notes: notes,
+        member_card_id: null
     });
 
     const data = {

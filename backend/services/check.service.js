@@ -1,4 +1,6 @@
 import db from '../configs/db.js';
+import CustomError from '../utils/errors.js';
+import STATUS_CODE from '../utils/constants.js';
 
 async function checkReservationExists(reservation_id) {
     const reservationCheckSql = 'CALL check_reservation_exists(?)';
