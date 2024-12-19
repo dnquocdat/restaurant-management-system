@@ -14,7 +14,7 @@ async function createReservationIfAvailable({branch_id, cus_name, phone_number, 
 
 async function CancelReservation(reservation_id) {
     const query = `
-        CALL CancelReservation(?);
+        CALL UpdateStatusReservation(?, 'canceled');
     `;
     await db.query(query, [reservation_id]);
 }

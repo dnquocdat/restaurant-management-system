@@ -4,7 +4,6 @@ import formatResponse from '../utils/formatresponse.js';
 
 import db from '../configs/db.js';
 
-// import { createUserInDb } from '../services/auth.service.js';
 import {
     createOrderInDb,
     getRandomEmployeeIdByDepartment,
