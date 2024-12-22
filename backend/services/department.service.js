@@ -10,4 +10,18 @@ export async function addDepartment(departmentData) {
     return department;
 }
 
+export async function updateDepartment(departmentId, updateData) {
+    const { department_name, salary } = updateData;
+    const sql = `CALL UpdateDepartmentInfo(?, ?, ?)`;
+    const params = [departmentId, department_name || null, salary !== undefined ? salary : null];
+    const [result] = await db.query(sql, params);
+    
+    // Check if any rows were affected
+    if (result.affectedRows === 0) {
+        throw new CustomError("NOT_FOUND", "Department not found", STATUS_CODE.NOT_FOUND);
+    }
+
+    return;
+}
+
 // ...existing code...

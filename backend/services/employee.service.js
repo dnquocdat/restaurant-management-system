@@ -65,7 +65,7 @@ export async function updateEmployee(employeeId, updateData) {
     await db.query(closeBranchSql, [employeeId]);
 
     // 4. If branch_id is null => set current_work_id to null and exit
-    if (updateData.branch_id === null) {
+    if (updateData.branch_name === null) {
         const removeCurrentWorkSql = `CALL SetCurrentWorkNull(?)`;
         await db.query(removeCurrentWorkSql, [employeeId]);
         return;

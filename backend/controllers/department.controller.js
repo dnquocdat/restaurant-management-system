@@ -2,7 +2,7 @@ import CustomError from '../utils/errors.js';
 import STATUS_CODE from '../utils/constants.js';
 import formatResponse from '../utils/formatresponse.js';
 
-import { addDepartment as addDepartmentService } from '../services/department.service.js';
+import { addDepartment as addDepartmentService, updateDepartment as updateDepartmentService } from '../services/department.service.js';
 
 export const addDepartment = async (req, res, next) => {
     const { department_name, salary } = req.body;
@@ -33,13 +33,26 @@ export const updateDepartment = async (req, res, next) => {
         throw new CustomError("BAD_REQUEST", "Invalid department ID", STATUS_CODE.BAD_REQUEST);
     }
 
-    await updateDepartmentInfo(departmentId, req.body);
+    const { department_name, salary } = req.body;
+
+    // Validate at least one field to update
+    if (department_name === undefined && salary === undefined) {
+        throw new CustomError("BAD_REQUEST", "Please provide at least one field to update", STATUS_CODE.BAD_REQUEST);
+    }
+
+    // Prepare update data
+    const updateData = {};
+    if (department_name !== undefined) updateData.department_name = department_name;
+    if (salary !== undefined) updateData.salary = salary;
+
+    // Perform update
+    await updateDepartmentService(departmentId, updateData);
 
     return formatResponse(
         res,
         "Update Department",
         "Department updated successfully",
-        STATUS_CODE.OK,
+        STATUS_CODE.SUCCESS,
         null
     );
 };
