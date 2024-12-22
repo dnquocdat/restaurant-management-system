@@ -4,7 +4,7 @@ import formatResponse from '../utils/formatresponse.js';
 
 import { checkEmployeeExists } from '../services/check.service.js';
 
-import { addEmployee as addEmployeeService, deleteEmployee as deleteEmployeeService } from '../services/employee.service.js';
+import { addEmployee as addEmployeeService, deleteEmployee as deleteEmployeeService, updateEmployee as updateEmployeeService } from '../services/employee.service.js';
 
 export const addEmployee = async (req, res, next) => {
     const { employee_name, employee_email, date_of_birth, gender, employee_phone_number, employee_address } = req.body;
@@ -44,5 +44,19 @@ export const deleteEmployee = async (req, res, next) => {
     await deleteEmployeeService(employeeId);
 
     return formatResponse(res, "Delete Employee", "Employee deleted successfully", STATUS_CODE.SUCCESS, null);
+};
+
+export const updateEmployee = async (req, res, next) => {
+    let { employeeId } = req.params;
+    employeeId = parseInt(employeeId, 10);
+
+    await checkEmployeeExists(employeeId);
+
+    const updateData = req.body;
+
+    // Perform update
+    await updateEmployeeService(employeeId, updateData);
+
+    return formatResponse(res, "Update Employee Information", "Employee updated successfully", STATUS_CODE.SUCCESS, null);
 };
 
