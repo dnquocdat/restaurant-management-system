@@ -6,11 +6,13 @@ import orderRoute from './order.route.js';
 import reservationRoute from './reservation.route.js';
 import dishRoute from './dish.route.js';
 import employeeRoute from './employee.route.js';
+import departmentRoute from './department.route.js';
 
 router.use('/auth', authRoute);
 router.use('/order', orderRoute);
 router.use('/reservation', reservationRoute);
 router.use('/dish', dishRoute);
 router.use('/employee', employeeRoute);
+router.use('/department', departmentRoute);
 
 export default router;
