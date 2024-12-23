@@ -9,8 +9,9 @@ import { updateUser as updateUserService, updateUserPassword as updateUserPasswo
 // ...existing code...
 
 export const updateUser = async (req, res, next) => {
-    let { userId } = req.params;
-    userId = parseInt(userId, 10);
+    const userId = req.user.user_id;
+    // let { userId } = req.params;
+    // userId = parseInt(userId, 10);
 
     if (isNaN(userId)) {
         throw new CustomError("BAD_REQUEST", "Invalid user ID", STATUS_CODE.BAD_REQUEST);
@@ -52,8 +53,9 @@ export const updateUser = async (req, res, next) => {
 };
 
 export const updateUserPassword = async (req, res, next) => {
-    let { userId } = req.params;
-    userId = parseInt(userId, 10);
+    const userId = req.user.user_id;
+    // let { userId } = req.params;
+    // userId = parseInt(userId, 10);
 
     if (isNaN(userId)) {
         throw new CustomError("BAD_REQUEST", "Invalid user ID", STATUS_CODE.BAD_REQUEST);
