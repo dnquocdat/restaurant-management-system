@@ -2,7 +2,7 @@ import db from '../configs/db.js';
 import CustomError from '../utils/errors.js';
 import STATUS_CODE from '../utils/constants.js';
 
-async function checkReservationExists(reservation_id) {
+export async function checkReservationExists(reservation_id) {
     const reservationCheckSql = 'CALL check_reservation_exists(?)';
     const [reservationRows] = await db.query(reservationCheckSql, [reservation_id]);
     if (reservationRows[0].length === 0) {
@@ -10,7 +10,7 @@ async function checkReservationExists(reservation_id) {
     }
 }
 
-async function checkBranchExists(branch_id) {
+export async function checkBranchExists(branch_id) {
     const branchCheckSql = 'CALL check_branch_exists(?)';
     const [branchRows] = await db.query(branchCheckSql, [branch_id]);
     if (branchRows[0].length === 0) {
@@ -18,7 +18,7 @@ async function checkBranchExists(branch_id) {
     }
 }
 
-async function checkDishExists(dish_id) {
+export async function checkDishExists(dish_id) {
     const dishCheckSql = 'CALL check_dish_exists(?)';
     const [dishRows] = await db.query(dishCheckSql, [dish_id]);
     if (dishRows[0].length === 0) {
@@ -43,4 +43,11 @@ export async function checkEmployeeExists(employee_id) {
     }
 }
 
-export { checkReservationExists, checkBranchExists, checkDishExists};
+export async function checkUserValid(user_id) {
+    const sql = `CALL CheckUserValidAndNotAdminOrStaff(?)`;
+    const params = [user_id];
+    const [rows] = await db.query(sql, params);
+    if (rows[0].length === 0) {
+        throw new CustomError("BAD_REQUEST", "Invalid user_id or user is admin/staff", STATUS_CODE.BAD_REQUEST);
+    }
+}

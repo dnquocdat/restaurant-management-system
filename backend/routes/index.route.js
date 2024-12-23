@@ -9,6 +9,7 @@ import employeeRoute from './employee.route.js';
 import departmentRoute from './department.route.js';
 import userRoute from './user.route.js';
 import branchRoute from './branch.route.js';
+import cardRoute from './card.route.js';
 
 router.use('/auth', authRoute);
 router.use('/order', orderRoute);
@@ -18,5 +19,6 @@ router.use('/employee', employeeRoute);
 router.use('/department', departmentRoute);
 router.use('/user', userRoute);
 router.use('/branch', branchRoute);
+router.use('/card', cardRoute);
 
 export default router;
