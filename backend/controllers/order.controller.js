@@ -7,6 +7,7 @@ import db from '../configs/db.js';
 import {
     createOrderInDb,
     getRandomEmployeeIdByDepartment,
+    updateOrderStatus as updateOrderStatusService
 } from '../services/order.service.js';
 
 
@@ -103,4 +104,33 @@ export const submitDineIn = async (req, res) => {
     };
 
     return formatResponse(res, "Success", "Dine-in order submitted successfully", STATUS_CODE.CREATED, data);
+};
+
+export const updateOrderStatus = async (req, res, next) => {
+    const order_id = parseInt(req.params.orderId, 10);
+
+    const { order_status } = req.body;
+
+
+    // Validate required field
+    if (!order_status) {
+        throw new CustomError("BAD_REQUEST", "Please provide the order status", STATUS_CODE.BAD_REQUEST);
+    }
+
+    // Validate order_status value (assuming predefined statuses)
+    const validStatuses = ['waiting_for_guest','serving','billed','in_delivery','delivered', 'cancelled'];
+    if (!validStatuses.includes(order_status)) {
+        throw new CustomError("BAD_REQUEST", "Invalid order status provided", STATUS_CODE.BAD_REQUEST);
+    }
+
+    // Perform update
+    await updateOrderStatusService(order_id, order_status);
+
+    return formatResponse(
+        res,
+        "Update Order Status",
+        "Order status updated successfully",
+        STATUS_CODE.SUCCESS,
+        null
+    );
 };

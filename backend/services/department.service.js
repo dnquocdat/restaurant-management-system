@@ -1,5 +1,7 @@
 // ...existing code...
 import db from '../configs/db.js';
+import CustomError from '../utils/errors.js';
+import STATUS_CODE from '../utils/constants.js';
 
 export async function addDepartment(departmentData) {
     const { department_name, salary } = departmentData;

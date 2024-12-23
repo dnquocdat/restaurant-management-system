@@ -6,7 +6,8 @@ import {
     addDishtoMenu,
     submitDish,
     // deleteDish
-    removeDishFromMenuController
+    removeDishFromMenuController,
+    updateDish
 } from '../controllers/dish.controller.js';
 
 import verifyToken from "../middlewares/verify-token.js";
@@ -18,5 +19,8 @@ router.post('/', verifyToken, asyncErrorHandler(submitDish));
 router.post('/:dishId/branch/:branchId', verifyToken, asyncErrorHandler(addDishtoMenu));
 // router.delete('/:dishId', verifyToken, asyncErrorHandler(deleteDish));
 router.delete('/:dishId/branch/:branchId', verifyToken, asyncErrorHandler(removeDishFromMenuController));
+
+// Update Dish endpoint with middleware
+router.patch('/:dishId', verifyToken, asyncErrorHandler(updateDish));
 
 export default router;

@@ -16,7 +16,8 @@ import {
     createDishReview,
     createDish,
     addDishToMenu,
-    removeDishFromMenu
+    removeDishFromMenu,
+    updateDish as updateDishService
 } from '../services/dish.service.js';
 
 export const submitReview = async (req, res) => {
@@ -126,20 +127,47 @@ export const removeDishFromMenuController = async (req, res) => {
     );
 }
 
-// export const deleteDish = async (req, res) => {
-//     const dish_id = parseInt(req.params.dishId, 10);
+export const updateDish = async (req, res, next) => {
+    let { dishId } = req.params;
+    dishId = parseInt(dishId, 10);
 
-//     // Check if dish exists
-//     await checkDishExists(dish_id);
+    if (isNaN(dishId)) {
+        throw new CustomError("BAD_REQUEST", "Invalid dish ID", STATUS_CODE.BAD_REQUEST);
+    }
 
-//     // Delete the dish
-//     await removeDish(dish_id);
+    const { dish_name, price, description, category_name, image_link } = req.body;
 
-//     return formatResponse(
-//         res,
-//         "Delete Dish",
-//         "Dish deleted successfully",
-//         STATUS_CODE.SUCCESS,
-//         null
-//     );
-// };
+    // Validate at least one field to update
+    if (
+        dish_name === undefined &&
+        price === undefined &&
+        description === undefined &&
+        category_name === undefined &&
+        image_link === undefined
+    ) {
+        throw new CustomError(
+            "BAD_REQUEST",
+            "Please provide at least one field to update",
+            STATUS_CODE.BAD_REQUEST
+        );
+    }
+
+    // Prepare update data
+    const updateData = {};
+    if (dish_name !== undefined) updateData.dish_name = dish_name;
+    if (price !== undefined) updateData.price = price;
+    if (description !== undefined) updateData.description = description;
+    if (category_name !== undefined) updateData.category_name = category_name;
+    if (image_link !== undefined) updateData.image_link = image_link;
+
+    // Perform update
+    await updateDishService(dishId, updateData);
+
+    return formatResponse(
+        res,
+        "Update Dish",
+        "Dish updated successfully",
+        STATUS_CODE.SUCCESS,
+        null
+    );
+}

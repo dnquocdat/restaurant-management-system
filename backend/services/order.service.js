@@ -48,4 +48,17 @@ const getRandomEmployeeIdByDepartment = async (departmentName, branchId) => {
     return rows[0].employee_id;
 };
 
+export async function updateOrderStatus(order_id, newStatus) {
+    const sql = `CALL UpdateOrderStatus(?, ?)`;
+    const params = [order_id, newStatus];
+    const [result] = await db.query(sql, params);
+    
+    // Check if any rows were affected
+    if (result.affectedRows === 0) {
+        throw new CustomError("NOT_FOUND", "Order not found", STATUS_CODE.NOT_FOUND);
+    }
+
+    return;
+}
+
 export { createOrderInDb, getRandomEmployeeIdByDepartment };
