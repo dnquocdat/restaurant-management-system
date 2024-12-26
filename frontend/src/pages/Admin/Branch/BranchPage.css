@@ -205,3 +205,24 @@
     transform: rotate(360deg);
   }
 }
+
+.add-branch-btn {
+  margin-left: 10px;
+  padding: 5px 10px;
+  background-color: rgb(39, 124, 214);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  font-size: 17px;
+}
+
+.add-branch-btn:hover {
+  background-color: #0056b3;
+}
+
+.add-branch-btn .icon {
+  margin-right: 5px;
+}

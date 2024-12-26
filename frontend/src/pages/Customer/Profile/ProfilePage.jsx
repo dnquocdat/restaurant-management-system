@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import "./ProfilePage.css";
+import { http } from "../../../helpers/http";
+import { toast } from "react-toastify";
 
 export const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("personal-info");
@@ -27,13 +29,84 @@ export const ProfilePage = () => {
     }
   };
 
-  const handleEditToggle = () => {
+  const handleEditToggle = async () => {
+    if (isEditing) {
+      // Gọi API khi nhấn nút Save
+      const updatedInfo = {
+        user_name: userInfo.name,
+        user_email: userInfo.email,
+        user_address: userInfo.address,
+        user_phone_number: userInfo.phoneNumber,
+      };
+
+      await updateUserInfo(updatedInfo); // Thay thế `your-user-id` bằng id của người dùng.
+    }
+
     setIsEditing(!isEditing);
   };
 
   const handleInputChange = (event) => {
     const { name, value } = event.target;
     setUserInfo((prevInfo) => ({ ...prevInfo, [name]: value }));
+  };
+
+  const updateUserInfo = async (updatedInfo) => {
+    try {
+      const fetchUpdateUserInfo = await http(`/user`, "PATCH", updatedInfo);
+
+      if (fetchUpdateUserInfo.status === 200) {
+        toast.success(`Update successful!`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating user information:", error);
+    }
+  };
+
+  const updateUserPassword = async (currentPassword, newPassword) => {
+    try {
+      const fetchUpdatePassword = await http(`/user/update_password`, "PATCH", {
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+
+      if (fetchUpdatePassword.status === 200) {
+        toast.success(`Update passwwork successful!`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating password:", error);
+      return { error: error.message };
+    }
+  };
+
+  const handlePasswordUpdate = async () => {
+    const currentPassword = document.querySelector(
+      'input[placeholder="Enter current password"]'
+    ).value;
+    const newPassword = document.querySelector(
+      'input[placeholder="Enter new password"]'
+    ).value;
+    const confirmPassword = document.querySelector(
+      'input[placeholder="Confirm new password"]'
+    ).value;
+
+    if (newPassword !== confirmPassword) {
+      alert("New passwords do not match!");
+      return;
+    }
+
+    const result = await updateUserPassword(currentPassword, newPassword); // Thay thế `your-user-id` bằng id của người dùng.
+
+    if (result?.error) {
+      alert(result.error);
+    }
+
+    setActiveTab("personal-info");
   };
 
   return (
@@ -146,7 +219,9 @@ export const ProfilePage = () => {
             <input type="password" placeholder="Confirm new password" />
           </div>
           <div className="form-actions">
-            <button className="save-button">Update</button>
+            <button className="save-button" onClick={handlePasswordUpdate}>
+              Update
+            </button>
             <button className="cancel-button">Cancel</button>
           </div>
         </div>

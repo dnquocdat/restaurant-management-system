@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FiEdit2, FiTrash2, FiSearch, FiPlus } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
-
+import { http } from "../../../helpers/http";
 import "./DishPage.css"; // Import file CSS
 
 const DishPage = () => {
@@ -107,6 +107,7 @@ const DishPage = () => {
       addDishToServer(newDish);
       setDishes([...dishes, newDish]);
     } else {
+      updateDishOnServer(newDish);
       setDishes(
         dishes.map((dish) => (dish.id === selectedDish.id ? newDish : dish))
       );
@@ -128,27 +129,41 @@ const DishPage = () => {
       image_link: dish.image,
     };
     try {
-      const response = await fetch("http://localhost:3000/api/dish", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-        body: JSON.stringify(body),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to add dish to the server");
+      const fetchAddDish = http(`/dish`, "POST", body);
+      if (fetchAddDish) {
+        toast.success(`Dish added successfully!`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
       }
+    } catch (error) {
+      console.error("Error adding dish:", error);
+    }
+  };
 
-      const result = await response.json();
-      console.log("Dish added successfully:", result);
-      toast.success(`Dish added successfully!`, {
+  const updateDishOnServer = async (dish) => {
+    const body = {
+      dish_name: dish.name,
+      price: dish.price,
+      description: dish.description,
+      category_name: dish.category,
+      image_link: dish.image,
+    };
+
+    try {
+      const fetchUpdateDish = http(`/dish/${dish.id}`, "PATCH", body);
+      if (fetchUpdateDish) {
+        toast.success(`Dish updated successfully!`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating dish:", error);
+      toast.error("Error updating dish!", {
         position: "top-right",
         autoClose: 1500,
       });
-    } catch (error) {
-      console.error("Error adding dish:", error);
     }
   };
 

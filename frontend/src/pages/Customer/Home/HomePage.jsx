@@ -15,16 +15,6 @@ const HomePage = () => {
   const [isOpen, setIsOpen] = useState(false);
   const banners = [
     {
-      id: 1,
-      image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836",
-      alt: "Delicious spread of various dishes",
-    },
-    {
-      id: 2,
-      image: "https://images.unsplash.com/photo-1514326640560-7d063ef2aed5",
-      alt: "Fine dining experience",
-    },
-    {
       id: 3,
       image: "https://images.unsplash.com/photo-1551183053-bf91a1d81141",
       alt: "Gourmet restaurant interior",
@@ -73,13 +63,6 @@ const HomePage = () => {
     },
   ];
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentBanner((prev) => (prev + 1) % banners.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [banners.length]);
-  // console.log(banners.length);
   const filteredBestSellers = bestSellers.filter(
     (dish) =>
       dish.name.toLowerCase().includes(searchQuery.toLowerCase()) ||

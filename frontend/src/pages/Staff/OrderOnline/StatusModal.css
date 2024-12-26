@@ -97,22 +97,22 @@
   text-transform: capitalize;
 }
 
-.badge-pending {
-  background-color: #fff3cd;
-  color: #856404;
+.badge-billed {
+  background-color: #e4c64f;
+  color: #fff;
 }
 
-.badge-in-progress {
-  background-color: #d1ecf1;
-  color: #0c5460;
+.badge-in-delivery {
+  background-color: #3498db;
+  color: #fff;
 }
 
-.badge-completed {
-  background-color: #d4edda;
-  color: #155724;
+.badge-delivered {
+  background-color: #2ecc71;
+  color: #fff;
 }
 
 .badge-cancelled {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: #e74c3c;
+  color: #fff;
 }
