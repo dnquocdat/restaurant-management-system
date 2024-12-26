@@ -1,6 +1,7 @@
 import db from '../configs/db.js';
 import CustomError from '../utils/errors.js';
 import STATUS_CODE from '../utils/constants.js';
+import e from 'express';
 
 export async function checkReservationExists(reservation_id) {
     const reservationCheckSql = 'CALL check_reservation_exists(?)';
@@ -49,5 +50,14 @@ export async function checkUserValid(user_id) {
     const [rows] = await db.query(sql, params);
     if (rows[0].length === 0) {
         throw new CustomError("BAD_REQUEST", "Invalid user_id or user is admin/staff", STATUS_CODE.BAD_REQUEST);
+    }
+}
+
+export async function checkUserExists(user_id) {
+    const sql = `CALL CheckUserExists(?)`;
+    const params = [user_id];
+    const [rows] = await db.query(sql, params);
+    if (rows[0].length === 0) {
+        throw new CustomError("BAD_REQUEST", "User does not exist", STATUS_CODE.BAD_REQUEST);
     }
 }

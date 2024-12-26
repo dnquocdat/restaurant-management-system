@@ -1,4 +1,6 @@
 import db from '../configs/db.js';
+import CustomError from '../utils/errors.js';
+import STATUS_CODE from '../utils/constants.js';
 
 async function createOrderInDb({ 
     branch_id, 
@@ -62,3 +64,53 @@ export async function updateOrderStatus(order_id, newStatus) {
 }
 
 export { createOrderInDb, getRandomEmployeeIdByDepartment };
+
+// Modify the searchOrdersByUser function to use GetDynamicItems
+export async function searchOrdersByUser(user_id, { query, page, limit}) {
+    const p_query_name = 'orders.order_id';
+    const p_query = query;
+    const p_page = parseInt(page, 10) || 1;
+    const p_limit = parseInt(limit, 10) || 10;
+    const p_tableName = 'orders';
+    const p_orderByField = '';
+    const p_orderByDirection = '';
+    const p_category_name = 'online_user_id';
+    const p_category = user_id;
+    const p_id_name = 'order_id';
+    const p_selectFields = 'order_id, branch_id, online_user_id, order_type, status, created_at';
+    const p_joinClause = ''; // No joins needed as only the 'orders' table is used
+    const p_branch_name = 'order_type' // In this context, 'order_type' is used as the branch_name
+    const p_branch_id = 'delivery'; // In this context, 'delivery' is used as the branch_id
+
+    let p_totalRecords = 0;
+
+    const sql = `CALL GetDynamicItems(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @totalRecords);`;
+    const params = [
+        p_query_name,
+        p_query,
+        p_page,
+        p_limit,
+        p_tableName,
+        p_orderByField,
+        p_orderByDirection,
+        p_category_name,
+        p_category,
+        p_branch_name,
+        p_branch_id,
+        p_id_name,
+        p_selectFields,
+        p_joinClause
+    ];
+
+    const [results] = await db.query(sql, params);
+
+    // Retrieve the total records from the OUT parameter
+    const [[{ totalRecords }]] = await db.query('SELECT @totalRecords as totalRecords;');
+    p_totalRecords = totalRecords;
+
+    return {
+        orders: results[0],
+        totalRecords: p_totalRecords
+    };
+
+}

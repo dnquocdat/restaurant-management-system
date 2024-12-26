@@ -7,13 +7,15 @@ import db from '../configs/db.js';
 import {
     createOrderInDb,
     getRandomEmployeeIdByDepartment,
-    updateOrderStatus as updateOrderStatusService
+    updateOrderStatus as updateOrderStatusService,
+    searchOrdersByUser
 } from '../services/order.service.js';
 
 
 import {
     checkBranchExists,
-    checkReservationExists
+    checkReservationExists,
+    checkUserExists
 } from '../services/check.service.js';
 
 
@@ -133,4 +135,53 @@ export const updateOrderStatus = async (req, res, next) => {
         STATUS_CODE.SUCCESS,
         null
     );
+};
+
+// Add the searchOrdersByUser controller
+export const searchOrdersByUserController = async (req, res, next) => {
+    const { query = '', page = 1, limit = 10 } = req.query;
+
+    // Validate userId
+    const user_id = req.user.user_id;
+    await checkUserExists(user_id);
+
+    // Validate page and limit
+    if (isNaN(parseInt(page, 10)) || parseInt(page, 10) < 1) {
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+    }
+    if (isNaN(parseInt(limit, 10)) || parseInt(limit, 10) < 1) {
+        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST);
+    }
+
+    const { orders, totalRecords } = await searchOrdersByUser(user_id, { query, page, limit });
+
+    // Calculate pagination details
+    const totalPages = Math.ceil(totalRecords / limit);
+    if (totalPages === 0) {
+        throw new CustomError("NOT_FOUND", "No orders found", STATUS_CODE.NOT_FOUND);
+    }
+    const hasMore = page < totalPages;
+
+    if (page > totalPages) {
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+    }
+
+    const data = {
+        orders: orders.map(order => ({
+            order_id: order.order_id,
+            branch_id: order.branch_id,
+            cus_name: order.cus_name,
+            order_type: order.order_type,
+            status: order.status,
+            created_at: order.order_created_at,
+        })),
+        pagination: {
+            currentPage: parseInt(page, 10),
+            pageSize: parseInt(limit, 10),
+            totalPages: totalPages,
+            hasMore: hasMore
+        }
+    };
+
+    return formatResponse(res, "Search Orders", "Orders retrieved successfully", STATUS_CODE.SUCCESS, data);
 };

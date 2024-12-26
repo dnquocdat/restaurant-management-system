@@ -4,7 +4,8 @@ const router = Router();
 import { 
     submitOnline,
     submitDineIn,
-    updateOrderStatus 
+    updateOrderStatus,
+    searchOrdersByUserController 
 } from '../controllers/order.controller.js';
 
 import verifyToken from "../middlewares/verify-token.js";
@@ -16,5 +17,8 @@ router.post('/submit-dine-in/:reservationSlipId', verifyToken, asyncErrorHandler
 
 // Update Order Status endpoint with middleware
 router.patch('/:orderId', verifyToken, asyncErrorHandler(updateOrderStatus));
+
+// Search Orders by User endpoint with middleware
+router.get('/online-account', verifyToken, asyncErrorHandler(searchOrdersByUserController));
 
 export default router;
