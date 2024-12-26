@@ -1,7 +1,7 @@
 import CustomError from '../utils/errors.js';
 import STATUS_CODE from '../utils/constants.js';
 import formatResponse from '../utils/formatresponse.js';
-import { addBranch as addBranchService, updateBranch as updateBranchService } from '../services/branch.service.js';
+import { addBranch as addBranchService, updateBranch as updateBranchService, GetContract } from '../services/branch.service.js';
 import { parse } from 'dotenv';
 
 // ...existing code...
@@ -126,5 +126,15 @@ export const updateBranch = async (req, res, next) => {
         data
     );
 };
+
+export const getContract = async (req, res) =>{
+    let {branchId} = req.params;
+    branchId = parseInt(branchId, 10);
+    if(isNaN(branchId)){
+        throw new CustomError("BAD_REQUEST", "Invalid branch id", STATUS_CODE.BAD_REQUEST);
+    }
+    const contract = await GetContract(branchId);
+    return formatResponse(res, "Get Contract", "Get contract successfully", STATUS_CODE.SUCCESS, contract);
+}
 
 // ...existing code...

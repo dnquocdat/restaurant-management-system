@@ -61,4 +61,15 @@ export async function updateOrderStatus(order_id, newStatus) {
     return;
 }
 
+export async function getDishesInOnlineOrderById(order_id){
+    const sql = `CALL GetDishesInOrder(?)`;
+    const [result] = await db.query(sql, [order_id]);
+    return result[0];
+}
+export async function GetOnlineOrderDetails(order_id) {
+    const sql = `CALL GetOrderOnlineById(?)`;
+    const [result] = await db.query(sql, [order_id]);
+    return result[0][0];
+}
+
 export { createOrderInDb, getRandomEmployeeIdByDepartment };

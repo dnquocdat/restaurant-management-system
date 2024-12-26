@@ -34,3 +34,9 @@ export async function updateUserPassword(userId, newHashedPassword) {
 
     return;
 }
+
+export async function getUser(userId){
+    const sql = `CALL GetUserInformation(?)`;  
+    const [result] = await db.query(sql, [userId]);
+    return result[0][0];
+}

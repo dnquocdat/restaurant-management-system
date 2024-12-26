@@ -7,7 +7,9 @@ import db from '../configs/db.js';
 import {
     createOrderInDb,
     getRandomEmployeeIdByDepartment,
-    updateOrderStatus as updateOrderStatusService
+    updateOrderStatus as updateOrderStatusService,
+    getDishesInOnlineOrderById,
+    GetOnlineOrderDetails
 } from '../services/order.service.js';
 
 
@@ -134,3 +136,21 @@ export const updateOrderStatus = async (req, res, next) => {
         null
     );
 };
+
+export const getOnlineOrderDetails = async (req, res, next) => {
+    let { orderId } = req.params;
+    orderId = parseInt(orderId, 10);
+    const order = await GetOnlineOrderDetails(orderId);
+    const rows = await getDishesInOnlineOrderById(orderId);
+    const data = {
+        order_id: order.order_id,
+        branch_id: order.branch_id,
+        order_type: order.order_type,
+        created_at: order.created_at,
+        status: order.status,
+        shipper: order.shipper,
+        dishes: rows
+    };
+    return formatResponse(res, "Success", "Order details retrieved successfully", STATUS_CODE.SUCCESS, data);
+};
+

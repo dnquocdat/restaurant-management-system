@@ -54,3 +54,9 @@ export async function updateDish(dishId, updateData) {
 //     const callProcedure = 'CALL DeleteDish(?);';
 //     await db.query(callProcedure, [dish_id]);
 // };
+
+export const getDishById = async (dish_id) => {
+    const Query = 'call GetDishDetail(?);';
+    rows = await db.query(Query, [dish_id]);
+    return rows;
+};
