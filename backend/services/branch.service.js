@@ -3,9 +3,9 @@ import CustomError from '../utils/errors.js';
 import STATUS_CODE from '../utils/constants.js';
 
 export async function addBranch(branchData) {
-    const { branch_name, address, open_time, close_time, phone_number, email, has_car_park, has_motorbike_park, table_amount } = branchData;
-    const sql = `CALL CreateBranch(?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-    const params = [branch_name, address, open_time, close_time, phone_number, email, has_car_park, has_motorbike_park, table_amount];
+const {region_id, branch_name, address, open_time, close_time, phone_number, email, has_car_park, has_motorbike_park, table_amount } = branchData;
+    const sql = `CALL CreateBranch(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const params = [region_id, branch_name, address, open_time, close_time, phone_number, email, has_car_park, has_motorbike_park, table_amount];
     const [result] = await db.query(sql, params);
     const branch = result[0][0];
     return branch;

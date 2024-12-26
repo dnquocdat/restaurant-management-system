@@ -7,7 +7,7 @@ import { parse } from 'dotenv';
 // ...existing code...
 
 export const createBranch = async (req, res, next) => {
-    const { branch_name, address, open_time, close_time, phone_number, email, has_car_park, has_motorbike_park, table_amount } = req.body;
+    const { region_id, branch_name, address, open_time, close_time, phone_number, email, has_car_park, has_motorbike_park, table_amount } = req.body;
 
     // Validate required fields
     if (
@@ -16,6 +16,7 @@ export const createBranch = async (req, res, next) => {
         !open_time ||
         !close_time ||
         !phone_number ||
+        !region_id || 
         !email ||
         has_car_park === undefined ||
         has_motorbike_park === undefined ||
@@ -26,6 +27,7 @@ export const createBranch = async (req, res, next) => {
 
     // Add branch
     const branch = await addBranchService({
+        region_id,
         branch_name,
         address,
         open_time,
@@ -39,6 +41,7 @@ export const createBranch = async (req, res, next) => {
 
     // Format response
     const data = {
+        region: branch.region,
         branch_id: branch.branch_id,
         branch_name: branch.branch_name,
         address: branch.address,
