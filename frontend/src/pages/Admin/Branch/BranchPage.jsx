@@ -3,7 +3,7 @@ import { MdEdit, MdDelete, MdSave, MdCancel, MdList } from "react-icons/md";
 import { FaSpinner } from "react-icons/fa";
 import "./BranchPage.css"; // Import the CSS file
 import { toast } from "react-toastify";
-
+import { http } from "../../../helpers/http";
 const BranchPage = () => {
   const [formData, setFormData] = useState({
     area: "",
@@ -141,36 +141,14 @@ const BranchPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
     if (validateForm()) {
       setIsLoading(true);
       try {
         await new Promise((resolve) => setTimeout(resolve, 800));
         if (editMode && selectedBranch) {
-          // Chế độ chỉnh sửa branch
-          setBranchList((prev) =>
-            prev.map((branch) =>
-              branch.id === selectedBranch.id ? { ...formData } : branch
-            )
-          );
-          toast.success(`Branch updated successfully!`, {
-            position: "top-right",
-            autoClose: 1500,
-          });
+          await updateBranch(selectedBranch.id);
         } else {
-          // Chế độ thêm mới branch
-          const newBranch = {
-            ...formData,
-            id:
-              branchList.length > 0
-                ? Math.max(...branchList.map((b) => b.id)) + 1
-                : 1, // Gán ID mới
-          };
-          setBranchList((prev) => [...prev, newBranch]);
-          toast.success(`Branch added successfully!`, {
-            position: "top-right",
-            autoClose: 1500,
-          });
+          await addBranch();
         }
         resetForm();
       } catch (error) {
@@ -211,6 +189,98 @@ const BranchPage = () => {
     } else {
       setBranchList([]);
       setShowBranchList(false);
+    }
+  };
+
+  const addBranch = async () => {
+    const dataAdd = {
+      region_id: areas.findIndex((area) => area === formData.area) + 1, // Giả định vùng có id là 1, 2, 3, ...
+      branch_name: formData.branchName,
+      address: formData.address,
+      open_time: formData.operationHours.opening,
+      close_time: formData.operationHours.closing,
+      phone_number: formData.phone,
+      email: formData.email,
+      has_car_park: formData.hasCarParking,
+      has_motorbike_park: formData.hasBikeParking,
+      table_amount: formData.tableCount,
+    };
+    setIsLoading(true);
+
+    try {
+      const fetchAddBranch = http(`/branch`, "POST", dataAdd);
+
+      if (fetchAddBranch) {
+        toast.success(`Branch added successfully!`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
+        resetForm();
+        fetchBranchList(formData.area); // Refresh danh sách branch sau khi thêm mới
+      } else {
+        const errorData = await response.json();
+        console.error("Error adding branch:", errorData);
+        toast.error(`Failed to add branch: ${errorData.message}`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      }
+    } catch (error) {
+      console.error("Error adding branch:", error);
+      toast.error("An unexpected error occurred while adding the branch", {
+        position: "top-right",
+        autoClose: 1500,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateBranch = async (idBranch) => {
+    const dataUpdate = {
+      branch_name: formData.branchName,
+      address: formData.address,
+      open_time: formData.operationHours.opening,
+      close_time: formData.operationHours.closing,
+      phone_number: formData.phone,
+      email: formData.email,
+      has_car_park: formData.hasCarParking,
+      has_motorbike_park: formData.hasBikeParking,
+      table_amount: formData.tableCount,
+    };
+
+    setIsLoading(true);
+
+    try {
+      const fetchUpdateBranch = await http(
+        `/branch/${idBranch}`,
+        "PATCH",
+        dataUpdate
+      );
+
+      if (fetchUpdateBranch) {
+        toast.success("Branch updated successfully!", {
+          position: "top-right",
+          autoClose: 1500,
+        });
+        resetForm();
+        fetchBranchList(formData.area); // Làm mới danh sách branch
+      } else {
+        const errorData = await fetchUpdateBranch.json();
+        console.error("Error updating branch:", errorData);
+        toast.error(`Failed to update branch: ${errorData.message}`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating branch:", error);
+      toast.error("An unexpected error occurred while updating the branch", {
+        position: "top-right",
+        autoClose: 1500,
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 
