@@ -55,8 +55,8 @@ export async function updateDish(dishId, updateData) {
 //     await db.query(callProcedure, [dish_id]);
 // };
 
-export const getDishById = async (dish_id) => {
+export const GetDishById = async (dish_id) => {
     const Query = 'call GetDishDetail(?);';
-    rows = await db.query(Query, [dish_id]);
-    return rows;
+    const rows = await db.query(Query, [dish_id]);
+    return rows[0][0];
 };

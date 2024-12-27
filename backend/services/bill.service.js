@@ -8,3 +8,9 @@ export async function getBill(billId) {
     const result = await db.query(sql, [billId]);
     return result[0][0];
 } 
+
+export async function ListDish(billId){
+    const sql = `call GetDishInBill(?)`;
+    const [result] = await db.query(sql, [billId]);
+    return result[0];
+}

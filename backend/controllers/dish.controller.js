@@ -10,6 +10,7 @@ import {
     checkReservationExists,
     checkDishExists,
     checkMenu
+    
 } from '../services/check.service.js';
 
 import {
@@ -18,7 +19,7 @@ import {
     addDishToMenu,
     removeDishFromMenu,
     updateDish as updateDishService,
-    getDishById
+    GetDishById
 } from '../services/dish.service.js';
 
 export const submitReview = async (req, res) => {
@@ -184,8 +185,8 @@ export const getDishDetail = async (req, res) => {
     }
 
     // await checkDishExists(dishId);
-    const Query = 'call GetDishDetail(?);';
-    const rows = await db.query(Query, [dishId]);
+    
+    const rows = await GetDishById(dishId);
 
 
     return formatResponse(
