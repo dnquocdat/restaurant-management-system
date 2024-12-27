@@ -1,6 +1,5 @@
 import { Router } from 'express';
 import { addEmployee, deleteEmployee, updateEmployee, searchEmployeesController, getEmployeeInformation } from '../controllers/employee.controller.js';
-import { Router } from "express";
 import verifyToken from "../middlewares/verify-token.js";
 
 import asyncErrorHandler from "../utils/asyncErrorHandler.js";
