@@ -115,12 +115,14 @@ export const searchEmployeesController = async (req, res, next) => {
     // Validate page and limit
     const parsedPage = parseInt(page, 10);
     const parsedLimit = parseInt(limit, 10);
+    
     if (isNaN(parsedPage) || parsedPage < 1) {
         throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
     }
     if (isNaN(parsedLimit) || parsedLimit < 1) {
         throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST);
     }
+
 
     // Validate branch if provided
     if(branch_id) {
@@ -166,9 +168,17 @@ export const searchEmployeesController = async (req, res, next) => {
     return formatResponse(res, "Search Employees", "Employees retrieved successfully", STATUS_CODE.SUCCESS, data);
 };
 
-export const getEmployeeInformation = async (req, res, next) => {
+export const getEmployeeInformation = async (req, res) => {
   let { employeeId } = req.params;
   employeeId = parseInt(employeeId, 10);
+
+  if (isNaN(employeeId)) {
+    throw new CustomError(
+      "BAD_REQUEST",
+      "Invalid employee ID",
+      STATUS_CODE.BAD_REQUEST
+    );
+  }
 
   const employee = await getEmployeeInformationService(employeeId);
 

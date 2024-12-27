@@ -15,14 +15,10 @@ router.delete("/:employeeId", verifyToken, asyncErrorHandler(deleteEmployee));
 // Update Employee endpoint with middleware
 router.patch("/:employeeId", verifyToken, asyncErrorHandler(updateEmployee));
 
-// Get Employee Information endpoint with middleware
-router.get(
-  "/:employeeId",
-  verifyToken,
-  asyncErrorHandler(getEmployeeInformation)
-);
-
 // Add Search Employees endpoint with middleware
 router.get('/search', verifyToken, asyncErrorHandler(searchEmployeesController));
+
+// Get Employee Information endpoint with middleware
+router.get('/:employeeId', verifyToken, asyncErrorHandler(getEmployeeInformation));
 
 export default router;
