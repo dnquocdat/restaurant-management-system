@@ -13,7 +13,6 @@ export const http = async (urlApi, method, dataRequest) => {
       method: method,
       headers,
       body: JSON.stringify(dataRequest),
-      // credentials: "include", // Gửi cookies khi gọi API
     });
     if (refreshToken && token && response.status == 401) {
       const fetchRefreshToken = await fetch(`${domain}/auth/refresh`, {
@@ -22,7 +21,6 @@ export const http = async (urlApi, method, dataRequest) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ refreshToken }),
-        // credentials: "include", // Gửi cookies khi gọi API
       });
       const dataRefresh = await fetchRefreshToken.json();
       localStorage.setItem("token", dataRefresh.data.access_token); // Lưu token vào localStorage

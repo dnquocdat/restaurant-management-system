@@ -26,6 +26,7 @@ export const MainLayout = ({ children, title }) => {
     localStorage.removeItem("token"); // Xóa token
     localStorage.removeItem("refresh_token");
     clearCart();
+    localStorage.removeItem("selectedBranchId");
     setIsAuthen(false); // Cập nhật trạng thái
   };
   return (

@@ -391,3 +391,16 @@
 .create-member-button:hover {
   background-color: #0056b3;
 }
+
+.add-card-button {
+  padding: 0.5rem 1rem;
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.add-card-button:hover {
+  background-color: #45a049;
+}
