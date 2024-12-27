@@ -5,7 +5,9 @@ import {
     submitOnline,
     submitDineIn,
     updateOrderStatus,
-    searchOrdersByUserController 
+    searchOrdersByUserController,
+    searchOrdersByBranchController,
+    searchBillsController
 } from '../controllers/order.controller.js';
 
 import verifyToken from "../middlewares/verify-token.js";
@@ -20,5 +22,11 @@ router.patch('/:orderId', verifyToken, asyncErrorHandler(updateOrderStatus));
 
 // Search Orders by User endpoint with middleware
 router.get('/search', verifyToken, asyncErrorHandler(searchOrdersByUserController));
+
+// Add Search Orders by Branch endpoint with middleware
+router.get('/branch/:branchId', verifyToken, asyncErrorHandler(searchOrdersByBranchController));
+
+// Add Search Bills endpoint with middleware
+router.get('/bill', verifyToken, asyncErrorHandler(searchBillsController));
 
 export default router;

@@ -6,7 +6,8 @@ import {
     deleteReservation,
     submitReview,
     updateReservation,
-    searchReservationSlipsController
+    searchReservationSlipsController,
+    searchReservationSlipsByBranchController
 } from '../controllers/reservation.controller.js';
 
 import verifyToken from "../middlewares/verify-token.js";
@@ -20,5 +21,8 @@ router.patch('/:reservationSlipId', verifyToken, asyncErrorHandler(updateReserva
 
 // Add Search Reservation Slips by User endpoint with middleware
 router.get('/search', verifyToken, asyncErrorHandler(searchReservationSlipsController));
+
+// Add Search Reservation Slips by Branch endpoint with middleware
+router.get('/branch/:branchId', verifyToken, asyncErrorHandler(searchReservationSlipsByBranchController));
 
 export default router;

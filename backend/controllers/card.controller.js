@@ -1,7 +1,7 @@
 import CustomError from '../utils/errors.js';
 import STATUS_CODE from '../utils/constants.js';
 import formatResponse from '../utils/formatresponse.js';
-import { addMemberCard as addMemberCardService, updateMemberCard as updateMemberCardService } from '../services/card.service.js';
+import { addMemberCard as addMemberCardService, updateMemberCard as updateMemberCardService, searchMemberCards } from '../services/card.service.js';
 import { checkUserValid, getUserId } from '../services/check.service.js';
 
 // ...existing code...
@@ -127,6 +127,53 @@ export const updateMemberCard = async (req, res, next) => {
     };
 
     return formatResponse(res, "Update Member Card", "Member card updated successfully", STATUS_CODE.SUCCESS, data);
+};
+
+// Add the searchMemberCardsController
+export const searchMemberCardsController = async (req, res, next) => {
+    const { query = '', page = 1, limit = 10 } = req.query;
+
+    // Validate page and limit
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+    if (isNaN(parsedPage) || parsedPage < 1) {
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+    }
+    if (isNaN(parsedLimit) || parsedLimit < 1) {
+        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST);
+    }
+
+    const { memberCards, totalRecords } = await searchMemberCards({ query, page: parsedPage, limit: parsedLimit });
+
+    // Calculate pagination details
+    const totalPages = Math.ceil(totalRecords / parsedLimit);
+    const hasMore = parsedPage < totalPages;
+
+    if (parsedPage > totalPages && totalPages !== 0) {
+        throw new CustomError("BAD_REQUEST", "Page number exceeds total pages", STATUS_CODE.BAD_REQUEST);
+    }
+
+    const data = {
+        memberCards: memberCards.map(card => ({
+            member_card_id: card.member_card_id,
+            member_id: card.member_id,
+            member_name: card.member_name,
+            member_phone_number: card.member_phone_number,
+            member_gender: card.member_gender,
+            card_issuer: card.card_issuer,
+            branch_created: card.branch_created,
+            is_active: card.is_active,
+            created_at: card.created_at,
+        })),
+        pagination: {
+            currentPage: parsedPage,
+            pageSize: parsedLimit,
+            totalPages: totalPages,
+            hasMore: hasMore
+        }
+    };
+
+    return formatResponse(res, "Search Member Cards", "Member cards retrieved successfully", STATUS_CODE.SUCCESS, data);
 };
 
 // ...existing code...

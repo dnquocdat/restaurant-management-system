@@ -50,6 +50,58 @@ export async function updateDish(dishId, updateData) {
     return;
 }
 
+// Add the searchDishes function
+export async function searchDishes({ query = '', page = 1, limit = 10 }) {
+    const p_query_name = 'dishes.dish_name';
+    const p_query = query;
+    const p_page = parseInt(page, 10) || 1;
+    const p_limit = parseInt(limit, 10) || 10;
+    const p_tableName = 'dishes';
+    const p_orderByField = '';
+    const p_orderByDirection = '';
+    const p_category_name = '';
+    const p_category = '';
+    const p_id_name = 'dish_id';
+    const p_selectFields = 'dish_id, dish_name, price, description, image_link, category_name';
+    const p_joinClause = ''; // No joins needed as only the 'dishes' table is used
+    const p_branch_name = '';
+    const p_branch_id = '';
+
+    let p_totalRecords = 0;
+
+    const sql = `CALL GetDynamicItems(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @totalRecords);`;
+    const params = [
+        p_query_name,
+        p_query,
+        p_page,
+        p_limit,
+        p_tableName,
+        p_orderByField,
+        p_orderByDirection,
+        p_category_name,
+        p_category,
+        p_branch_name,
+        p_branch_id,
+        p_id_name,
+        p_selectFields,
+        p_joinClause
+    ];
+
+    const [results] = await db.query(sql, params);
+
+    // Retrieve the total records from the OUT parameter
+    const [[{ totalRecords }]] = await db.query('SELECT @totalRecords as totalRecords;');
+    p_totalRecords = totalRecords;
+
+    return {
+        dishes: results[0],
+        totalRecords: p_totalRecords
+    };
+}
+
+// Export the new function
+// export { addDish, updateDish, searchDishes };
+
 // export const removeDish = async (dish_id) => {
 //     const callProcedure = 'CALL DeleteDish(?);';
 //     await db.query(callProcedure, [dish_id]);

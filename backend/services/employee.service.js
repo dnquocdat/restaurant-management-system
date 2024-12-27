@@ -1,6 +1,55 @@
 import db from '../configs/db.js';
 import CustomError from '../utils/errors.js';
 
+// Add the searchEmployees function
+export async function searchEmployees({ query = '', branch_id = '', department_id = '', page = 1, limit = 10 }) {
+    const p_query_name = 'employees.employee_id';
+    const p_query = query;
+    const p_page = parseInt(page, 10) || 1;
+    const p_limit = parseInt(limit, 10) || 10;
+    const p_tableName = 'employees';
+    const p_orderByField = 'employee_branches.department_id';
+    const p_orderByDirection = 'DESC';
+    const p_category_name = 'employee_branches.department_id';
+    const p_category = department_id;
+    const p_id_name = 'employee_id';
+    const p_selectFields = 'employees.employee_id, employees.employee_name, employees.employee_email, employees.date_of_birth, employees.gender, employees.employee_phone_number, employees.employee_address, employees.employee_rating, employees.hire_date, employees.quit_date, employee_branches.branch_id, employee_branches.department_id, employee_branches.start_date, employee_branches.end_date, departments.salary';
+    const p_joinClause = 'JOIN employee_branches ON employees.current_work_id = employee_branches.employee_branches_id JOIN departments ON employee_branches.department_id = departments.department_id';
+    const p_branch_name = 'employee_branches.branch_id';
+    const p_branch_id = branch_id;
+
+    let p_totalRecords = 0;
+
+    const sql = `CALL GetDynamicItems(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @totalRecords);`;
+    const params = [
+        p_query_name,
+        p_query,
+        p_page,
+        p_limit,
+        p_tableName,
+        p_orderByField,
+        p_orderByDirection,
+        p_category_name,
+        p_category,
+        p_branch_name,
+        p_branch_id,
+        p_id_name,
+        p_selectFields,
+        p_joinClause
+    ];
+
+    const [results] = await db.query(sql, params);
+
+    // Retrieve the total records from the OUT parameter
+    const [[{ totalRecords }]] = await db.query('SELECT @totalRecords as totalRecords;');
+    p_totalRecords = totalRecords;
+
+    return {
+        employees: results[0],
+        totalRecords: p_totalRecords
+    };
+}
+
 export async function addEmployee(employeeData) {
     const { employee_name, employee_email, date_of_birth, gender, employee_phone_number, employee_address } = employeeData;
     const sql = `CALL CreateEmployee(?, ?, ?, ?, ?, ?)`;
@@ -107,3 +156,6 @@ export async function updateEmployee(employeeId, updateData) {
     const setCurrentWorkSql = `CALL SetCurrentWorkId(?, ?)`;
     await db.query(setCurrentWorkSql, [employeeId, newEmployeeBranchesId]);
 }
+
+// Export the new function
+// export { addEmployee, deleteEmployee, updateEmployee, searchEmployees };

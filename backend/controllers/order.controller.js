@@ -8,7 +8,9 @@ import {
     createOrderInDb,
     getRandomEmployeeIdByDepartment,
     updateOrderStatus as updateOrderStatusService,
-    searchOrdersByUser
+    searchOrdersByUser,
+    searchOrdersByBranch,
+    searchBills
 } from '../services/order.service.js';
 
 
@@ -184,4 +186,108 @@ export const searchOrdersByUserController = async (req, res, next) => {
     };
 
     return formatResponse(res, "Search Orders", "Orders retrieved successfully", STATUS_CODE.SUCCESS, data);
+};
+
+// Add the searchOrdersByBranchController
+export const searchOrdersByBranchController = async (req, res, next) => {
+    const { query = '', page = 1, limit = 10 } = req.query;
+    const { branchId } = req.params;
+
+    // Validate branchId
+    const parsedBranchId = parseInt(branchId, 10);
+    if (isNaN(parsedBranchId)) {
+        throw new CustomError("BAD_REQUEST", "Invalid branch ID", STATUS_CODE.BAD_REQUEST);
+    }
+
+    // Validate page and limit
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+    if (isNaN(parsedPage) || parsedPage < 1) {
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+    }
+    if (isNaN(parsedLimit) || parsedLimit < 1) {
+        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST);
+    }
+
+    const { orders, totalRecords } = await searchOrdersByBranch(parsedBranchId, { query, page: parsedPage, limit: parsedLimit });
+
+    // Calculate pagination details
+    const totalPages = Math.ceil(totalRecords / parsedLimit);
+    const hasMore = parsedPage < totalPages;
+
+    if (parsedPage > totalPages && totalPages !== 0) {
+        throw new CustomError("BAD_REQUEST", "Page number exceeds total pages", STATUS_CODE.BAD_REQUEST);
+    }
+
+    const data = {
+        orders: orders.map(order => ({
+            order_id: order.order_id,
+            branch_id: order.branch_id,
+            online_user_id: order.online_user_id,
+            order_type: order.order_type,
+            status: order.status,
+            created_at: order.created_at,
+        })),
+        pagination: {
+            currentPage: parsedPage,
+            pageSize: parsedLimit,
+            totalPages: totalPages,
+            hasMore: hasMore
+        }
+    };
+
+    return formatResponse(res, "Search Orders by Branch", "Orders retrieved successfully", STATUS_CODE.SUCCESS, data);
+
+};
+
+// Add the searchBillsController
+export const searchBillsController = async (req, res, next) => {
+    const { query = '', category = '', page = 1, limit = 10 } = req.query;
+
+    // Validate category
+    const validCategories = ['dine-in', 'delivery'];
+    if (category && !validCategories.includes(category)) {
+        throw new CustomError("BAD_REQUEST", "Invalid category provided", STATUS_CODE.BAD_REQUEST);
+    }
+
+    // Validate page and limit
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+    if (isNaN(parsedPage) || parsedPage < 1) {
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+    }
+    if (isNaN(parsedLimit) || parsedLimit < 1) {
+        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST);
+    }
+
+    const { bills, totalRecords } = await searchBills({ query, category, page: parsedPage, limit: parsedLimit });
+
+    // Calculate pagination details
+    const totalPages = Math.ceil(totalRecords / parsedLimit);
+    const hasMore = parsedPage < totalPages;
+
+    if (parsedPage > totalPages && totalPages !== 0) {
+        throw new CustomError("BAD_REQUEST", "Page number exceeds total pages", STATUS_CODE.BAD_REQUEST);
+    }
+
+    // throw new CustomError("NOT_FOUND", "No bills found", STATUS_CODE.NOT_FOUND, bills);
+
+    const data = {
+        bills: bills.map(bill => ({
+            bill_id: bill.bill_id,
+            order_id: bill.order_id,
+            total_amount: bill.total_amount,
+            total_amount_with_benefit: bill.total_amount_with_benefit,
+            order_type: bill.order_type,
+            created_at: bill.created_at,
+        })),
+        pagination: {
+            currentPage: parsedPage,
+            pageSize: parsedLimit,
+            totalPages: totalPages,
+            hasMore: hasMore
+        }
+    };
+
+    return formatResponse(res, "Search Bills", "Bills retrieved successfully", STATUS_CODE.SUCCESS, data);
 };

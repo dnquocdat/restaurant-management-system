@@ -5,9 +5,9 @@ import {
     submitReview,
     addDishtoMenu,
     submitDish,
-    // deleteDish
     removeDishFromMenuController,
-    updateDish
+    updateDish,
+    searchDishesController
 } from '../controllers/dish.controller.js';
 
 import verifyToken from "../middlewares/verify-token.js";
@@ -22,5 +22,8 @@ router.delete('/:dishId/branch/:branchId', verifyToken, asyncErrorHandler(remove
 
 // Update Dish endpoint with middleware
 router.patch('/:dishId', verifyToken, asyncErrorHandler(updateDish));
+
+// Add Search Dishes endpoint with middleware
+router.get('/search', verifyToken, asyncErrorHandler(searchDishesController));
 
 export default router;

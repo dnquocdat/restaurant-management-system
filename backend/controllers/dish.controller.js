@@ -17,7 +17,8 @@ import {
     createDish,
     addDishToMenu,
     removeDishFromMenu,
-    updateDish as updateDishService
+    updateDish as updateDishService,
+    searchDishes
 } from '../services/dish.service.js';
 
 export const submitReview = async (req, res) => {
@@ -171,3 +172,47 @@ export const updateDish = async (req, res, next) => {
         null
     );
 }
+
+// Add the searchDishesController
+export const searchDishesController = async (req, res, next) => {
+    const { query = '', page = 1, limit = 10 } = req.query;
+
+    // Validate page and limit
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+    if (isNaN(parsedPage) || parsedPage < 1) {
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+    }
+    if (isNaN(parsedLimit) || parsedLimit < 1) {
+        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST);
+    }
+
+    const { dishes, totalRecords } = await searchDishes({ query, page: parsedPage, limit: parsedLimit });
+
+    // Calculate pagination details
+    const totalPages = Math.ceil(totalRecords / parsedLimit);
+    const hasMore = parsedPage < totalPages;
+
+    if (parsedPage > totalPages && totalPages !== 0) {
+        throw new CustomError("BAD_REQUEST", "Page number exceeds total pages", STATUS_CODE.BAD_REQUEST);
+    }
+
+    const data = {
+        dishes: dishes.map(dish => ({
+            dish_id: dish.dish_id,
+            dish_name: dish.dish_name,
+            price: dish.price,
+            category_name: dish.category_name,
+            description: dish.description,
+            image_link: dish.image_link,
+        })),
+        pagination: {
+            currentPage: parsedPage,
+            pageSize: parsedLimit,
+            totalPages: totalPages,
+            hasMore: hasMore
+        }
+    };
+
+    return formatResponse(res, "Search Dishes", "Dishes retrieved successfully", STATUS_CODE.SUCCESS, data);
+};
