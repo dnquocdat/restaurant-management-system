@@ -17,7 +17,7 @@ export async function searchMenu({ branch_id, query, category, page = 1, limit =
     const p_category_name = 'dishes.category_name';
     const p_branch_name = 'menu.branch_id';
     const p_id_name = 'dishes.dish_id';
-    const p_selectFields = 'dishes.dish_id, dishes.dish_name, dishes.price, dishes.image_link';
+    const p_selectFields = 'dishes.dish_id, dishes.dish_name, dishes.price, dishes.image_link, dishes.description';
     const p_joinClause = 'JOIN menu ON dishes.dish_id = menu.dish_id';
 
     let p_totalRecords = 0;

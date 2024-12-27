@@ -39,7 +39,8 @@ export const searchMenu = async (req, res, next) => {
             dish_id: dish.dish_id,
             dish_name: dish.dish_name,
             price: dish.price,
-            image_link: dish.image_link
+            image_link: dish.image_link,
+            description: dish.description,
         })),
         pagination: {
             currentPage: page,
