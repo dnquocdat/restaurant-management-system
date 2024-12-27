@@ -51,7 +51,15 @@ export async function checkUserValid(user_id) {
     if (rows[0].length === 0) {
         throw new CustomError("BAD_REQUEST", "Invalid user_id or user is admin/staff", STATUS_CODE.BAD_REQUEST);
     }
-}
+ }
+
+ export async function getUserId(user_email) {
+    const sql = `CALL GetUserId(?)`;
+    const params = [user_email];
+    const [rows] = await db.query(sql, params);
+    return rows[0][0];
+    
+ }
 
 export async function checkUserExists(user_id) {
     const sql = `CALL CheckUserExists(?)`;

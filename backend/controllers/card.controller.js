@@ -2,7 +2,7 @@ import CustomError from '../utils/errors.js';
 import STATUS_CODE from '../utils/constants.js';
 import formatResponse from '../utils/formatresponse.js';
 import { addMemberCard as addMemberCardService, updateMemberCard as updateMemberCardService } from '../services/card.service.js';
-import { checkUserValid } from '../services/check.service.js';
+import { checkUserValid, getUserId } from '../services/check.service.js';
 
 // ...existing code...
 
@@ -58,7 +58,7 @@ export const createMemberCard = async (req, res, next) => {
 };
 
 export const updateMemberCard = async (req, res, next) => {
-    const { member_id, member_name, member_phone_number, member_gender, user_id, is_active } = req.body;
+    const { member_id, member_name, member_phone_number, member_gender, user_email, is_active } = req.body;
     const cardId = parseInt(req.params.cardId, 10);
 
     // Validate required field: member_card_id
@@ -72,7 +72,7 @@ export const updateMemberCard = async (req, res, next) => {
         member_name === undefined &&
         member_phone_number === undefined &&
         member_gender === undefined &&
-        user_id === undefined &&
+        user_email === undefined &&
         is_active === undefined
     ) {
         throw new CustomError("BAD_REQUEST", "Please provide at least one field to update", STATUS_CODE.BAD_REQUEST);
@@ -84,10 +84,16 @@ export const updateMemberCard = async (req, res, next) => {
         throw new CustomError("BAD_REQUEST", "Invalid member_gender value", STATUS_CODE.BAD_REQUEST);
     }
 
-    // If user_id is provided, validate it
-    if (user_id !== undefined) {
-        await checkUserValid(user_id);
+    // Get user_id from user_email
+    let user_id;
+    if (user_email !== undefined) {
+        const user = await getUserId(user_email);
+        user_id = user.user_id;
     }
+    // // If user_id is provided, validate it
+    // if (user_id !== undefined) {
+    //     await checkUserValid(user_id);
+    // }
 
     // Prepare update data
     const updateData = {
