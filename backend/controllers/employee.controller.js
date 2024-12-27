@@ -9,6 +9,7 @@ import {
   deleteEmployee as deleteEmployeeService,
   updateEmployee as updateEmployeeService,
   getEmployeeInformation as getEmployeeInformationService,
+    searchEmployees
 } from "../services/employee.service.js";
 
 export const addEmployee = async (req, res, next) => {
