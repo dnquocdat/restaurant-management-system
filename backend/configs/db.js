@@ -8,14 +8,15 @@ const pool = createPool({
   user: process.env.USER_DB,
   password: process.env.PASSWORD_DB,
   database: process.env.DATABASE,
+  // debug: true,
 });
-(async () => {
-  try {
-    const connection = await pool.getConnection();
-    console.log("Database connected successfully!");
-    connection.release();
-  } catch (error) {
-    console.error("Database connection failed:", error);
-  }
-})();
+// (async () => {
+//   try {
+//     const connection = await pool.getConnection();
+//     console.log("Database connected successfully!");
+//     connection.release();
+//   } catch (error) {
+//     console.error("Database connection failed:", error);
+//   }
+// })();
 export default pool;
