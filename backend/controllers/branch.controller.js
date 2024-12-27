@@ -160,6 +160,7 @@ export const getBranch = async (req, res, next) => {
   const data = branches.map((branch) => ({
     branch_id: branch.branch_id,
     branch_name: branch.branch_name,
+    address: branch.address,
   }));
 
   return formatResponse(
