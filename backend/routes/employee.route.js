@@ -1,5 +1,12 @@
-import { Router } from 'express';
-import { addEmployee, deleteEmployee, updateEmployee, searchEmployeesController, getEmployeeInformation } from '../controllers/employee.controller.js';
+import { Router } from "express";
+import {
+  addEmployee,
+  deleteEmployee,
+  updateEmployee,
+  searchEmployeesController,
+  getEmployeeInformation,
+} from "../controllers/employee.controller.js";
+
 import verifyToken from "../middlewares/verify-token.js";
 
 import asyncErrorHandler from "../utils/asyncErrorHandler.js";
@@ -16,7 +23,11 @@ router.delete("/:employeeId", verifyToken, asyncErrorHandler(deleteEmployee));
 router.patch("/:employeeId", verifyToken, asyncErrorHandler(updateEmployee));
 
 // Add Search Employees endpoint with middleware
-router.get('/search', verifyToken, asyncErrorHandler(searchEmployeesController));
+router.get(
+  "/search",
+  verifyToken,
+  asyncErrorHandler(searchEmployeesController)
+);
 
 // Get Employee Information endpoint with middleware
 router.get('/:employeeId', verifyToken, asyncErrorHandler(getEmployeeInformation));
