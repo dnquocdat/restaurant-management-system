@@ -9,7 +9,9 @@ import {
     createReservationIfAvailable,
     CancelReservation,
     createReviewForReservation,
-    UpdateStatusReservation
+    UpdateStatusReservation,
+    searchReservationSlipsByUser,
+    searchReservationSlipsByBranch
 } from '../services/reservation.service.js';
 
 import {
@@ -31,7 +33,8 @@ export const submitReservation = async (req, res) => {
         guests_number,
         arrival_time,
         arrival_date,
-        notes
+        notes,
+        user_id: req.user.user_id
     });
 
     if(reservation.table_number == -1) {
@@ -100,3 +103,104 @@ export const submitReview = async (req, res) => {
 
     return formatResponse(res, "Success", "Review submitted successfully", STATUS_CODE.CREATED, data);
 }
+
+// Add the searchReservationSlipsController
+export const searchReservationSlipsController = async (req, res, next) => {
+    const { query = '', page = 1, limit = 10 } = req.query;
+    const userId = req.user.user_id; 
+
+    
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+    if (isNaN(parsedPage) || parsedPage < 1) {
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+    }
+    if (isNaN(parsedLimit) || parsedLimit < 1) {
+        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST);
+    }
+
+    const { reservationSlips, totalRecords } = await searchReservationSlipsByUser(userId, { query, page: parsedPage, limit: parsedLimit });
+
+    // Calculate pagination details
+    const totalPages = Math.ceil(totalRecords / parsedLimit);
+    const hasMore = parsedPage < totalPages;
+
+    if(parsedPage > totalPages) {
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+    }
+
+    const data = {
+        reservationSlips: reservationSlips.map(reservation => ({
+            reservation_slip_id: reservation.reservation_slip_id,
+            branch_id: reservation.branch_id,
+            cus_name: reservation.cus_name,
+            phone_number: reservation.phone_number,
+            guests_number: reservation.guests_number,
+            arrival_time: reservation.arrival_time,
+            arrival_date: reservation.arrival_date,
+            status: reservation.status,
+            created_at: reservation.created_at
+        })),
+        pagination: {
+            currentPage: parsedPage,
+            pageSize: parsedLimit,
+            totalPages: totalPages,
+            hasMore: hasMore
+        }
+    };
+
+    return formatResponse(res, "Search Reservation Slips", "Reservation slips retrieved successfully", STATUS_CODE.SUCCESS, data);
+};
+
+// Add the searchReservationSlipsByBranchController
+export const searchReservationSlipsByBranchController = async (req, res, next) => {
+    const { query = '', page = 1, limit = 10 } = req.query;
+    const { branchId } = req.params;
+
+    // Validate branchId
+    const parsedBranchId = parseInt(branchId, 10);
+
+
+    // Validate page and limit
+    const parsedPage = parseInt(page, 10);
+    const parsedLimit = parseInt(limit, 10);
+    if (isNaN(parsedPage) || parsedPage < 1) {
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+    }
+    if (isNaN(parsedLimit) || parsedLimit < 1) {
+        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST);
+    }
+
+    const { reservationSlips, totalRecords } = await searchReservationSlipsByBranch(parsedBranchId, { query, page: parsedPage, limit: parsedLimit });
+
+    // Calculate pagination details
+    const totalPages = Math.ceil(totalRecords / parsedLimit);
+    const hasMore = parsedPage < totalPages;
+
+    if (parsedPage > totalPages && totalPages !== 0) {
+        throw new CustomError("BAD_REQUEST", "Page number exceeds total pages", STATUS_CODE.BAD_REQUEST);
+    }
+
+    const data = {
+        reservationSlips: reservationSlips.map(reservation => ({
+            reservation_slip_id: reservation.reservation_slip_id,
+            branch_id: reservation.branch_id,
+            cus_name: reservation.cus_name,
+            phone_number: reservation.phone_number,
+            guests_number: reservation.guests_number,
+            arrival_time: reservation.arrival_time,
+            arrival_date: reservation.arrival_date,
+            status: reservation.status,
+            created_at: reservation.created_at
+        })),
+        pagination: {
+            currentPage: parsedPage,
+            pageSize: parsedLimit,
+            totalPages: totalPages,
+            hasMore: hasMore
+        }
+    };
+
+    return formatResponse(res, "Search Reservation Slips by Branch", "Reservation slips retrieved successfully", STATUS_CODE.SUCCESS, data);
+
+};

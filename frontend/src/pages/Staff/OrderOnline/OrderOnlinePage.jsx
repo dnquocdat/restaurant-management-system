@@ -4,6 +4,8 @@ import { BiSortAlt2 } from "react-icons/bi";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import "./StatusModal.css";
 import "./OrderOnlinePage.css";
+import { http } from "../../../helpers/http";
+import { toast } from "react-toastify";
 
 export const OrderOnlinePage = () => {
   const [orders, setOrders] = useState([]);
@@ -19,7 +21,7 @@ export const OrderOnlinePage = () => {
   // Mock data
   const mockOrders = [
     {
-      id: "ORD001",
+      id: "1",
       customerName: "John Smith",
       items: [
         { name: "Burger", quantity: 2, price: 5.0 },
@@ -28,7 +30,7 @@ export const OrderOnlinePage = () => {
       ],
       totalAmount: 25.99,
       discount: 0.2,
-      status: "pending",
+      status: "billed",
       orderTime: "2024-01-20T10:30:00",
     },
     {
@@ -41,7 +43,7 @@ export const OrderOnlinePage = () => {
       ],
       totalAmount: 27.5,
       discount: 0.1,
-      status: "in-progress",
+      status: "in-delivery",
       orderTime: "2024-01-20T11:15:00",
     },
     {
@@ -54,7 +56,7 @@ export const OrderOnlinePage = () => {
       ],
       totalAmount: 39.0,
       discount: 0.15,
-      status: "completed",
+      status: "delivered",
       orderTime: "2024-01-20T09:45:00",
     },
     {
@@ -80,7 +82,7 @@ export const OrderOnlinePage = () => {
       ],
       totalAmount: 38.5,
       discount: 0.25,
-      status: "pending",
+      status: "billed",
       orderTime: "2024-01-20T12:00:00",
     },
     {
@@ -93,7 +95,7 @@ export const OrderOnlinePage = () => {
       ],
       totalAmount: 31.0,
       discount: 0.1,
-      status: "completed",
+      status: "delivered",
       orderTime: "2024-01-20T13:30:00",
     },
   ];
@@ -131,12 +133,27 @@ export const OrderOnlinePage = () => {
   );
 
   const handleStatusUpdate = (orderId, newStatus) => {
-    setOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === orderId ? { ...order, status: newStatus } : order
-      )
-    );
-    setIsModalOpen(false);
+    try {
+      const fetchUpdateOrderStatus = http(`/order/${orderId}`, "PATCH", {
+        order_status: newStatus,
+      });
+      console.log(fetchUpdateOrderStatus);
+      if (fetchUpdateOrderStatus) {
+        toast.success(`Update status order online successfully!`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      }
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id === orderId ? { ...order, status: newStatus } : order
+        )
+      );
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Error updating order status:", error);
+      throw error;
+    }
   };
 
   const StatusModal = ({ order, onClose }) => {
@@ -166,9 +183,9 @@ export const OrderOnlinePage = () => {
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value)}
             >
-              <option value="pending">Pending</option>
-              <option value="in-progress">In Progress</option>
-              <option value="completed">Completed</option>
+              <option value="billed">Billed</option>
+              <option value="in-delivery">In Delivery</option>
+              <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
             </select>
           </div>
@@ -190,15 +207,15 @@ export const OrderOnlinePage = () => {
 
   const StatusBadge = ({ status }) => {
     const statusStyles = {
-      pending: "badge-pending",
-      "in-progress": "badge-in-progress",
-      completed: "badge-completed",
+      billed: "badge-billed",
+      "in-delivery": "badge-in-delivery",
+      delivered: "badge-delivered",
       cancelled: "badge-cancelled",
     };
 
     return (
       <span className={`status-badge ${statusStyles[status]}`}>
-        {status.charAt(0).toUpperCase() + status.slice(1)}
+        {status.charAt(0).toUpperCase() + status.slice(1).replace("-", " ")}
       </span>
     );
   };
@@ -226,9 +243,9 @@ export const OrderOnlinePage = () => {
             className="status-filter"
           >
             <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
+            <option value="billed">Billed</option>
+            <option value="in-delivery">In Delivery</option>
+            <option value="delivered">Delivered</option>
             <option value="cancelled">Cancelled</option>
           </select>
 

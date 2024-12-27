@@ -17,27 +17,16 @@ export const MainLayout = ({ children, title }) => {
   const { clearCart } = useContext(CartContext); // Sử dụng Context
   const [isAuthen, setIsAuthen] = useState(false);
   useEffect(() => {
-    const checkAuthStatus = () => {
-      const token = localStorage.getItem("token");
-      setIsAuthen(!!token); // Cập nhật trạng thái isAuthen dựa trên token
-    };
-
-    // Kiểm tra trạng thái khi component mount
-    checkAuthStatus();
-
-    // Lắng nghe sự thay đổi của localStorage
-    window.addEventListener("storage", checkAuthStatus);
-
-    // Cleanup khi component bị unmount
-    return () => {
-      window.removeEventListener("storage", checkAuthStatus);
-    };
-  }, []);
+    const token = localStorage.getItem("token");
+    setIsAuthen(!!token); // Cập nhật trạng thái isAuthen dựa trên token
+  });
 
   // Xử lý logout
   const handleLogout = () => {
     localStorage.removeItem("token"); // Xóa token
+    localStorage.removeItem("refresh_token");
     clearCart();
+    localStorage.removeItem("selectedBranchId");
     setIsAuthen(false); // Cập nhật trạng thái
   };
   return (

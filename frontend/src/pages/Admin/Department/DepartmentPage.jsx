@@ -4,6 +4,8 @@ import { BiBuildings } from "react-icons/bi";
 import { BsPeople } from "react-icons/bs";
 import { FaSearch } from "react-icons/fa";
 import "./DepartmentPage.css"; // Import the custom CSS file
+import { http } from "../../../helpers/http";
+import { toast } from "react-toastify";
 
 const DepartmentPage = () => {
   // State to manage editing
@@ -17,28 +19,24 @@ const DepartmentPage = () => {
       id: 1,
       name: "Engineering Department",
       salary: 75000,
-      image: "https://images.unsplash.com/photo-1497366216548-37526070297c",
       employees: ["Alice", "Bob", "Charlie"], // Example employees
     },
     {
       id: 2,
       name: "Marketing Department",
       salary: 65000,
-      image: "https://images.unsplash.com/photo-1552664730-d307ca884978",
       employees: ["David", "Eve"],
     },
     {
       id: 3,
       name: "Finance Department",
       salary: 85000,
-      image: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c",
       employees: ["Frank", "Grace", "Heidi"],
     },
     {
       id: 4,
       name: "Develop Department",
       salary: 805000,
-      image: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c",
       employees: ["Ivan", "Judy"],
     },
   ]);
@@ -47,14 +45,12 @@ const DepartmentPage = () => {
   const [editForm, setEditForm] = useState({
     name: "",
     salary: 0,
-    image: "", // To store image data URL
   });
 
   // State to manage adding a new department
   const [newDepartment, setNewDepartment] = useState({
     name: "",
     salary: 0,
-    image: "", // To store image data URL
   });
   const [addFormErrors, setAddFormErrors] = useState({});
 
@@ -86,7 +82,6 @@ const DepartmentPage = () => {
     if (newDepartment.salary < 0) {
       errors.salary = "Salary cannot be negative";
     }
-    // Image is optional, but if not provided, use a default image
     return errors;
   };
 
@@ -97,21 +92,55 @@ const DepartmentPage = () => {
     setEditForm({
       name: department.name,
       salary: department.salary,
-      image: department.image,
     });
   };
 
   // Handle save after editing
-  const handleSave = () => {
+  const handleSave = async () => {
     const errors = validateForm();
     if (Object.keys(errors).length === 0 && selectedDepartment) {
-      const updatedDepartments = departments.map((dept) =>
-        dept.id === selectedDepartment.id ? { ...dept, ...editForm } : dept
-      );
-      setDepartments(updatedDepartments);
-      setIsEditing(false);
-      setSelectedDepartment(null);
-      setFormErrors({});
+      // Prepare the updated department data
+      const updatedDept = {
+        department_name: editForm.name,
+        salary: editForm.salary,
+      };
+
+      try {
+        // Use the http function to make the PATCH API call
+        const fetchEditDept = await http(
+          `/department/${selectedDepartment.id}`,
+          "PATCH",
+          updatedDept
+        );
+
+        if (fetchEditDept.status === 200) {
+          // Update local state with the modified department
+          const updatedDepartments = departments.map((dept) =>
+            dept.id === selectedDepartment.id
+              ? { ...dept, name: editForm.name, salary: editForm.salary }
+              : dept
+          );
+          setDepartments(updatedDepartments);
+          setIsEditing(false);
+          setSelectedDepartment(null);
+          setFormErrors({});
+          toast.success("Department updated successfully!", {
+            position: "top-right",
+            autoClose: 1500,
+          });
+        } else {
+          toast.error("Failed to update department.", {
+            position: "top-right",
+            autoClose: 1500,
+          });
+        }
+      } catch (error) {
+        console.error("Error updating department:", error);
+        toast.error("An unexpected error occurred while updating.", {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      }
     } else {
       setFormErrors(errors);
     }
@@ -133,22 +162,6 @@ const DepartmentPage = () => {
     }));
   };
 
-  // Handle image file change in edit form
-  const handleEditImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Read the file as data URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setEditForm((prev) => ({
-          ...prev,
-          image: reader.result,
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   // Handle input change in add form
   const handleAddInputChange = (e) => {
     const { name, value } = e.target;
@@ -158,42 +171,38 @@ const DepartmentPage = () => {
     }));
   };
 
-  // Handle image file change in add form
-  const handleAddImageChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Read the file as data URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewDepartment((prev) => ({
-          ...prev,
-          image: reader.result,
-        }));
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   // Handle adding a new department
-  const handleAddDepartment = (e) => {
+  const handleAddDepartment = async (e) => {
     e.preventDefault();
     const errors = validateAddForm();
     if (Object.keys(errors).length === 0) {
+      // Prepare the new department data
       const newDept = {
-        id: departments.length
-          ? Math.max(...departments.map((d) => d.id)) + 1
-          : 1,
-        name: newDepartment.name,
+        department_name: newDepartment.name,
         salary: newDepartment.salary,
-        image:
-          newDepartment.image ||
-          "https://images.unsplash.com/photo-1497366216548-37526070297c", // Default image
-        employees: [], // Initialize with no employees
       };
-      setDepartments([...departments, newDept]);
-      setNewDepartment({ name: "", salary: 0, image: "" });
-      setAddFormErrors({});
-      setIsAddModalOpen(false); // Close modal after adding
+      try {
+        // Use the http function to make the API call
+        const fetchAddDept = await http("/department", "POST", newDept);
+        // setDepartments([...departments, fetchAddDept.data]); // Assuming the API returns the new department
+        // setNewDepartment({ name: "", salary: 0 });
+        setAddFormErrors({});
+        setIsAddModalOpen(false);
+        if (fetchAddDept.status == 201) {
+          toast.success(`Add department successfully!`, {
+            position: "top-right",
+            autoClose: 1500,
+          });
+        } else {
+          toast.error(`Add department failed!`, {
+            position: "top-right",
+            autoClose: 1500,
+          });
+        }
+      } catch (error) {
+        console.error("Error adding department:", error);
+        alert("An unexpected error occurred while adding the department.");
+      }
     } else {
       setAddFormErrors(errors);
     }
@@ -344,24 +353,7 @@ const DepartmentPage = () => {
                   <span className="error">{addFormErrors.salary}</span>
                 )}
               </div>
-              {/* <div className="form-group-dpm">
-                <label htmlFor="image">Image:</label>
-                <input
-                  type="file"
-                  name="image"
-                  accept="image/*"
-                  onChange={handleAddImageChange}
-                  className="input-field file-input"
-                  aria-label="New Department Image"
-                />
-                {newDepartment.image && (
-                  <img
-                    src={newDepartment.image}
-                    alt="Preview"
-                    className="image-preview"
-                  />
-                )}
-              </div> */}
+
               <div className="modal-actions">
                 <button type="submit" className="add-button">
                   <FiPlus /> Add Department
@@ -383,17 +375,6 @@ const DepartmentPage = () => {
       <div className="department-list">
         {sortedDepartments.map((department) => (
           <div key={department.id} className="department-card">
-            {/* <div className="department-image">
-              <img
-                src={department.image}
-                alt={`${department.name} Header`}
-                onError={(e) => {
-                  e.target.src =
-                    "https://images.unsplash.com/photo-1497366216548-37526070297c";
-                }}
-              />
-            </div> */}
-
             <div className="department-content">
               <div className="department-title">
                 <BiBuildings style={{ fontSize: 20 }} />
@@ -444,27 +425,6 @@ const DepartmentPage = () => {
                   )
                 )}
               </div>
-
-              {/* {isEditing && selectedDepartment?.id === department.id && (
-                <div className="edit-image-section">
-                  <label htmlFor="edit-image">Edit Image:</label>
-                  <input
-                    type="file"
-                    name="edit-image"
-                    accept="image/*"
-                    onChange={handleEditImageChange}
-                    className="input-field file-input"
-                    aria-label="Edit Department Image"
-                  />
-                  {editForm.image && (
-                    <img
-                      src={editForm.image}
-                      alt="Preview"
-                      className="image-preview"
-                    />
-                  )}
-                </div>
-              )} */}
 
               <div className="department-info">
                 <div className="info-item">

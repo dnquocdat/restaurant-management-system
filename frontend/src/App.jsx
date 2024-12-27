@@ -13,7 +13,7 @@ import { MainLayout } from "./layouts/MainLayout/MainLayout";
 import HomePage from "./pages/Customer/Home/HomePage";
 import MenuPage from "./pages/Customer/Menu/MenuPage";
 import DetailPage from "./pages/Customer/Detail/DetailPage";
-import { CartPage } from "./pages/Customer/Cart/CartPage";
+import CartPage from "./pages/Customer/Cart/CartPage";
 import { BookTablePage } from "./pages/Customer/BookTable/BookTablePage";
 import { ContactPage } from "./pages/Customer/Contact/ContactPage";
 import { ProfilePage } from "./pages/Customer/Profile/ProfilePage";

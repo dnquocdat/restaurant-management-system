@@ -2,19 +2,22 @@ import React, { useState, useEffect } from "react";
 import { MdEdit, MdDelete, MdSave, MdCancel, MdList } from "react-icons/md";
 import { FaSpinner } from "react-icons/fa";
 import "./BranchPage.css"; // Import the CSS file
-
+import { toast } from "react-toastify";
+import { http } from "../../../helpers/http";
 const BranchPage = () => {
   const [formData, setFormData] = useState({
     area: "",
-    branch: "",
     branchName: "",
     address: "",
     phone: "",
     email: "",
     operationHours: {
-      opening: "09:00",
+      opening: "07:00",
       closing: "22:00",
     },
+    tableCount: 0,
+    hasCarParking: false,
+    hasBikeParking: false,
   });
 
   const [errors, setErrors] = useState({});
@@ -54,22 +57,26 @@ const BranchPage = () => {
               {
                 id: 1,
                 area,
-                branch: `${area} Main Branch`,
                 branchName: `${area} Main`,
                 address: `123 ${area} Street`,
-                phone: "+1234567890",
+                phone: "0123123123",
                 email: `${area.toLowerCase()}@example.com`,
                 operationHours: { opening: "09:00", closing: "22:00" },
+                tableCount: 20,
+                hasCarParking: true,
+                hasBikeParking: true,
               },
               {
                 id: 2,
                 area,
-                branch: `${area} Downtown`,
                 branchName: `${area} Downtown`,
                 address: `456 ${area} Avenue`,
-                phone: "+1234567891",
+                phone: "0123456789",
                 email: `${area.toLowerCase()}downtown@example.com`,
                 operationHours: { opening: "08:00", closing: "21:00" },
+                tableCount: 50,
+                hasCarParking: false,
+                hasBikeParking: true,
               },
             ]),
           100
@@ -87,7 +94,6 @@ const BranchPage = () => {
     setSelectedBranch(branch);
     setFormData(branch);
     setEditMode(true);
-    setShowBranchList(false);
   };
 
   const handleDeleteBranch = async (branchId) => {
@@ -98,7 +104,10 @@ const BranchPage = () => {
         setBranchList((prev) =>
           prev.filter((branch) => branch.id !== branchId)
         );
-        alert("Branch deleted successfully!");
+        toast.success(`"Branch deleted successfully!`, {
+          position: "top-right",
+          autoClose: 1000,
+        });
       } catch (error) {
         console.error("Error deleting branch:", error);
       } finally {
@@ -110,7 +119,6 @@ const BranchPage = () => {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.area) newErrors.area = "Area is required";
-    if (!formData.branch) newErrors.branch = "Branch is required";
     if (!formData.branchName) newErrors.branchName = "Branch name is required";
     if (!formData.address) newErrors.address = "Address is required";
 
@@ -124,26 +132,23 @@ const BranchPage = () => {
       newErrors.email = "Invalid email format";
     }
 
+    if (formData.tableCount <= 0)
+      newErrors.tableCount = "Table count must be greater than 0";
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData);
     if (validateForm()) {
       setIsLoading(true);
       try {
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        if (editMode) {
-          setBranchList((prev) =>
-            prev.map((branch) =>
-              branch.id === selectedBranch.id ? { ...formData } : branch
-            )
-          );
-          alert("Branch updated successfully!");
+        await new Promise((resolve) => setTimeout(resolve, 800));
+        if (editMode && selectedBranch) {
+          await updateBranch(selectedBranch.id);
         } else {
-          alert("Branch added successfully!");
+          await addBranch();
         }
         resetForm();
       } catch (error) {
@@ -156,7 +161,7 @@ const BranchPage = () => {
 
   const resetForm = () => {
     setFormData({
-      area: "",
+      area: formData.area || "",
       branch: "",
       branchName: "",
       address: "",
@@ -166,6 +171,9 @@ const BranchPage = () => {
         opening: "09:00",
         closing: "22:00",
       },
+      tableCount: 0,
+      hasCarParking: false,
+      hasBikeParking: false,
     });
     setErrors({});
     setEditMode(false);
@@ -184,6 +192,98 @@ const BranchPage = () => {
     }
   };
 
+  const addBranch = async () => {
+    const dataAdd = {
+      region_id: areas.findIndex((area) => area === formData.area) + 1, // Giả định vùng có id là 1, 2, 3, ...
+      branch_name: formData.branchName,
+      address: formData.address,
+      open_time: formData.operationHours.opening,
+      close_time: formData.operationHours.closing,
+      phone_number: formData.phone,
+      email: formData.email,
+      has_car_park: formData.hasCarParking,
+      has_motorbike_park: formData.hasBikeParking,
+      table_amount: formData.tableCount,
+    };
+    setIsLoading(true);
+
+    try {
+      const fetchAddBranch = http(`/branch`, "POST", dataAdd);
+
+      if (fetchAddBranch) {
+        toast.success(`Branch added successfully!`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
+        resetForm();
+        fetchBranchList(formData.area); // Refresh danh sách branch sau khi thêm mới
+      } else {
+        const errorData = await response.json();
+        console.error("Error adding branch:", errorData);
+        toast.error(`Failed to add branch: ${errorData.message}`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      }
+    } catch (error) {
+      console.error("Error adding branch:", error);
+      toast.error("An unexpected error occurred while adding the branch", {
+        position: "top-right",
+        autoClose: 1500,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateBranch = async (idBranch) => {
+    const dataUpdate = {
+      branch_name: formData.branchName,
+      address: formData.address,
+      open_time: formData.operationHours.opening,
+      close_time: formData.operationHours.closing,
+      phone_number: formData.phone,
+      email: formData.email,
+      has_car_park: formData.hasCarParking,
+      has_motorbike_park: formData.hasBikeParking,
+      table_amount: formData.tableCount,
+    };
+
+    setIsLoading(true);
+
+    try {
+      const fetchUpdateBranch = await http(
+        `/branch/${idBranch}`,
+        "PATCH",
+        dataUpdate
+      );
+
+      if (fetchUpdateBranch) {
+        toast.success("Branch updated successfully!", {
+          position: "top-right",
+          autoClose: 1500,
+        });
+        resetForm();
+        fetchBranchList(formData.area); // Làm mới danh sách branch
+      } else {
+        const errorData = await fetchUpdateBranch.json();
+        console.error("Error updating branch:", errorData);
+        toast.error(`Failed to update branch: ${errorData.message}`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating branch:", error);
+      toast.error("An unexpected error occurred while updating the branch", {
+        position: "top-right",
+        autoClose: 1500,
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="branch-management-container">
       <div className="form-container">
@@ -195,59 +295,64 @@ const BranchPage = () => {
               onChange={handleAreaChange}
               className="area-select"
             >
-              <option value="">Select Area</option>
+              <option value="">Select Region</option>
               {areas.map((area) => (
                 <option key={area} value={area}>
                   {area}
                 </option>
               ))}
             </select>
-            <button
-              onClick={() => setShowBranchList(!showBranchList)}
-              className="toggle-branch-list-btn"
-            >
-              <MdList className="icon" />{" "}
-              {showBranchList ? "Hide List" : "Show List"}
-            </button>
+            {formData.area && (
+              <button
+                onClick={() => {
+                  resetForm(); // Đảm bảo form được reset (dữ liệu rỗng)
+                  setFormData((prev) => ({ ...prev, area: formData.area })); // Giữ lại area được chọn
+                  setEditMode(true); // Kích hoạt chế độ thêm branch
+                }}
+                className="add-branch-btn"
+              >
+                <MdList /> Add Branch
+              </button>
+            )}
           </div>
         </div>
 
-        {showBranchList && (
-          <div className="branch-list">
-            <h3 className="branch-list-title">Branch List</h3>
-            {branchList.length === 0 ? (
-              <p>No branches found for selected area</p>
-            ) : (
-              <div className="branch-cards">
-                {branchList.map((branch) => (
-                  <div key={branch.id} className="branch-card">
-                    <div className="branch-info">
-                      <h4>{branch.branchName}</h4>
-                      <p>{branch.address}</p>
-                      <p>{branch.phone}</p>
-                    </div>
-                    <div className="branch-actions">
-                      <button
-                        onClick={() => handleEditBranch(branch)}
-                        className="edit-btn"
-                      >
-                        <MdEdit />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteBranch(branch.id)}
-                        className="delete-btn"
-                      >
-                        <MdDelete />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+        {!editMode && branchList.length === 0 && (
+          <p>No branches found for selected region</p>
+        )}
+
+        {!editMode && branchList.length > 0 && (
+          <div className="branch-cards">
+            {branchList.map((branch) => (
+              <div key={branch.id} className="branch-card">
+                <div className="branch-info">
+                  <h4>{branch.branchName}</h4>
+                  <p>Address: {branch.address}</p>
+                  <p>Phone: {branch.phone}</p>
+                  <p>Table Amount: {branch.tableCount}</p>
+                  <p>Car Parking: {branch.hasCarParking ? "Yes" : "No"}</p>
+                  <p>Bike Parking: {branch.hasBikeParking ? "Yes" : "No"}</p>
+                </div>
+                <div className="branch-actions">
+                  <button
+                    onClick={() => handleEditBranch(branch)}
+                    className="edit-btn"
+                  >
+                    <MdEdit />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteBranch(branch.id)}
+                    className="delete-btn"
+                  >
+                    <MdDelete />
+                  </button>
+                </div>
               </div>
-            )}
+            ))}
           </div>
         )}
 
-        {(editMode || !showBranchList) && (
+        {formData.area && editMode && (
           <form onSubmit={handleSubmit} className="branch-form">
             <div className="form-fields">
               <div className="field">
@@ -349,6 +454,53 @@ const BranchPage = () => {
                     />
                   </div>
                 </div>
+              </div>
+
+              <div className="field">
+                <label>Table Count</label>
+                <input
+                  type="number"
+                  value={formData.tableCount}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      tableCount: parseInt(e.target.value, 10),
+                    }))
+                  }
+                  className="input"
+                />
+              </div>
+              <div className="field">
+                <label>Car Parking</label>
+                <select
+                  value={formData.hasCarParking ? "yes" : "no"}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      hasCarParking: e.target.value === "yes",
+                    }))
+                  }
+                  className="input"
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </div>
+              <div className="field">
+                <label>Bike Parking</label>
+                <select
+                  value={formData.hasBikeParking ? "yes" : "no"}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      hasBikeParking: e.target.value === "yes",
+                    }))
+                  }
+                  className="input"
+                >
+                  <option value="yes">Yes</option>
+                  <option value="no">No</option>
+                </select>
               </div>
             </div>
 

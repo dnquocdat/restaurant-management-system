@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from "react";
 import { FaSearch, FaTimes, FaEye, FaEdit } from "react-icons/fa";
 import "./ManagementCustomerPage.css";
+import { http } from "../../../helpers//http";
+import { toast } from "react-toastify";
 
 // Mock dữ liệu nhân viên (staff)
 const mockStaffs = [
@@ -32,12 +34,10 @@ const getStaffName = (staffId) => {
 const getMemberCardRank = (typeId) => {
   switch (typeId) {
     case 1:
-      return "None";
+      return "Membership";
     case 2:
-      return "Bronze";
-    case 3:
       return "Silver";
-    case 4:
+    case 3:
       return "Gold";
     default:
       return "Unknown";
@@ -45,12 +45,13 @@ const getMemberCardRank = (typeId) => {
 };
 
 // Mock dữ liệu khách hàng + thẻ thành viên
+// Mock dữ liệu khách hàng + thẻ thành viên
 const mockCustomers = [
   {
     id: 1,
     name: "John Doe",
-    email: "johndoe@example.com",
     phone: "123-456-7890",
+    cccd: "123456789012", // Thêm trường CCCD
     memberCard: {
       member_card_id: 1001,
       created_at: "2024-01-10",
@@ -58,8 +59,8 @@ const mockCustomers = [
       total_points: 150,
       card_issuer: 101,
       branch_created: 1,
-      card_type_id: 2, // Bronze
-      member_id: "member1", // Sửa thành chuỗi
+      card_type_id: 2, // Silver
+      member_id: "123456789012", // Đặt bằng CCCD
       member_name: "John Doe",
       member_phone_number: "123-456-7890",
       member_gender: "Male",
@@ -69,8 +70,8 @@ const mockCustomers = [
   {
     id: 2,
     name: "Jane Smith",
-    email: "janesmith@example.com",
     phone: "098-765-4321",
+    cccd: "098765432109", // Thêm trường CCCD
     memberCard: {
       member_card_id: 1002,
       created_at: "2024-01-12",
@@ -78,7 +79,7 @@ const mockCustomers = [
       total_points: 200,
       card_issuer: 102,
       branch_created: 2,
-      card_type_id: 1, // None
+      card_type_id: 1, // Membership
       member_id: "", // Ban đầu là rỗng
       member_name: "Jane Smith",
       member_phone_number: "098-765-4321",
@@ -89,8 +90,8 @@ const mockCustomers = [
   {
     id: 3,
     name: "Alice Johnson",
-    email: "alicej@example.com",
     phone: "555-123-4567",
+    cccd: "555555555555", // Thêm trường CCCD
     memberCard: {
       member_card_id: 1003,
       created_at: "2024-01-15",
@@ -98,8 +99,8 @@ const mockCustomers = [
       total_points: 50,
       card_issuer: 101,
       branch_created: 1,
-      card_type_id: 3, // Silver
-      member_id: "member2", // Sửa thành chuỗi
+      card_type_id: 3, // Gold
+      member_id: "555555555555", // Đặt bằng CCCD
       member_name: "Alice Johnson",
       member_phone_number: "555-123-4567",
       member_gender: "Female",
@@ -112,21 +113,30 @@ export const ManagementCustomerPage = () => {
   const [customers, setCustomers] = useState(mockCustomers);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Modal state for Detail View
+  // Modal state cho Detail View
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
-  // Modal state for Staff Detail
+  // Modal state cho Staff Detail
   const [selectedStaff, setSelectedStaff] = useState(null);
   const [isStaffModalOpen, setIsStaffModalOpen] = useState(false);
 
-  // Modal state for Edit Customer
+  // Modal state cho Edit Customer
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editCustomer, setEditCustomer] = useState({
     id: null,
     name: "",
     email: "",
     phone: "",
+  });
+
+  // Modal state cho Add Card
+  const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
+  const [newMemberCard, setNewMemberCard] = useState({
+    member_id: "",
+    member_name: "",
+    member_phone_number: "",
+    member_gender: "Male",
   });
 
   // Pagination states
@@ -181,8 +191,9 @@ export const ManagementCustomerPage = () => {
     setEditCustomer({
       id: customer.id,
       name: customer.name,
-      email: customer.email,
+      email: customer.email || "", // Khởi tạo email trống nếu không tồn tại
       phone: customer.phone,
+      gender: customer.memberCard.member_gender, // Thêm gender vào form
     });
     setIsEditModalOpen(true);
   };
@@ -191,90 +202,119 @@ export const ManagementCustomerPage = () => {
     setIsEditModalOpen(false);
   };
 
-  const handleSaveEdit = () => {
-    setCustomers((prev) =>
-      prev.map((c) =>
-        c.id === editCustomer.id
-          ? {
-              ...c,
-              name: editCustomer.name,
-              email: editCustomer.email,
-              phone: editCustomer.phone,
-            }
-          : c
-      )
-    );
-    closeEditModal();
+  const handleSaveEdit = async () => {
+    try {
+      // Chuẩn bị dữ liệu để gửi
+      const data = {
+        member_id: editCustomer.member_id, // Giữ nguyên Member ID
+        member_name: editCustomer.name,
+        member_phone_number: editCustomer.phone,
+        member_gender: editCustomer.gender,
+        email: editCustomer.email, // Thêm email vào body
+      };
+      // số 1 là idMemberCard, sẽ thay đổi khi có API thật
+      await updateMemberCard(1, data);
+
+      // Cập nhật danh sách khách hàng trong UI
+      setCustomers((prev) =>
+        prev.map((customer) =>
+          customer.id === editCustomer.id
+            ? {
+                ...customer,
+                name: editCustomer.name,
+                phone: editCustomer.phone,
+                email: editCustomer.email,
+                memberCard: {
+                  ...customer.memberCard,
+                  member_gender: editCustomer.gender,
+                },
+              }
+            : customer
+        )
+      );
+
+      closeEditModal(); // Đóng modal sau khi lưu
+    } catch (error) {
+      console.error("Failed to save edit:", error.message);
+    }
   };
 
-  const handleCreateMemberId = (customer) => {
-    const confirmation = window.confirm(
-      `Are you sure you want to create a new Member ID for ${customer.name}?`
-    );
-    if (!confirmation) {
-      return; // Nếu không xác nhận, thoát hàm
+  // Xử lý thêm thẻ mới
+  const handleAddCard = () => {
+    const { member_id, member_name, member_phone_number, member_gender } =
+      newMemberCard;
+
+    if (!member_id || !member_name || !member_phone_number || !member_gender) {
+      alert("Vui lòng điền đầy đủ thông tin.");
+      return;
     }
 
-    // Tìm member_id lớn nhất
-    const currentIds = customers
-      .map((c) => c.memberCard.member_id)
-      .filter((id) => id.startsWith("member")) // Chỉ lấy các member_id hợp lệ
-      .map((id) => parseInt(id.replace("member", ""), 10)); // Lấy số từ chuỗi
+    const cccdRegex = /^\d{9}$/;
+    if (!cccdRegex.test(member_id)) {
+      alert("Member ID (CCCD) phải là 9 chữ số.");
+      return;
+    }
 
-    const maxId = currentIds.length > 0 ? Math.max(...currentIds) : 0;
-    const newMemberId = `member${maxId + 1}`;
+    const dataAdd = {
+      member_id,
+      member_name,
+      member_phone_number,
+      member_gender,
+    };
 
-    // Cập nhật khách hàng
-    setCustomers((prev) =>
-      prev.map((c) =>
-        c.id === customer.id
-          ? {
-              ...c,
-              memberCard: {
-                ...c.memberCard,
-                member_id: newMemberId, // Gán ID mới
-                card_type_id: 2, // Chuyển sang Bronze
-              },
-            }
-          : c
-      )
-    );
+    try {
+      const idBranch = 1;
+      const fetchAddCart = http(`/card/${idBranch}`, "POST", dataAdd);
+
+      if (fetchAddCart) {
+        toast.success(`Added membercard successfully!`, {
+          position: "top-right",
+          autoClose: 1000,
+        });
+      }
+      // Thêm khách hàng mới vào danh sách
+      const newCustomer = {
+        id: customers.length + 1, // Tăng ID mới
+        name: newMemberCard.member_name, // Đúng biến
+        phone: newMemberCard.member_phone_number,
+        cccd: newMemberCard.member_id,
+        memberCard: {
+          ...newMemberCard, // Đúng biến
+          created_at: new Date().toISOString().split("T")[0],
+          updated_at: new Date().toISOString().split("T")[0],
+        },
+      };
+
+      setCustomers((prev) => [...prev, newCustomer]);
+      setIsAddCardModalOpen(false);
+      setNewMemberCard({
+        member_id: "",
+        member_name: "",
+        member_phone_number: "",
+        member_gender: "Male",
+      });
+    } catch (error) {
+      alert(error.message);
+    }
   };
 
-  // Modal state for Edit Card Level
-  const [isEditCardLevelModalOpen, setIsEditCardLevelModalOpen] =
-    useState(false);
-  const [selectedCustomerForLevel, setSelectedCustomerForLevel] =
-    useState(null);
-  const [newCardLevel, setNewCardLevel] = useState(1); // Default to 'None'
-
-  // Handle changing the member card level
-  const handleEditCardLevel = (customer) => {
-    setSelectedCustomerForLevel(customer);
-    setNewCardLevel(customer.memberCard.card_type_id); // Set current card level
-    setIsEditCardLevelModalOpen(true);
-  };
-
-  const closeEditCardLevelModal = () => {
-    setIsEditCardLevelModalOpen(false);
-    setSelectedCustomerForLevel(null);
-  };
-
-  const handleSaveCardLevel = () => {
-    setCustomers((prev) =>
-      prev.map((c) =>
-        c.id === selectedCustomerForLevel.id
-          ? {
-              ...c,
-              memberCard: {
-                ...c.memberCard,
-                card_type_id: newCardLevel, // Update the card type id
-              },
-            }
-          : c
-      )
-    );
-    closeEditCardLevelModal();
+  const updateMemberCard = async (idMemberCard, data) => {
+    try {
+      const fetchUpdateCard = http(`/card/${idMemberCard}`, "PATCH", data);
+      if (fetchUpdateCard) {
+        toast.success("Member card updated successfully!", {
+          position: "top-right",
+          autoClose: 1000,
+        });
+      }
+    } catch (error) {
+      console.error("Error updating member card:", error.message);
+      toast.error(`Error: ${error.message}`, {
+        position: "top-right",
+        autoClose: 1500,
+      });
+      throw error;
+    }
   };
 
   return (
@@ -282,19 +322,34 @@ export const ManagementCustomerPage = () => {
       <div className="customer-list-wrapper">
         <h1 className="customer-title">Customer Management</h1>
 
-        {/* Search Bar */}
-        <div className="search-bar">
-          <FaSearch className="search-icon" />
-          <input
-            type="text"
-            placeholder="Search by Customer Name"
-            className="search-input"
-            value={searchQuery}
-            onChange={(e) => {
-              setSearchQuery(e.target.value);
-              setCurrentPage(1);
-            }}
-          />
+        {/* Search Bar và Add Card Button */}
+        <div
+          className="search-and-add-container"
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <div className="search-bar">
+            <FaSearch className="search-icon" />
+            <input
+              type="text"
+              placeholder="Search by Customer Name"
+              className="search-input"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+          </div>
+          <button
+            onClick={() => setIsAddCardModalOpen(true)}
+            className="add-card-button"
+          >
+            Add Card
+          </button>
         </div>
 
         {/* Customer Table */}
@@ -302,25 +357,22 @@ export const ManagementCustomerPage = () => {
           <table className="customer-table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>NAME</th>
-                <th>EMAIL</th>
-                <th>PHONE</th>
+                <th>Card ID</th>
+                <th>Name</th>
+                <th>Phone</th>
                 <th>Total Points</th>
                 <th>Level Card</th>
-                <th>MemberCard ID</th>
-                <th>ISSUER</th>
-                <th>ACTIONS</th>
+                <th>Issuer</th>
+                <th>Actions</th>
               </tr>
             </thead>
 
             <tbody>
               {currentCustomers.map((customer) => (
                 <tr key={customer.id}>
-                  <td>{customer.id}</td>
+                  <td>{customer.memberCard.member_card_id}</td>
                   <td>{customer.name}</td>
-                  <td>{customer.email}</td>
-                  <td>{customer.phone}</td>
+                  <td>{customer.memberCard.member_phone_number}</td>
                   <td style={{ textAlign: "center" }}>
                     {customer.memberCard.total_points}
                   </td>
@@ -331,19 +383,6 @@ export const ManagementCustomerPage = () => {
                   >
                     {getMemberCardRank(customer.memberCard.card_type_id)}
                   </td>
-                  <td>
-                    {customer.memberCard.member_id === "" ? (
-                      <button
-                        onClick={() => handleCreateMemberId(customer)}
-                        className="create-member-button"
-                      >
-                        Create
-                      </button>
-                    ) : (
-                      customer.memberCard.member_id
-                    )}
-                  </td>
-
                   <td>
                     <button
                       onClick={() =>
@@ -426,6 +465,7 @@ export const ManagementCustomerPage = () => {
               </div>
 
               <div className="modal-body">
+                {/* Hiển thị ảnh khách hàng */}
                 <h3 className="modal-subtitle">Member Card Info</h3>
                 <div className="modal-section">
                   <p>
@@ -551,6 +591,20 @@ export const ManagementCustomerPage = () => {
               </div>
               <div className="modal-body">
                 <div className="modal-section">
+                  <label>Member ID (CCCD):</label>
+                  <input
+                    type="text"
+                    value={editCustomer.member_id}
+                    onChange={(e) =>
+                      setEditCustomer((prev) => ({
+                        ...prev,
+                        member_id: e.target.value,
+                      }))
+                    }
+                    className="modal-input"
+                  />
+                </div>
+                <div className="modal-section">
                   <label>Name:</label>
                   <input
                     type="text"
@@ -576,6 +630,7 @@ export const ManagementCustomerPage = () => {
                       }))
                     }
                     className="modal-input"
+                    placeholder="Enter email"
                   />
                 </div>
                 <div className="modal-section">
@@ -592,12 +647,41 @@ export const ManagementCustomerPage = () => {
                     className="modal-input"
                   />
                 </div>
+                <div className="modal-section">
+                  <label>Gender:</label>
+                  <select
+                    value={editCustomer.gender || "Male"} // Default là "Male"
+                    onChange={(e) =>
+                      setEditCustomer((prev) => ({
+                        ...prev,
+                        gender: e.target.value,
+                      }))
+                    }
+                    className="modal-input"
+                  >
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                </div>
 
                 <div className="modal-actions">
                   <button onClick={handleSaveEdit} className="save-button">
                     Save
                   </button>
-                  <button onClick={closeEditModal} className="cancel-button">
+                  <button
+                    onClick={() => {
+                      closeEditModal();
+                      setTimeout(() => {
+                        setNewMemberCard({
+                          member_id: "",
+                          member_name: "",
+                          member_phone_number: "",
+                          member_gender: "Male",
+                        });
+                      }, 0); // Reset form sau khi đóng modal
+                    }}
+                    className="cancel-button"
+                  >
                     Cancel
                   </button>
                 </div>
@@ -605,16 +689,15 @@ export const ManagementCustomerPage = () => {
             </div>
           </div>
         )}
-        {/* Edit Card Level Modal */}
-        {isEditCardLevelModalOpen && selectedCustomerForLevel && (
+
+        {/* Add Card Modal */}
+        {isAddCardModalOpen && (
           <div className="modal-overlay">
             <div className="modal-content" role="dialog" aria-modal="true">
               <div className="modal-header">
-                <h2 className="modal-title">
-                  Adjust Member Card Level - {selectedCustomerForLevel.name}
-                </h2>
+                <h2 className="modal-title">Add New Member Card</h2>
                 <button
-                  onClick={closeEditCardLevelModal}
+                  onClick={() => setIsAddCardModalOpen(false)}
                   className="modal-close-button"
                   aria-label="Close modal"
                 >
@@ -623,24 +706,75 @@ export const ManagementCustomerPage = () => {
               </div>
               <div className="modal-body">
                 <div className="modal-section">
-                  <label>Choose Card Level:</label>
+                  <label>Member ID (CCCD):</label>
+                  <input
+                    type="text"
+                    value={newMemberCard.member_id}
+                    onChange={(e) =>
+                      setNewMemberCard((prev) => ({
+                        ...prev,
+                        member_id: e.target.value,
+                      }))
+                    }
+                    className="modal-input"
+                    placeholder="Enter 12-digit CCCD"
+                    maxLength={12}
+                  />
+                </div>
+                <div className="modal-section">
+                  <label>Member Name:</label>
+                  <input
+                    type="text"
+                    value={newMemberCard.member_name}
+                    onChange={(e) =>
+                      setNewMemberCard((prev) => ({
+                        ...prev,
+                        member_name: e.target.value,
+                      }))
+                    }
+                    className="modal-input"
+                    placeholder="Enter member name"
+                  />
+                </div>
+                <div className="modal-section">
+                  <label>Member Phone Number:</label>
+                  <input
+                    type="text"
+                    value={newMemberCard.member_phone_number}
+                    onChange={(e) =>
+                      setNewMemberCard((prev) => ({
+                        ...prev,
+                        member_phone_number: e.target.value,
+                      }))
+                    }
+                    className="modal-input"
+                    placeholder="Enter phone number"
+                  />
+                </div>
+                <div className="modal-section">
+                  <label>Member Gender:</label>
                   <select
-                    value={newCardLevel}
-                    onChange={(e) => setNewCardLevel(Number(e.target.value))}
+                    value={newMemberCard.member_gender}
+                    onChange={(e) =>
+                      setNewMemberCard((prev) => ({
+                        ...prev,
+                        member_gender: e.target.value,
+                      }))
+                    }
                     className="modal-input"
                   >
-                    <option value={1}>None</option>
-                    <option value={2}>Bronze</option>
-                    <option value={3}>Silver</option>
-                    <option value={4}>Gold</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    {/* Thêm các lựa chọn khác nếu cần */}
                   </select>
                 </div>
+
                 <div className="modal-actions">
-                  <button onClick={handleSaveCardLevel} className="save-button">
-                    Save
+                  <button onClick={handleAddCard} className="save-button">
+                    Submit
                   </button>
                   <button
-                    onClick={closeEditCardLevelModal}
+                    onClick={() => setIsAddCardModalOpen(false)}
                     className="cancel-button"
                   >
                     Cancel

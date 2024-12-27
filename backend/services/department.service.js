@@ -1,7 +1,67 @@
 // ...existing code...
-import db from "../configs/db.js";
-import CustomError from "../utils/errors.js";
-import STATUS_CODE from "../utils/constants.js";
+import db from '../configs/db.js';
+import CustomError from '../utils/errors.js';
+import STATUS_CODE from '../utils/constants.js';
+
+// Add the searchDepartments function
+export async function searchDepartments({ query = '', page = 1, limit = 10, sort = 'department_name,asc' }) {
+    const [sortField, sortDirection] = sort.split(',');
+    const validSortFields = ['department_name', 'salary'];
+    const validSortDirections = ['asc', 'desc'];
+
+    // Validate sort parameters
+    if (!validSortFields.includes(sortField) || !validSortDirections.includes(sortDirection.toLowerCase())) {
+        throw new CustomError("BAD_REQUEST", "Invalid sort parameters", STATUS_CODE.BAD_REQUEST);
+    }
+
+    const p_query_name = 'department_name';
+    const p_query = query;
+    const p_page = parseInt(page, 10) || 1;
+    const p_limit = parseInt(limit, 10) || 10;
+    const p_tableName = 'departments';
+    const p_orderByField = sortField;
+    const p_orderByDirection = sortDirection.toUpperCase();
+    const p_category_name = '';
+    const p_category = '';
+    const p_id_name = 'department_id';
+    const p_selectFields = 'department_id, department_name, salary';
+    const p_joinClause = ''; // No joins needed as only the 'departments' table is used
+    const p_branch_name = '';
+    const p_branch_id = '';
+
+    let p_totalRecords = 0;
+
+    const sql = `CALL GetDynamicItems(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @totalRecords);`;
+    const params = [
+        p_query_name,
+        p_query,
+        p_page,
+        p_limit,
+        p_tableName,
+        p_orderByField,
+        p_orderByDirection,
+        p_category_name,
+        p_category,
+        p_branch_name,
+        p_branch_id,
+        p_id_name,
+        p_selectFields,
+        p_joinClause
+    ];
+
+    const [results] = await db.query(sql, params);
+
+    // Retrieve the total records from the OUT parameter
+    const [[{ totalRecords }]] = await db.query('SELECT @totalRecords as totalRecords;');
+    p_totalRecords = totalRecords;
+
+    return {
+        departments: results[0],
+        totalRecords: p_totalRecords
+    };
+}
+
+// ...existing code...
 
 export async function addDepartment(departmentData) {
   const { department_name, salary } = departmentData;
@@ -33,6 +93,11 @@ export async function updateDepartment(departmentId, updateData) {
 
   return;
 }
+
+// ...existing code...
+
+// Export the new function
+// export { addDepartment, updateDepartment, searchDepartments };
 
 // ...existing code...
 

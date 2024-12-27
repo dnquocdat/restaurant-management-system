@@ -5,9 +5,10 @@ import verifyToken from "../middlewares/verify-token.js";
 import asyncErrorHandler from "../utils/asyncErrorHandler.js";
 
 import {
-  addDepartment,
-  updateDepartment,
-  getDepartment,
+    addDepartment,
+    updateDepartment,
+    searchDepartmentsController,
+    getDepartment
 } from "../controllers/department.controller.js";
 
 const router = Router();
@@ -21,6 +22,9 @@ router.patch(
   verifyToken,
   asyncErrorHandler(updateDepartment)
 );
+
+// Add Search Departments endpoint with middleware
+router.get('/search', verifyToken, asyncErrorHandler(searchDepartmentsController));
 
 // ...existing code...
 

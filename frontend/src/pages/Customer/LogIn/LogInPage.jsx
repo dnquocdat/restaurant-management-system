@@ -4,6 +4,7 @@ import { FiEye, FiEyeOff, FiMail, FiLock, FiUser } from "react-icons/fi";
 import { toast } from "react-toastify";
 
 import "./LogInPage.css";
+import { http } from "../../../helpers/http";
 
 export const LogInPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -18,6 +19,7 @@ export const LogInPage = () => {
     newPassword: "",
     confirmNewPassword: "",
   });
+
   const [errors, setErrors] = useState({});
   const navigate = useNavigate();
   const validateEmail = (email) => {
@@ -103,29 +105,21 @@ export const LogInPage = () => {
       } else {
         if (isLogin) {
           // Gọi API đăng nhập
-          const response = await fetch("http://localhost:3000/api/auth/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              user_email: formData.username,
-              user_password: formData.password,
-            }),
-            // credentials: "include", // Gửi cookies khi gọi API
+
+          const fetchData = await http("/auth/login", "POST", {
+            user_email: formData.username,
+            user_password: formData.password,
           });
+          localStorage.setItem("token", fetchData.data.access_token); // Lưu token vào localStorage
+          localStorage.setItem("refresh_token", fetchData.data.refresh_token); // Lưu token vào localStorage
 
-          if (!response.ok) {
-            throw new Error("Login failed");
+          if (fetchData.status == 200) {
+            toast.success(`Login Successful!`, {
+              position: "top-right",
+              autoClose: 1500,
+            });
           }
-
-          const data = await response.json();
-          console.log(data);
-          // localStorage.setItem("user_id", data.data.user.user_id); // Lưu token vào localStorage
-          localStorage.setItem("token", data.data.access_token); // Lưu token vào localStorage
-          const { is_staff, is_admin } = data.data.user;
-
-          // Chuyển hướng dựa vào vai trò người dùng
+          const { is_staff, is_admin } = fetchData.data.user;
           if (is_staff == 1) {
             navigate("/staff/dashboard"); // Staff dashboard
           } else if (is_admin == 1) {
@@ -133,47 +127,28 @@ export const LogInPage = () => {
           } else {
             navigate("/"); // customer
           }
-
-          toast.success(`Login Successful!`, {
-            position: "top-right",
-            autoClose: 1500,
-          });
         } else {
           // Gọi API đăng ký
-          const response = await fetch(
-            "http://localhost:3000/api/auth/register",
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                user_name: formData.username,
-                user_email: formData.email,
-                user_password: formData.password,
-                user_phone_number: "0123123123",
-                user_address: "hcmus",
-              }),
-            }
-          );
-          // alert("Register Successfull!");
-          toast.success(`Register Successfull!`, {
-            position: "top-right",
-            autoClose: 1500,
+          const fetchRegister = await http("/auth/register", "POST", {
+            user_name: formData.username,
+            user_email: formData.email,
+            user_password: formData.password,
+            user_phone_number: "0123123123",
+            user_address: "hcmus",
           });
-
-          if (!response.ok) {
-            throw new Error("Registration failed");
+          // alert("Register Successfull!");
+          if (fetchRegister.status == 201) {
+            toast.success(`Register Successfull!`, {
+              position: "top-right",
+              autoClose: 1500,
+            });
           }
-
-          const data = await response.json();
-          console.log("Registration successful", data);
           toggleForm(); // Chuyển sang màn hình đăng nhập sau khi đăng ký thành công
         }
       }
     } catch (error) {
       console.error(error);
-      alert(error.message); // Hiển thị lỗi
+      // alert(error.message); // Hiển thị lỗi
     }
   };
 

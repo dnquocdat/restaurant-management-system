@@ -10,7 +10,7 @@ import {
 import { FaSearch } from "react-icons/fa";
 import { toast } from "react-toastify";
 import "./ManagementEmployeePage.css"; // Import the external CSS file
-
+import { http } from "../../../helpers/http.js";
 const ManagementEmployeePage = () => {
   const [selectedBranch, setSelectedBranch] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
@@ -18,9 +18,9 @@ const ManagementEmployeePage = () => {
   const [selectedEmployee, setSelectedEmployee] = useState(null);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [detailedEmployee, setDetailedEmployee] = useState(null);
-
+  // 123
   const [formData, setFormData] = useState({
-    branchId: "",
+    branchName: "",
     name: "",
     position: "",
     email: "",
@@ -35,11 +35,12 @@ const ManagementEmployeePage = () => {
   const [formErrors, setFormErrors] = useState({});
 
   const [filterOptions, setFilterOptions] = useState({
-    branchId: "",
+    branchName: "",
     position: "",
     sortBy: "",
     sortOrder: "asc",
   });
+
   const [isFilterApplied, setIsFilterApplied] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState(""); // Thêm trạng thái tìm kiếm
@@ -48,9 +49,9 @@ const ManagementEmployeePage = () => {
   const employeesPerPage = 5; // Adjust as needed
 
   const branches = [
-    { id: 1, name: "Restaurant A" },
-    { id: 2, name: "Restaurant B" },
-    { id: 3, name: "Restaurant C" },
+    { id: 1, name: "Branch North 1" },
+    { id: 2, name: "Branch South 1" },
+    { id: 3, name: "Branch East 1" },
   ];
 
   const positions = [
@@ -65,7 +66,7 @@ const ManagementEmployeePage = () => {
   const [employees, setEmployees] = useState([
     {
       id: 1,
-      branchId: 1,
+      branchName: "",
       name: "John Doe",
       position: "Manager",
       email: "john@example.com",
@@ -78,7 +79,7 @@ const ManagementEmployeePage = () => {
     },
     {
       id: 2,
-      branchId: 1,
+      branchName: "VietNam",
       name: "Jane Smith",
       position: "Chef",
       email: "jane@example.com",
@@ -106,11 +107,12 @@ const ManagementEmployeePage = () => {
 
     // Apply Other Filters
     if (isFilterApplied) {
-      if (filterOptions.branchId) {
+      if (filterOptions.branchName) {
         filtered = filtered.filter(
-          (emp) => emp.branchId === parseInt(filterOptions.branchId)
+          (emp) => emp.branchName === filterOptions.branchName
         );
       }
+
       if (filterOptions.position) {
         filtered = filtered.filter(
           (emp) => emp.position === filterOptions.position
@@ -135,79 +137,157 @@ const ManagementEmployeePage = () => {
 
   const validateForm = () => {
     const errors = {};
+
+    // Common validations for both Add and Edit
     if (!formData.name.trim()) errors.name = "Name is required";
-    if (!formData.position.trim()) errors.position = "Position is required";
+
     if (!formData.email.trim()) {
       errors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       errors.email = "Invalid email format";
     }
+
     if (!formData.phone.trim()) {
       errors.phone = "Phone is required";
     } else if (!/^(0\d{9})$/.test(formData.phone)) {
       errors.phone =
         "Invalid phone format (should be 10 digits starting with 0)";
     }
-    if (!formData.branchId) {
-      errors.branchId = "Branch is required";
-    }
 
     if (!formData.address.trim()) errors.address = "Address is required";
+
     if (!formData.gender) errors.gender = "Gender is required";
-    if (!formData.hire_date) errors.hire_date = "Hire date is required";
+
     if (!formData.date_of_birth)
       errors.date_of_birth = "Date of birth is required";
+
+    // Specific Validation for Update
+    if (selectedEmployee) {
+      const isBranchEmpty = !formData.branchName.trim();
+      const isPositionEmpty = !formData.position.trim();
+
+      const isBranchUpdated =
+        formData.branchName !== selectedEmployee.branchName;
+      const isPositionUpdated = formData.position !== selectedEmployee.position;
+
+      if (
+        !(
+          (isBranchEmpty && isPositionEmpty) ||
+          (isBranchUpdated && isPositionUpdated)
+        )
+      ) {
+        errors.form =
+          "You must either clear branch and department or update both to new values.";
+      }
+    }
 
     return errors;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const errors = validateForm();
-    if (Object.keys(errors).length === 0) {
-      if (selectedEmployee) {
-        // Editing existing employee
-        const updatedEmployees = employees.map((emp) =>
-          emp.id === selectedEmployee.id
-            ? { ...emp, ...formData, branchId: parseInt(formData.branchId) }
-            : emp
-        );
-        setEmployees(updatedEmployees);
-      } else {
-        // Adding new employee
-        const newEmployee = {
-          id:
-            employees.length > 0
-              ? Math.max(...employees.map((emp) => emp.id)) + 1
-              : 1,
-          branchId: parseInt(formData.branchId),
-          name: formData.name,
-          position: formData.position,
-          email: formData.email,
-          phone: formData.phone,
-        };
-        setEmployees([...employees, newEmployee]);
-      }
 
-      // Reset form and close modal
-      setShowAddForm(false);
-      setFormData({
-        branchId: "",
-        name: "",
-        position: "",
-        email: "",
-        phone: "",
-        address: "",
-        gender: "",
-        hire_date: "",
-        quit_date: "",
-        date_of_birth: "",
-      });
-      setSelectedEmployee(null); // Clear selected employee
-      setFormErrors({});
-    } else {
-      setFormErrors(errors);
+    const errors = validateForm();
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      return; // Stop submission if there are errors
     }
+
+    if (selectedEmployee) {
+      // Edit Employee
+      const isBranchUpdated =
+        formData.branchName !== selectedEmployee.branchName;
+      const isPositionUpdated = formData.position !== selectedEmployee.position;
+
+      // Xác định branch name để gửi
+      const branchNameToSend =
+        formData.branchName.trim() !== ""
+          ? isBranchUpdated
+            ? formData.branchName // Nếu đã cập nhật, gửi giá trị mới
+            : selectedEmployee.branchName // Nếu không cập nhật, giữ giá trị cũ
+          : null; // Nếu không có branchName, gửi null
+
+      // Xác định department name để gửi
+      const departmentNameToSend =
+        formData.position.trim() !== ""
+          ? isPositionUpdated
+            ? formData.position // Nếu đã cập nhật, gửi giá trị mới
+            : selectedEmployee.position // Nếu không cập nhật, giữ giá trị cũ
+          : null; // Nếu không có position, gửi null
+
+      const updateData = {
+        employee_name: formData.name,
+        employee_email: formData.email,
+        date_of_birth: formData.date_of_birth,
+        gender: formData.gender,
+        employee_phone_number: formData.phone,
+        employee_address: formData.address,
+        branch_name: branchNameToSend,
+        department_name: departmentNameToSend,
+        hire_date: formData.hire_date,
+        quit_date: formData.quit_date || null,
+      };
+
+      try {
+        const response = await http(
+          `/employee/${selectedEmployee.id}`,
+          "PATCH",
+          updateData
+        );
+        const updatedEmployee = response.data;
+        setEmployees((prev) =>
+          prev.map((emp) =>
+            emp.id === updatedEmployee.id ? updatedEmployee : emp
+          )
+        );
+        toast.success("Employee updated successfully!", {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      } catch (error) {
+        console.error("Error updating employee:", error);
+        alert("Failed to update employee. Please try again.");
+      }
+    } else {
+      // Add New Employee
+      try {
+        const response = await http(`/employee`, "POST", {
+          employee_name: formData.name,
+          employee_email: formData.email,
+          date_of_birth: formData.date_of_birth,
+          gender: formData.gender,
+          employee_phone_number: formData.phone,
+          employee_address: formData.address,
+        });
+
+        const newEmployee = response.data;
+        setEmployees((prev) => [...prev, newEmployee]);
+        toast.success("Employee added successfully!", {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      } catch (error) {
+        console.error("Error adding employee:", error);
+        alert("Failed to add employee. Please try again.");
+      }
+    }
+
+    // Reset form and close modal
+    setShowAddForm(false);
+    setFormData({
+      branchName: "",
+      name: "",
+      position: "",
+      email: "",
+      phone: "",
+      address: "",
+      gender: "",
+      hire_date: "",
+      quit_date: "",
+      date_of_birth: "",
+    });
+    setSelectedEmployee(null); // Clear selected employee
+    setFormErrors({});
   };
 
   const handleDelete = async () => {
@@ -289,17 +369,17 @@ const ManagementEmployeePage = () => {
               <select
                 id="filter-branch"
                 className="select"
-                value={filterOptions.branchId}
+                value={filterOptions.branchName}
                 onChange={(e) =>
                   setFilterOptions({
                     ...filterOptions,
-                    branchId: e.target.value,
+                    branchName: e.target.value,
                   })
                 }
               >
                 <option value="">--All Branches--</option>
                 {branches.map((branch) => (
-                  <option key={branch.id} value={branch.id}>
+                  <option key={branch.id} value={branch.name}>
                     {branch.name}
                   </option>
                 ))}
@@ -329,46 +409,6 @@ const ManagementEmployeePage = () => {
                 ))}
               </select>
             </div>
-
-            {/* <div className="filter-field">
-              <label htmlFor="sort-by" className="label">
-                Sort By
-              </label>
-              <select
-                id="sort-by"
-                className="select"
-                value={filterOptions.sortBy}
-                onChange={(e) =>
-                  setFilterOptions({ ...filterOptions, sortBy: e.target.value })
-                }
-              >
-                <option value="">--No Sorting--</option>
-                <option value="name">Name</option>
-                <option value="position">Position</option>
-                <option value="email">Email</option>
-                <option value="phone">Phone</option>
-              </select>
-            </div> */}
-
-            {/* <div className="filter-field">
-              <label htmlFor="sort-order" className="label">
-                Sort Order
-              </label>
-              <select
-                id="sort-order"
-                className="select"
-                value={filterOptions.sortOrder}
-                onChange={(e) =>
-                  setFilterOptions({
-                    ...filterOptions,
-                    sortOrder: e.target.value,
-                  })
-                }
-              >
-                <option value="asc">Ascending</option>
-                <option value="desc">Descending</option>
-              </select>
-            </div> */}
           </div>
           <button
             onClick={() => setIsFilterApplied(true)}
@@ -387,8 +427,7 @@ const ManagementEmployeePage = () => {
                 setShowAddForm(true);
                 setSelectedEmployee(null); // Đặt lại trạng thái để chuyển sang chế độ thêm mới
                 setFormData({
-                  // Reset formData
-                  branchId: "",
+                  branchName: "",
                   name: "",
                   position: "",
                   email: "",
@@ -423,10 +462,8 @@ const ManagementEmployeePage = () => {
                   currentEmployees.map((employee) => (
                     <tr key={employee.id}>
                       <td>{employee.name}</td>
-                      <td>
-                        {branches.find((b) => b.id === employee.branchId)?.name}
-                      </td>
-                      <td>{employee.position}</td>
+                      <td>{employee.branchName || "N/A"}</td>
+                      <td>{employee.position || "N/A"}</td>
                       <td>{employee.email}</td>
                       <td>{employee.phone}</td>
                       <td className="actions">
@@ -443,9 +480,9 @@ const ManagementEmployeePage = () => {
                           onClick={() => {
                             setSelectedEmployee(employee);
                             setFormData({
-                              branchId: employee.branchId.toString(),
+                              branchName: employee.branchName || "",
                               name: employee.name,
-                              position: employee.position,
+                              position: employee.position || "",
                               email: employee.email,
                               phone: employee.phone,
                               address: employee.address || "",
@@ -519,6 +556,7 @@ const ManagementEmployeePage = () => {
       </div>
 
       {/* Add/Edit Employee Modal */}
+      {/* Add/Edit Employee Modal */}
       {showAddForm && (
         <div className="modal-overlay">
           <div className="modal-content">
@@ -535,28 +573,7 @@ const ManagementEmployeePage = () => {
               </button>
             </div>
             <form onSubmit={handleSubmit}>
-              <div className="form-field">
-                <label className="label">Branch</label>
-                <select
-                  className={`select ${
-                    formErrors.branchId ? "input-error" : ""
-                  }`}
-                  value={formData.branchId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, branchId: e.target.value })
-                  }
-                >
-                  <option value="">--Select Branch--</option>
-                  {branches.map((branch) => (
-                    <option key={branch.id} value={branch.id}>
-                      {branch.name}
-                    </option>
-                  ))}
-                </select>
-                {formErrors.branchId && (
-                  <p className="error">{formErrors.branchId}</p>
-                )}
-              </div>
+              {/* Common Fields for Add and Edit */}
               <div className="form-field">
                 <label className="label">Name</label>
                 <input
@@ -568,28 +585,6 @@ const ManagementEmployeePage = () => {
                   }
                 />
                 {formErrors.name && <p className="error">{formErrors.name}</p>}
-              </div>
-              <div className="form-field">
-                <label className="label">Position</label>
-                <select
-                  className={`select ${
-                    formErrors.position ? "input-error" : ""
-                  }`}
-                  value={formData.position}
-                  onChange={(e) =>
-                    setFormData({ ...formData, position: e.target.value })
-                  }
-                >
-                  <option value="">--Select Position--</option>
-                  {positions.map((position, index) => (
-                    <option key={index} value={position}>
-                      {position}
-                    </option>
-                  ))}
-                </select>
-                {formErrors.position && (
-                  <p className="error">{formErrors.position}</p>
-                )}
               </div>
               <div className="form-field">
                 <label className="label">Email</label>
@@ -606,35 +601,24 @@ const ManagementEmployeePage = () => {
                 )}
               </div>
               <div className="form-field">
-                <label className="label">Phone</label>
+                <label className="label">Date of Birth</label>
                 <input
-                  type="text"
-                  className={`input ${formErrors.phone ? "input-error" : ""}`}
-                  value={formData.phone}
+                  type="date"
+                  className={`input ${
+                    formErrors.date_of_birth ? "input-error" : ""
+                  }`}
+                  value={formData.date_of_birth || ""}
                   onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
+                    setFormData({
+                      ...formData,
+                      date_of_birth: e.target.value,
+                    })
                   }
                 />
-                {formErrors.phone && (
-                  <p className="error">{formErrors.phone}</p>
+                {formErrors.date_of_birth && (
+                  <p className="error">{formErrors.date_of_birth}</p>
                 )}
               </div>
-
-              <div className="form-field">
-                <label className="label">Address</label>
-                <input
-                  type="text"
-                  className={`input ${formErrors.address ? "input-error" : ""}`}
-                  value={formData.address || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, address: e.target.value })
-                  }
-                />
-                {formErrors.address && (
-                  <p className="error">{formErrors.address}</p>
-                )}
-              </div>
-
               <div className="form-field">
                 <label className="label">Gender</label>
                 <select
@@ -653,60 +637,145 @@ const ManagementEmployeePage = () => {
                   <p className="error">{formErrors.gender}</p>
                 )}
               </div>
-
               <div className="form-field">
-                <label className="label">Hire Date</label>
+                <label className="label">Phone</label>
                 <input
-                  type="date"
-                  className={`input ${
-                    formErrors.hire_date ? "input-error" : ""
-                  }`}
-                  value={formData.hire_date || ""}
+                  type="text"
+                  className={`input ${formErrors.phone ? "input-error" : ""}`}
+                  value={formData.phone}
                   onChange={(e) =>
-                    setFormData({ ...formData, hire_date: e.target.value })
+                    setFormData({ ...formData, phone: e.target.value })
                   }
                 />
-                {formErrors.hire_date && (
-                  <p className="error">{formErrors.hire_date}</p>
+                {formErrors.phone && (
+                  <p className="error">{formErrors.phone}</p>
+                )}
+              </div>
+              <div className="form-field">
+                <label className="label">Address</label>
+                <input
+                  type="text"
+                  className={`input ${formErrors.address ? "input-error" : ""}`}
+                  value={formData.address || ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, address: e.target.value })
+                  }
+                />
+                {formErrors.address && (
+                  <p className="error">{formErrors.address}</p>
                 )}
               </div>
 
-              <div className="form-field">
-                <label className="label">Quit Date</label>
-                <input
-                  type="date"
-                  className={`input ${
-                    formErrors.quit_date ? "input-error" : ""
-                  }`}
-                  value={formData.quit_date || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, quit_date: e.target.value })
-                  }
-                />
-                {formErrors.quit_date && (
-                  <p className="error">{formErrors.quit_date}</p>
-                )}
-              </div>
+              {/* Additional Fields for Edit */}
+              {selectedEmployee && (
+                <>
+                  <div className="form-section">
+                    <h4
+                      className="section-title"
+                      style={{
+                        marginTop: "15px",
+                      }}
+                    >
+                      Work Information
+                    </h4>
+                    <div className="form-field">
+                      <label className="label">Branch</label>
+                      <select
+                        className={`select ${
+                          formErrors.branchName ? "input-error" : ""
+                        }`}
+                        value={formData.branchName}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            branchName: e.target.value,
+                          })
+                        }
+                      >
+                        <option value="">--Select Branch--</option>
+                        {branches.map((branch) => (
+                          <option key={branch.id} value={branch.name}>
+                            {branch.name}
+                          </option>
+                        ))}
+                      </select>
+                      {formErrors.branchName && (
+                        <p className="error">{formErrors.branchName}</p>
+                      )}
+                    </div>
 
-              <div className="form-field">
-                <label className="label">Date of Birth</label>
-                <input
-                  type="date"
-                  className={`input ${
-                    formErrors.date_of_birth ? "input-error" : ""
-                  }`}
-                  value={formData.date_of_birth || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, date_of_birth: e.target.value })
-                  }
-                />
-                {formErrors.date_of_birth && (
-                  <p className="error">{formErrors.date_of_birth}</p>
-                )}
-              </div>
+                    <div className="form-field">
+                      <label className="label">Department</label>
+                      <select
+                        className={`select ${
+                          formErrors.position ? "input-error" : ""
+                        }`}
+                        value={formData.position}
+                        onChange={(e) =>
+                          setFormData({ ...formData, position: e.target.value })
+                        }
+                      >
+                        <option value="">--Select Department--</option>
+                        {positions.map((position, index) => (
+                          <option key={index} value={position}>
+                            {position}
+                          </option>
+                        ))}
+                      </select>
+                      {formErrors.position && (
+                        <p className="error">{formErrors.position}</p>
+                      )}
+                    </div>
+
+                    <div className="form-field">
+                      <label className="label">Hire Date</label>
+                      <input
+                        type="date"
+                        className={`input ${
+                          formErrors.hire_date ? "input-error" : ""
+                        }`}
+                        value={formData.hire_date || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            hire_date: e.target.value,
+                          })
+                        }
+                      />
+                      {formErrors.hire_date && (
+                        <p className="error">{formErrors.hire_date}</p>
+                      )}
+                    </div>
+
+                    <div className="form-field">
+                      <label className="label">Quit Date</label>
+                      <input
+                        type="date"
+                        className={`input ${
+                          formErrors.quit_date ? "input-error" : ""
+                        }`}
+                        value={formData.quit_date || ""}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            quit_date: e.target.value,
+                          })
+                        }
+                      />
+                      {formErrors.quit_date && (
+                        <p className="error">{formErrors.quit_date}</p>
+                      )}
+                    </div>
+                  </div>
+                </>
+              )}
 
               <div className="form-buttons">
-                <button type="submit" className="submit-button">
+                <button
+                  type="submit"
+                  className="submit-button"
+                  style={{ marginTop: "15px" }}
+                >
                   {selectedEmployee ? "Update" : "Add"} Employee
                 </button>
               </div>
@@ -760,16 +829,12 @@ const ManagementEmployeePage = () => {
                 <FiX className="icon" />
               </button>
             </div>
-            <div className="modal-detail-employee-body">
+
+            {/* Thông tin cá nhân */}
+            <div className="form-section">
+              <h4 className="section-title">Personal Information</h4>
               <p>
                 <strong>Name:</strong> {detailedEmployee.name}
-              </p>
-              <p>
-                <strong>Branch:</strong>{" "}
-                {branches.find((b) => b.id === detailedEmployee.branchId)?.name}
-              </p>
-              <p>
-                <strong>Position:</strong> {detailedEmployee.position}
               </p>
               <p>
                 <strong>Email:</strong> {detailedEmployee.email}
@@ -784,6 +849,22 @@ const ManagementEmployeePage = () => {
                 <strong>Gender:</strong> {detailedEmployee.gender}
               </p>
               <p>
+                <strong>Date of Birth:</strong> {detailedEmployee.date_of_birth}
+              </p>
+            </div>
+
+            {/* Thông tin công việc */}
+            <div className="form-section">
+              <h4 className="section-title" style={{ marginTop: "15px" }}>
+                Work Information
+              </h4>
+              <p>
+                <strong>Branch:</strong> {detailedEmployee.branchName || "N/A"}
+              </p>
+              <p>
+                <strong>Department:</strong> {detailedEmployee.position}
+              </p>
+              <p>
                 <strong>Hire Date:</strong> {detailedEmployee.hire_date}
               </p>
               <p>
@@ -792,10 +873,8 @@ const ManagementEmployeePage = () => {
                   ? detailedEmployee.quit_date
                   : "N/A"}
               </p>
-              <p>
-                <strong>Date of Birth:</strong> {detailedEmployee.date_of_birth}
-              </p>
             </div>
+
             <div className="modal-detail-employee-footer">
               <button
                 onClick={() => setShowDetailsModal(false)} // Close modal
