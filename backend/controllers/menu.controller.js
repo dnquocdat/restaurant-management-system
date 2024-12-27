@@ -30,9 +30,6 @@ export const searchMenu = async (req, res, next) => {
     // Calculate pagination details
     const totalPages = Math.ceil(totalRecords / limit);
     const hasMore = page < totalPages;
-    if(totalPages === 0) {
-        throw new CustomError("NOT_FOUND", "No dishes found", STATUS_CODE.NOT_FOUND);
-    }
     if(page > totalPages) {
         throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
     }

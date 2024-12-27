@@ -19,6 +19,6 @@ router.post('/submit-dine-in/:reservationSlipId', verifyToken, asyncErrorHandler
 router.patch('/:orderId', verifyToken, asyncErrorHandler(updateOrderStatus));
 
 // Search Orders by User endpoint with middleware
-router.get('/online-account', verifyToken, asyncErrorHandler(searchOrdersByUserController));
+router.get('/search', verifyToken, asyncErrorHandler(searchOrdersByUserController));
 
 export default router;

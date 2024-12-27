@@ -79,8 +79,8 @@ export async function searchOrdersByUser(user_id, { query, page, limit}) {
     const p_id_name = 'order_id';
     const p_selectFields = 'order_id, branch_id, online_user_id, order_type, status, created_at';
     const p_joinClause = ''; // No joins needed as only the 'orders' table is used
-    const p_branch_name = 'order_type' // In this context, 'order_type' is used as the branch_name
-    const p_branch_id = 'delivery'; // In this context, 'delivery' is used as the branch_id
+    const p_branch_name = '' 
+    const p_branch_id = ''; 
 
     let p_totalRecords = 0;
 
