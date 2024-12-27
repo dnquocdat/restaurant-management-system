@@ -6,6 +6,7 @@ import {
   searchEmployeesController,
   getEmployeeInformation,
 } from "../controllers/employee.controller.js";
+
 import verifyToken from "../middlewares/verify-token.js";
 
 import asyncErrorHandler from "../utils/asyncErrorHandler.js";
