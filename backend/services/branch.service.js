@@ -1,6 +1,6 @@
-import db from '../configs/db.js';
-import CustomError from '../utils/errors.js';
-import STATUS_CODE from '../utils/constants.js';
+import db from "../configs/db.js";
+import CustomError from "../utils/errors.js";
+import STATUS_CODE from "../utils/constants.js";
 
 // Add the searchBranches function
 async function searchBranches({ query = '', page = 1, limit = 10, region_id = '' }) {
@@ -71,9 +71,14 @@ async function updateBranch(branchData) {
         throw new CustomError("NOT_FOUND", "Branch not found", STATUS_CODE.NOT_FOUND);
     }
 
-    const updatedBranch = result[0][0];
-    return updatedBranch;
+  const updatedBranch = result[0][0];
+  return updatedBranch;
 }
 
-// Export the new function
-export { addBranch, updateBranch, searchBranches };
+// get all branches with branch_id, branch_name
+export async function getBranch() {
+  const sql = `CALL getBranch()`;
+  const [result] = await db.query(sql);
+  const branches = result[0];
+  return branches;
+}

@@ -64,26 +64,34 @@ export async function searchDepartments({ query = '', page = 1, limit = 10, sort
 // ...existing code...
 
 export async function addDepartment(departmentData) {
-    const { department_name, salary } = departmentData;
-    const sql = `CALL CreateDepartment(?, ?)`;
-    const params = [department_name, salary];
-    const [result] = await db.query(sql, params);
-    const department = result[0][0];
-    return department;
+  const { department_name, salary } = departmentData;
+  const sql = `CALL CreateDepartment(?, ?)`;
+  const params = [department_name, salary];
+  const [result] = await db.query(sql, params);
+  const department = result[0][0];
+  return department;
 }
 
 export async function updateDepartment(departmentId, updateData) {
-    const { department_name, salary } = updateData;
-    const sql = `CALL UpdateDepartmentInfo(?, ?, ?)`;
-    const params = [departmentId, department_name || null, salary !== undefined ? salary : null];
-    const [result] = await db.query(sql, params);
-    
-    // Check if any rows were affected
-    if (result.affectedRows === 0) {
-        throw new CustomError("NOT_FOUND", "Department not found", STATUS_CODE.NOT_FOUND);
-    }
+  const { department_name, salary } = updateData;
+  const sql = `CALL UpdateDepartmentInfo(?, ?, ?)`;
+  const params = [
+    departmentId,
+    department_name || null,
+    salary !== undefined ? salary : null,
+  ];
+  const [result] = await db.query(sql, params);
 
-    return;
+  // Check if any rows were affected
+  if (result.affectedRows === 0) {
+    throw new CustomError(
+      "NOT_FOUND",
+      "Department not found",
+      STATUS_CODE.NOT_FOUND
+    );
+  }
+
+  return;
 }
 
 // ...existing code...
@@ -92,3 +100,11 @@ export async function updateDepartment(departmentId, updateData) {
 // export { addDepartment, updateDepartment, searchDepartments };
 
 // ...existing code...
+
+// get all departments with department_id, department_name
+export async function getDepartment() {
+  const sql = `CALL getDepartment()`;
+  const [result] = await db.query(sql);
+  const departments = result[0];
+  return departments;
+}
