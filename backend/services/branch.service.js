@@ -3,7 +3,7 @@ import CustomError from "../utils/errors.js";
 import STATUS_CODE from "../utils/constants.js";
 
 // Add the searchBranches function
-async function searchBranches({ query = '', page = 1, limit = 10, region_id = '' }) {
+export async function searchBranches({ query = '', page = 1, limit = 10, region_id = '' }) {
     const p_query_name = 'branch_name';
     const p_query = query;
     const p_page = parseInt(page, 10) || 1;
@@ -51,7 +51,7 @@ async function searchBranches({ query = '', page = 1, limit = 10, region_id = ''
     };
 }
 
-async function addBranch(branchData) {
+export async function addBranch(branchData) {
 const {region_id, branch_name, address, open_time, close_time, phone_number, email, has_car_park, has_motorbike_park, table_amount } = branchData;
     const sql = `CALL CreateBranch(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const params = [region_id, branch_name, address, open_time, close_time, phone_number, email, has_car_park, has_motorbike_park, table_amount];
@@ -60,7 +60,7 @@ const {region_id, branch_name, address, open_time, close_time, phone_number, ema
     return branch;
 }
 
-async function updateBranch(branchData) {
+export async function updateBranch(branchData) {
     const { branch_id, branch_name, address, open_time, close_time, phone_number, email, has_car_park, has_motorbike_park, table_amount } = branchData;
     const sql = `CALL UpdateBranchInfo(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     const params = [branch_id, branch_name || null, address || null, open_time || null, close_time || null, phone_number || null, email || null, has_car_park !== undefined ? has_car_park : null, has_motorbike_park !== undefined ? has_motorbike_park : null, table_amount !== undefined ? table_amount : null];
