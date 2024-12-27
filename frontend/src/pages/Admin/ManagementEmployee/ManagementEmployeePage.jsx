@@ -22,7 +22,7 @@ const ManagementEmployeePage = () => {
   const [formData, setFormData] = useState({
     branchName: "",
     name: "",
-    position: "",
+    department: "",
     email: "",
     phone: "",
     address: "",
@@ -277,7 +277,7 @@ const ManagementEmployeePage = () => {
     setFormData({
       branchName: "",
       name: "",
-      position: "",
+      department: "",
       email: "",
       phone: "",
       address: "",
@@ -707,24 +707,23 @@ const ManagementEmployeePage = () => {
                     <div className="form-field">
                       <label className="label">Department</label>
                       <select
-                        className={`select ${
-                          formErrors.position ? "input-error" : ""
-                        }`}
-                        value={formData.position}
+                        id="filter-department"
+                        className="select"
+                        value={filterOptions.department}
                         onChange={(e) =>
-                          setFormData({ ...formData, position: e.target.value })
+                          setFilterOptions({
+                            ...filterOptions,
+                            department: e.target.value,
+                          })
                         }
                       >
-                        <option value="">--Select Department--</option>
-                        {positions.map((position, index) => (
-                          <option key={index} value={position}>
-                            {position}
+                        <option value="">--All Departments--</option>
+                        {departments.map((department, index) => (
+                          <option key={index} value={department}>
+                            {department}
                           </option>
                         ))}
                       </select>
-                      {formErrors.position && (
-                        <p className="error">{formErrors.position}</p>
-                      )}
                     </div>
 
                     <div className="form-field">
