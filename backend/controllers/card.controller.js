@@ -164,6 +164,8 @@ export const searchMemberCardsController = async (req, res, next) => {
             branch_created: card.branch_created,
             is_active: card.is_active,
             created_at: card.created_at,
+            card_type_id: card.card_type_id,
+            card_type_name: card.card_type_name
         })),
         pagination: {
             currentPage: parsedPage,
