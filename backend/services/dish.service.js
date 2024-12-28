@@ -78,3 +78,26 @@ export async function getCategories() {
   const [result] = await db.query(sql);
   return result[0]; // Trả về danh sách các danh mục
 }
+
+// -- Get DishesNotInBranchMenu
+// DELIMITER $$
+
+// -- Get DishesNotInBranchMenu
+// CREATE PROCEDURE GetDishesNotInBranchMenu(IN input_branch_id INT)
+// BEGIN
+//     SELECT d.*
+//     FROM dishes d
+//     WHERE d.dish_id NOT IN (
+//         SELECT m.dish_id
+//         FROM menu m
+//         WHERE m.branch_id = input_branch_id
+//     );
+// END $$
+
+// DELIMITER ;
+
+export async function getDishesNotInBranchMenu(branch_id) {
+  const sql = `CALL GetDishesNotInBranchMenu(?)`;
+  const [result] = await db.query(sql, [branch_id]);
+  return result[0];
+}

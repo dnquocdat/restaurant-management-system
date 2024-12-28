@@ -16,6 +16,7 @@ import {
   addDishToMenu,
   removeDishFromMenu,
   getCategories,
+  getDishesNotInBranchMenu,
   updateDish as updateDishService,
 } from "../services/dish.service.js";
 
@@ -202,5 +203,21 @@ export const GetCategories = async (req, res, next) => {
     );
   } catch (error) {
     next(error); // Chuyển lỗi đến middleware xử lý lỗi
+  }
+};
+
+export const GetDishesNotInBranchMenu = async (req, res, next) => {
+  const branchId = req.params.branchId; // Lấy branchId từ URL parameters
+  try {
+    const dishes = await getDishesNotInBranchMenu(Number(branchId));
+    return formatResponse(
+      res,
+      "Get Dishes Not In Branch Menu",
+      "Successfully retrieved dishes not in branch menu",
+      STATUS_CODE.SUCCESS,
+      dishes
+    );
+  } catch (error) {
+    next(error);
   }
 };

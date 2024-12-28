@@ -7,6 +7,7 @@ import {
   submitDish,
   // deleteDish
   GetCategories,
+  GetDishesNotInBranchMenu,
   removeDishFromMenuController,
   updateDish,
 } from "../controllers/dish.controller.js";
@@ -33,4 +34,10 @@ router.delete(
 router.patch("/:dishId", verifyToken, asyncErrorHandler(updateDish));
 // Định nghĩa route GET /categories
 router.get("/", verifyToken, asyncErrorHandler(GetCategories));
+// Định nghĩa route GET /not-in-menu/:branchId
+router.get(
+  "/not-in-menu/:branchId",
+  verifyToken,
+  asyncErrorHandler(GetDishesNotInBranchMenu)
+);
 export default router;
