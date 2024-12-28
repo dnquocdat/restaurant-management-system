@@ -514,7 +514,7 @@ const ManagementEmployeePage = () => {
                               phone: employee.employee_phone_number || "",
                               address: employee.employee_address || "",
                               gender: employee.gender || "",
-                              hire_date: employee.hire_date || "",
+
                               hire_date: employee.hire_date
                                 ? new Date(employee.hire_date)
                                     .toISOString()

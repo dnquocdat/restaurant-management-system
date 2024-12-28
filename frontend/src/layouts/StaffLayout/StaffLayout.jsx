@@ -76,6 +76,7 @@ export const StaffLayout = ({ children, title }) => {
   const handleLogout = () => {
     localStorage.removeItem("token"); // Xóa token
     localStorage.removeItem("refresh_token");
+    localStorage.removeItem("staff_branch");
     navigate("/login");
   };
 

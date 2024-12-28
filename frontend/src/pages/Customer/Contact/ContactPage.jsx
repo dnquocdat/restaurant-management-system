@@ -1,4 +1,7 @@
 import React from "react";
+
+import { useState, useEffect } from "react";
+
 import {
   FaPhone,
   FaEnvelope,
@@ -10,16 +13,52 @@ import {
 } from "react-icons/fa";
 import { GoLocation } from "react-icons/go";
 import "./ContactPage.css";
+import { http } from "../../../helpers/http";
 
 export const ContactPage = () => {
-  const contactInfo = {
-    address: "123 Gourmet Avenue, Culinary District, Food City, FC 12345",
-    phone: "+1 (555) 123-4567",
-    email: "info@gourmetrestaurant.com",
-    workingHours: [
-      { day: "Monday - Friday", hours: "11:00 AM - 10:00 PM" },
-      { day: "Saturday - Sunday", hours: "10:00 AM - 11:00 PM" },
-    ],
+  // const FetchContactPage = async () => {
+  //   const branchId = localStorage.getItem("selectedBranchId");
+  //   console.log(branchId);
+  //   const response = await http(`branch/${branchId}`,"GET")
+  //   return response.data;
+  // }
+
+  // const contactInfo = {
+  //   address: "123 Gourmet Avenue, Culinary District, Food City, FC 12345",
+  //   phone: "+1 (555) 123-4567",
+  //   email: "info@gourmetrestaurant.com",
+  // workingHours: [
+  //   { day: "Monday - Friday", hours: "11:00 AM - 10:00 PM" },
+  //   { day: "Saturday - Sunday", hours: "10:00 AM - 11:00 PM" },
+  // ],
+  //   socialMedia: [
+  //     {
+  //       platform: "Facebook",
+  //       icon: <FaFacebookF />,
+  //       link: "https://facebook.com",
+  //     },
+  //     { platform: "Twitter", icon: <FaTwitter />, link: "https://twitter.com" },
+  //     {
+  //       platform: "Instagram",
+  //       icon: <FaInstagram />,
+  //       link: "https://instagram.com",
+  //     },
+  //   ],
+  // parkingInfo: {
+  //   motorbike: "Motorbike parking available near the front entrance.",
+  //   car: "Car parking available in the basement with 24/7 security.",
+  // },
+  //
+
+  useEffect(() => {
+    getContactInfo();
+  }, []);
+  const [contactInfo, setContactInfo] = useState({
+    address: "",
+    phone: "",
+    email: "",
+    workingHours: [],
+    // socialMedia: [],
     socialMedia: [
       {
         platform: "Facebook",
@@ -34,9 +73,72 @@ export const ContactPage = () => {
       },
     ],
     parkingInfo: {
-      motorbike: "Motorbike parking available near the front entrance.",
-      car: "Car parking available in the basement with 24/7 security.",
+      motorbike: "",
+      car: "",
     },
+  });
+  const getContactInfo = async () => {
+    try {
+      const branchId = localStorage.getItem("selectedBranchId");
+      const response = await http(`/branch/${branchId}`, "GET");
+      const data = response.data;
+      console.log(data);
+      setContactInfo({
+        address: data.address,
+        phone: data.phone_number,
+        email: `${data.branch_name}@gmail.com`,
+        // workingHours: [
+        //   { day: "Monday - Friday", hours: "11:00 AM - 10:00 PM" },
+        //   { day: "Saturday - Sunday", hours: "10:00 AM - 11:00 PM" },
+        // ],
+        workingHours: [
+          {
+            hours: `${new Date(data.open_time).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            })} - ${new Date(data.close_time).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+            })}`,
+          },
+        ],
+        // workingHours: JSON.parse(data.branch_working_hours),
+        // workingHours: `${new Date(
+        //   data.open_time
+        // ).toLocaleTimeString()} - ${new Date(
+        //   data.close_time
+        // ).toLocaleTimeString()}`,
+        socialMedia: [
+          {
+            platform: "Facebook",
+            icon: <FaFacebookF />,
+            link: "https://facebook.com",
+          },
+          {
+            platform: "Twitter",
+            icon: <FaTwitter />,
+            link: "https://twitter.com",
+          },
+          {
+            platform: "Instagram",
+            icon: <FaInstagram />,
+            link: "https://instagram.com",
+          },
+        ],
+        parkingInfo: {
+          motorbike: data.has_motorbike_park ? "Available" : "Not available",
+          car: data.has_car_park ? "Available" : "Not available",
+        },
+        // parkingInfo: {
+        //   motorbike: "Motorbike parking available near the front entrance.",
+        //   car: "Car parking available in the basement with 24/7 security.",
+        // },
+      });
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   return (
@@ -70,9 +172,7 @@ export const ContactPage = () => {
             <div>
               <h3>Working Hours</h3>
               {contactInfo.workingHours.map((schedule, index) => (
-                <div key={index}>
-                  <span>{schedule.day}:</span> {schedule.hours}
-                </div>
+                <div key={index}>{schedule.hours}</div>
               ))}
             </div>
           </div>

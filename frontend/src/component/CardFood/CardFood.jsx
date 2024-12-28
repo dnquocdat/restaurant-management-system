@@ -30,7 +30,7 @@ export const CardFood = ({ dish }) => {
   };
 
   return (
-    <div className="dish-card" onClick={() => navigate(`/detail/${dish.name}`)}>
+    <div className="dish-card" onClick={() => navigate(`/detail/${dish.id}`)}>
       <div className="dish-image-container">
         <img
           src={dish.image}

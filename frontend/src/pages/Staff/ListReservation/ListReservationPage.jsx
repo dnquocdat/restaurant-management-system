@@ -10,263 +10,108 @@ import { AiOutlineSearch } from "react-icons/ai";
 import { useNavigate } from "react-router-dom";
 import "./ListReservationPage.css";
 import { toast } from "react-toastify";
+import { http } from "../../../helpers/http";
 export const ListReservationPage = () => {
   // State variables
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [sortField, setSortField] = useState("date");
-  const [sortDirection, setSortDirection] = useState("asc");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-
   const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState("");
 
-  // Constants for pagination
-  const reservationsPerPage = 10;
+  const [filters, setFilters] = useState({
+    query: "",
+    page: 1,
+    limit: 10,
+  });
 
-  // Mock data
-  const mockData = [
-    {
-      id: 1,
-      code: "RES001",
-      date: "2024-02-15",
-      time: "18:00",
-      tableNumber: 5,
-      customerName: "John Smith",
-      guestCount: 2,
-      status: "waiting_for_guest",
-      amount: 150.0,
-      email: "john.smith@example.com",
-      phone: "+1 234-567-8900",
-    },
-    {
-      id: 2,
-      code: "RES002",
-      date: "2024-02-16",
-      time: "19:30",
-      tableNumber: 3,
-      customerName: "Emma Wilson",
-      guestCount: 4,
-      status: "table_in_use",
-      amount: 280.0,
-      email: "emma.w@example.com",
-      phone: "+1 234-567-8901",
-    },
-    {
-      id: 3,
-      code: "RES003",
-      date: "2024-02-17",
-      time: "20:00",
-      tableNumber: 7,
-      customerName: "Michael Brown",
-      guestCount: 3,
-      status: "completed",
-      amount: 210.0,
-      email: "michael.b@example.com",
-      phone: "+1 234-567-8902",
-    },
-    {
-      id: 4,
-      code: "RES004",
-      date: "2024-02-18",
-      time: "21:00",
-      tableNumber: 4,
-      customerName: "Sophia Davis",
-      guestCount: 5,
-      status: "canceled",
-      amount: 320.0,
-      email: "sophia.d@example.com",
-      phone: "+1 234-567-8903",
-    },
-    {
-      id: 5,
-      code: "RES005",
-      date: "2024-02-19",
-      time: "17:45",
-      tableNumber: 2,
-      customerName: "Chris Lee",
-      guestCount: 1,
-      status: "waiting_for_guest",
-      amount: 75.0,
-      email: "chris.lee@example.com",
-      phone: "+1 234-567-8904",
-    },
-    {
-      id: 6,
-      code: "RES006",
-      date: "2024-02-20",
-      time: "19:00",
-      tableNumber: 6,
-      customerName: "Olivia Johnson",
-      guestCount: 3,
-      status: "table_in_use",
-      amount: 180.0,
-      email: "olivia.j@example.com",
-      phone: "+1 234-567-8905",
-    },
-    {
-      id: 7,
-      code: "RES007",
-      date: "2024-02-21",
-      time: "20:30",
-      tableNumber: 1,
-      customerName: "James Carter",
-      guestCount: 6,
-      status: "completed",
-      amount: 450.0,
-      email: "james.c@example.com",
-      phone: "+1 234-567-8906",
-    },
-    {
-      id: 8,
-      code: "RES008",
-      date: "2024-02-22",
-      time: "18:15",
-      tableNumber: 8,
-      customerName: "Liam Martinez",
-      guestCount: 2,
-      status: "canceled",
-      amount: 120.0,
-      email: "liam.m@example.com",
-      phone: "+1 234-567-8907",
-    },
-    {
-      id: 9,
-      code: "RES009",
-      date: "2024-02-23",
-      time: "19:45",
-      tableNumber: 10,
-      customerName: "Isabella Hernandez",
-      guestCount: 4,
-      status: "waiting_for_guest",
-      amount: 300.0,
-      email: "isabella.h@example.com",
-      phone: "+1 234-567-8908",
-    },
-    {
-      id: 10,
-      code: "RES010",
-      date: "2024-02-24",
-      time: "20:15",
-      tableNumber: 9,
-      customerName: "Mason Garcia",
-      guestCount: 3,
-      status: "table_in_use",
-      amount: 270.0,
-      email: "mason.g@example.com",
-      phone: "+1 234-567-8909",
-    },
-  ];
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    pageSize: 10,
+    totalPages: 1,
+    hasMore: false,
+  });
 
-  // Fetch data on component mount
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        // Simulate API call delay
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setReservations(mockData);
-        setError(null);
-      } catch (err) {
-        setError("Failed to load reservations. Please try again.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchData();
-  }, []);
+  }, [filters]);
 
-  // Handle sorting logic
-  const handleSort = (field) => {
-    if (sortField === field) {
-      // Toggle sort direction if same field is clicked
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-    } else {
-      // Set new sort field and default to ascending
-      setSortField(field);
-      setSortDirection("asc");
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const branchId = localStorage.getItem("staff_branch");
+      const response = await http(
+        `/reservation/branch/${branchId}?page=${filters.page}&limit=${filters.limit}&query=${filters.query}`,
+        "GET"
+      );
+
+      setReservations(response.data.reservationSlips);
+      setPagination(response.data.pagination);
+      setError(null);
+    } catch (err) {
+      setError("Failed to load reservations. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
+
+  // Handle sorting logic
 
   // Handle search input change
   const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1); // Reset to first page on new search
+    setSearchTerm(e.target.value);
   };
 
-  // Filter reservations based on search query
-  const filteredReservations = reservations.filter(
-    (reservation) =>
-      reservation.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      reservation.id.toString().includes(searchQuery)
-  );
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      setFilters((prev) => ({
+        ...prev,
+        query: searchTerm,
+        page: 1, // Reset về trang đầu khi tìm kiếm mới
+      }));
+    }, 500); // Độ trễ 500ms
 
-  // Sort filtered reservations
-  const sortedReservations = [...filteredReservations].sort((a, b) => {
-    const modifier = sortDirection === "asc" ? 1 : -1;
-    let aField = a[sortField];
-    let bField = b[sortField];
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchTerm]);
 
-    // Handle date sorting
-    if (sortField === "date") {
-      aField = new Date(aField);
-      bField = new Date(bField);
-    }
-
-    if (aField < bField) return -1 * modifier;
-    if (aField > bField) return 1 * modifier;
-    return 0;
-  });
-
-  // Pagination calculations
-  const indexOfLastReservation = currentPage * reservationsPerPage;
-  const indexOfFirstReservation = indexOfLastReservation - reservationsPerPage;
-  const currentReservations = sortedReservations.slice(
-    indexOfFirstReservation,
-    indexOfLastReservation
-  );
-  const totalPages = Math.ceil(
-    filteredReservations.length / reservationsPerPage
-  );
-
-  // Handle page change
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
+  const handlePageChange = (newPage) => {
+    setFilters((prev) => ({
+      ...prev,
+      page: newPage,
+    }));
   };
 
-  // Handle previous page
   const handlePreviousPage = () => {
-    setCurrentPage((prev) => Math.max(prev - 1, 1));
+    setFilters((prev) => ({
+      ...prev,
+      page: Math.max(prev.page - 1, 1),
+    }));
   };
 
-  // Handle next page
   const handleNextPage = () => {
-    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+    setFilters((prev) => ({
+      ...prev,
+      page: Math.min(prev.page + 1, pagination.totalPages),
+    }));
   };
 
-  // Handle status click to confirm status change
   const handleStatusClick = (e, id) => {
-    e.stopPropagation(); // Prevent triggering row click
-    const reservation = reservations.find((res) => res.id === id);
-    if (reservation.status === "Pending") {
+    e.stopPropagation();
+    const reservation = reservations.find(
+      (res) => res.reservation_slip_id === id
+    );
+    if (reservation.status === "waiting_for_guest") {
       const confirmChange = window.confirm(
-        `Are you sure you want to confirm reservation ${reservation.code}?`
+        `Are you sure you want to confirm reservation RES${reservation.reservation_slip_id}?`
       );
       if (confirmChange) {
-        setReservations((prevReservations) =>
-          prevReservations.map((res) =>
-            res.id === id ? { ...res, status: "Confirmed" } : res
-          )
-        );
+        updateReservationStatus(reservation.reservation_slip_id, "Confirmed");
       }
     }
   };
 
-  // Handle row click to navigate to order details
   const handleRowClick = (id, status) => {
-    if (status === "Pending") {
+    if (status === "waiting_for_guest") {
       return;
     }
     navigate("/staff/order", { state: { reservationId: id } });
@@ -301,7 +146,7 @@ export const ListReservationPage = () => {
   const deleteReservation = async (id) => {
     try {
       const response = await fetch(
-        `http://localhost:3000/api/reservation/${id}`, //:id selected res
+        `http://localhost:3000/api/reservation/${id}`,
         {
           method: "DELETE",
           headers: { authorization: `Bearer ${localStorage.getItem("token")}` },
@@ -310,12 +155,11 @@ export const ListReservationPage = () => {
       if (!response.ok) {
         throw new Error("Failed to delete reservation");
       }
-      // Cập nhật danh sách reservations sau khi xóa thành công
-      setReservations((prev) =>
-        prev.map((res) =>
-          res.id === id ? { ...res, status: "Canceled" } : res
-        )
-      );
+      // Gọi lại API để cập nhật danh sách sau khi xóa
+      setFilters((prev) => ({
+        ...prev,
+        // Giữ lại các filter hiện tại, có thể thêm reset page nếu cần
+      }));
       toast.success(`Reservation ${id} has been deleted successfully.`, {
         position: "top-right",
         autoClose: 1500,
@@ -343,14 +187,12 @@ export const ListReservationPage = () => {
       if (!response.ok) {
         throw new Error("Failed to update reservation status");
       }
-      const updatedReservation = await response.json();
 
-      // Cập nhật trạng thái reservation trong danh sách
-      setReservations((prev) =>
-        prev.map((res) =>
-          res.id === id ? { ...res, status: "table_in_use" } : res
-        )
-      );
+      // Gọi lại API để cập nhật danh sách sau khi thay đổi
+      setFilters((prev) => ({
+        ...prev,
+        // Giữ lại các filter hiện tại
+      }));
 
       toast.success(`Reservation ${id} has been updated to ${newStatus}.`, {
         position: "top-right",
@@ -371,7 +213,7 @@ export const ListReservationPage = () => {
         <input
           type="text"
           placeholder="Search by Reservation Code or ID..."
-          value={searchQuery}
+          value={searchTerm}
           onChange={handleSearchChange}
           className="search-input"
           aria-label="Search Reservations"
@@ -396,7 +238,6 @@ export const ListReservationPage = () => {
                 <th key={field}>
                   <button
                     className="sort-button"
-                    onClick={() => handleSort(field)}
                     aria-label={`Sort by ${label}`}
                   >
                     {label}
@@ -414,35 +255,43 @@ export const ListReservationPage = () => {
           </thead>
 
           <tbody>
-            {currentReservations.length > 0 ? (
-              currentReservations.map((reservation) => (
+            {reservations.length > 0 ? (
+              reservations.map((reservation) => (
                 <tr
-                  key={reservation.id}
+                  key={reservation.reservation_slip_id}
                   className="reservation-row"
                   onClick={() =>
-                    handleRowClick(reservation.id, reservation.status)
+                    handleRowClick(
+                      reservation.reservation_slip_id,
+                      reservation.status
+                    )
                   }
                   role="button"
                   tabIndex={0}
                   onKeyPress={(e) => {
                     if (e.key === "Enter") {
-                      handleRowClick(reservation.id, reservation.status);
+                      handleRowClick(
+                        reservation.reservation_slip_id,
+                        reservation.status
+                      );
                     }
                   }}
-                  aria-label={`View details for reservation ${reservation.code}`}
+                  aria-label={`View details for reservation ${reservation.reservation_slip_id}`}
                 >
                   <td>
-                    <span className="code-badge">{reservation.code}</span>
+                    <span className="code-badge">
+                      RES{reservation.reservation_slip_id}
+                    </span>
                   </td>
-                  <td>{new Date(reservation.date).toLocaleDateString()}</td>
-                  <td>{reservation.time}</td> {/* New time field */}
-                  <td>{reservation.tableNumber}</td>{" "}
-                  {/* New tableNumber field */}
                   <td>
-                    <div>{reservation.customerName}</div>
-                    <div className="email">{reservation.email}</div>
+                    {new Date(reservation.arrival_date).toLocaleDateString()}
                   </td>
-                  <td>{reservation.guestCount}</td>
+                  <td>{reservation.arrival_time}</td>
+                  <td>{reservation.table_number}</td>
+                  <td>
+                    <div>{reservation.cus_name}</div>
+                  </td>
+                  <td>{reservation.guests_number}</td>
                   <td>
                     <span
                       className={`status-badge ${
@@ -460,7 +309,7 @@ export const ListReservationPage = () => {
                       }`}
                       onClick={(e) => {
                         if (reservation.status === "waiting_for_guest") {
-                          handleStatusClick(e, reservation.id);
+                          handleStatusClick(e, reservation.reservation_slip_id);
                         }
                       }}
                       role={
@@ -476,20 +325,19 @@ export const ListReservationPage = () => {
                           e.key === "Enter" &&
                           reservation.status === "waiting_for_guest"
                         ) {
-                          handleStatusClick(e, reservation.id);
+                          handleStatusClick(e, reservation.reservation_slip_id);
                         }
                       }}
                       aria-label={
                         reservation.status === "waiting_for_guest"
-                          ? `Click to confirm or cancel reservation ${reservation.code}`
+                          ? `Click để xác nhận hoặc hủy reservation ${reservation.reservation_slip_id}`
                           : ""
                       }
                     >
-                      {reservation.status.replaceAll("_", " ")}{" "}
-                      {/* Hiển thị dạng thân thiện */}
+                      {reservation.status.replaceAll("_", " ")}
                     </span>
                   </td>
-                  {/* action */}
+                  {/* Action */}
                   <td>
                     {reservation.status === "waiting_for_guest" && (
                       <>
@@ -498,11 +346,11 @@ export const ListReservationPage = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                             const confirmAction = window.confirm(
-                              `Confirm table-in-use for reservation ${reservation.code}?`
+                              `Confirm table-in-use for reservation RES${reservation.reservation_slip_id}?`
                             );
                             if (confirmAction) {
                               updateReservationStatus(
-                                reservation.id,
+                                reservation.reservation_slip_id,
                                 "table_in_use"
                               );
                             }
@@ -515,10 +363,12 @@ export const ListReservationPage = () => {
                           onClick={(e) => {
                             e.stopPropagation();
                             const cancelAction = window.confirm(
-                              `Cancel reservation ${reservation.code}?`
+                              `Cancel reservation RES${reservation.reservation_slip_id}?`
                             );
                             if (cancelAction) {
-                              deleteReservation(reservation.id); // Gọi API DELETE
+                              deleteReservation(
+                                reservation.reservation_slip_id
+                              );
                             }
                           }}
                         >
@@ -531,7 +381,7 @@ export const ListReservationPage = () => {
               ))
             ) : (
               <tr>
-                <td colSpan="7" className="no-results">
+                <td colSpan="8" className="no-results">
                   No reservations found.
                 </td>
               </tr>
@@ -541,23 +391,25 @@ export const ListReservationPage = () => {
       </div>
 
       {/* Pagination Controls */}
-      <div className="pagination-container">
+      <div className="pagination">
         <button
           onClick={handlePreviousPage}
-          disabled={currentPage === 1}
+          disabled={pagination.currentPage === 1}
           className="pagination-button"
+          aria-label="Previous page"
         >
-          <FaArrowLeft />
+          <FaArrowLeft className="pagination-icon" />
         </button>
         <span className="pagination-info">
-          Page {currentPage} of {totalPages}
+          Page {pagination.currentPage} of {pagination.totalPages}
         </span>
         <button
           onClick={handleNextPage}
-          disabled={currentPage === totalPages}
+          disabled={pagination.currentPage === pagination.totalPages}
           className="pagination-button"
+          aria-label="Next page"
         >
-          <FaArrowRight />
+          <FaArrowRight className="pagination-icon" />
         </button>
       </div>
     </div>
