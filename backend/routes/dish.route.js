@@ -5,6 +5,7 @@ import {
     submitReview,
     addDishtoMenu,
     submitDish,
+    GetCategories,
     removeDishFromMenuController,
     updateDish,
     searchDishesController,
@@ -19,14 +20,20 @@ router.post('/:dishId/review',verifyToken , asyncErrorHandler(submitReview));
 router.post('/', verifyToken, asyncErrorHandler(submitDish));
 router.post('/:dishId/branch/:branchId', verifyToken, asyncErrorHandler(addDishtoMenu));
 // router.delete('/:dishId', verifyToken, asyncErrorHandler(deleteDish));
-router.delete('/:dishId/branch/:branchId', verifyToken, asyncErrorHandler(removeDishFromMenuController));
+router.delete(
+  "/:dishId/branch/:branchId",
+  verifyToken,
+  asyncErrorHandler(removeDishFromMenuController)
+);
 
 // Update Dish endpoint with middleware
-router.patch('/:dishId', verifyToken, asyncErrorHandler(updateDish));
+router.patch("/:dishId", verifyToken, asyncErrorHandler(updateDish));
 
 // Add Search Dishes endpoint with middleware
 router.get('/search', verifyToken, asyncErrorHandler(searchDishesController));
 
-router.get('/:dishId', asyncErrorHandler(getDishDetail));
+router.get("/", verifyToken, asyncErrorHandler(GetCategories));
 
+router.get('/:dishId', asyncErrorHandler(getDishDetail));
+// Định nghĩa route GET /categories
 export default router;
