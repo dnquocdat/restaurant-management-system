@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import verifyToken from "../middlewares/verify-token.js";
+import verifyAdmin from "../middlewares/verify-admin.js";
 
 import asyncErrorHandler from "../utils/asyncErrorHandler.js";
 
@@ -14,7 +15,7 @@ import {
 const router = Router();
 
 // Create Branch endpoint with middleware
-router.post("/", verifyToken, asyncErrorHandler(createBranch));
+router.post("/", verifyToken, asyncErrorHandler(verifyAdmin), asyncErrorHandler(createBranch));
 
 // Update Branch endpoint with middleware
 router.patch("/:branchId", verifyToken, asyncErrorHandler(updateBranch));
