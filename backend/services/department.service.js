@@ -14,7 +14,7 @@ export async function searchDepartments({ query = '', page = 1, limit = 10, sort
         throw new CustomError("BAD_REQUEST", "Invalid sort parameters", STATUS_CODE.BAD_REQUEST);
     }
 
-    const p_query_name = 'department_name';
+    const p_query_name = 'departments.department_name';
     const p_query = query;
     const p_page = parseInt(page, 10) || 1;
     const p_limit = parseInt(limit, 10) || 10;
@@ -23,9 +23,9 @@ export async function searchDepartments({ query = '', page = 1, limit = 10, sort
     const p_orderByDirection = sortDirection.toUpperCase();
     const p_category_name = '';
     const p_category = '';
-    const p_id_name = 'department_id';
-    const p_selectFields = 'department_id, department_name, salary';
-    const p_joinClause = ''; // No joins needed as only the 'departments' table is used
+    const p_id_name = 'departments.department_id';
+    const p_selectFields = 'departments.department_id, departments.department_name, departments.salary, eb.cnt';
+    const p_joinClause = 'JOIN (SELECT department_id, COUNT(*) AS cnt FROM employee_branches WHERE end_date IS NULL GROUP BY department_id) AS eb ON departments.department_id = eb.department_id'; // No joins needed as only the 'departments' table is used
     const p_branch_name = '';
     const p_branch_id = '';
 

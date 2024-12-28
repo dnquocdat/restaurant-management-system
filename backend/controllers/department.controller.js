@@ -136,6 +136,7 @@ export const searchDepartmentsController = async (req, res, next) => {
             department_id: dept.department_id,
             department_name: dept.department_name,
             salary: dept.salary,
+            people: dept.cnt
         })),
         pagination: {
             currentPage: parsedPage,
