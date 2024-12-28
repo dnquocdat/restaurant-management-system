@@ -8,6 +8,7 @@ import {
 } from "react-icons/fa";
 import "./HomePage.css";
 import { CardFood } from "../../../component/CardFood/CardFood";
+import { http } from "../../../helpers/http";
 
 const HomePage = () => {
   const [currentBanner, setCurrentBanner] = useState(0);
@@ -72,12 +73,28 @@ const HomePage = () => {
       dish.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const branches = [
-    { id: 1, name: "Downtown Branch", address: "123 Main St, City" },
-    { id: 2, name: "Uptown Branch", address: "456 High St, City" },
-    { id: 3, name: "Suburban Branch", address: "789 Suburb Rd, City" },
-    // Add more branches as needed
-  ];
+  // const branches = [
+  //   { id: 1, name: "Downtown Branch", address: "123 Main St, City" },
+  //   { id: 2, name: "Uptown Branch", address: "456 High St, City" },
+  //   { id: 3, name: "Suburban Branch", address: "789 Suburb Rd, City" },
+  //   // Add more branches as needed
+  // ];
+
+  //fetch api /branches here
+  const [branches, setBranches] = useState([]);
+  useEffect(() => {
+    const fetchBranches = async () => {
+      try {
+        const response = await http("/branch", "GET");
+        const data = await response.data;
+        console.log("Branches:", data);
+        setBranches(data);
+      } catch (error) {
+        console.error("Error fetching branches:", error);
+      }
+    };
+    fetchBranches();
+  }, []);
 
   useEffect(() => {
     const storedBranchId = localStorage.getItem("selectedBranchId");
@@ -99,7 +116,7 @@ const HomePage = () => {
   };
 
   const selectedBranch = branches.find(
-    (branch) => branch.id === selectedBranchId
+    (branch) => branch.branch_id === selectedBranchId
   );
 
   return (
@@ -122,10 +139,10 @@ const HomePage = () => {
             <ul className="branch-list">
               {branches.map((branch) => (
                 <li
-                  key={branch.id}
-                  onClick={() => handleBranchSelect(branch.id)}
+                  key={branch.branch_id}
+                  onClick={() => handleBranchSelect(branch.branch_id)}
                 >
-                  <h3>{branch.name}</h3>
+                  <h3>{branch.branch_name}</h3>
                   <p>{branch.address}</p>
                 </li>
               ))}
@@ -187,7 +204,7 @@ const HomePage = () => {
                   fontSize: "14px",
                 }}
               >
-                {selectedBranch.name}
+                {selectedBranch.branch_name}
               </button>
             </div>
           )}

@@ -10,24 +10,25 @@ import {
   FaEdit,
 } from "react-icons/fa";
 import "./ProfileStaffPage.css";
+import { http } from "../../../helpers/http";
 
 export const ProfileStaffPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     photo: null,
-    name: "John Doe",
-    dateOfBirth: "1990-01-01",
-    gender: "male",
-    phone: "(123) 456-7890",
-    address: "123 Main St, City, Country",
-    salary: "50000",
-    department: "Engineering",
-    branch: "Head Office", // Default branch
+    name: "",
+    dateOfBirth: "",
+    gender: "",
+    phone: "",
+    address: "",
+    salary: "",
+    department: "",
+    branch: "",
   });
 
   const [errors, setErrors] = useState({});
   const [preview, setPreview] = useState(
-    "https://images.unsplash.com/photo-1633332755192-727a05c4013d?w=500&h=500"
+    "https://cdn-icons-png.flaticon.com/512/3789/3789820.png"
   );
 
   const departments = [
@@ -38,6 +39,39 @@ export const ProfileStaffPage = () => {
     "Finance",
     "Operations",
   ];
+  // fetchEmployeeData();
+  useEffect(() => {
+    fetchEmployeeData();
+  }, []);
+
+  // thêm mới hàm fetch api get employee information
+  const fetchEmployeeData = async () => {
+    try {
+      const response = await http("/employee/profile", "GET"); // Địa chỉ API để lấy thông tin nhân viên
+      const data = response.data;
+      //console.log("Employee data:", data);
+      // console.log("Employee data:", data);
+      // Cập nhật formData với dữ liệu nhận được từ API
+      setFormData({
+        photo: null,
+        name: data.employee_name,
+        dateOfBirth: data.date_of_birth,
+        gender: data.gender,
+        phone: data.employee_phone_number,
+        address: data.employee_address,
+        salary: data.salary,
+        department: data.department_name,
+        branch: data.current_branch_name,
+      });
+
+      // Cập nhật preview ảnh nếu có ảnh trả về từ API
+      if (data.photo) {
+        setPreview(data.photo);
+      }
+    } catch (error) {
+      console.error("Error fetching employee data:", error);
+    }
+  };
 
   useEffect(() => {
     // Cleanup the object URL to avoid memory leaks
