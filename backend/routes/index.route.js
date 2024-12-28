@@ -12,7 +12,12 @@ import branchRoute from "./branch.route.js";
 import cardRoute from "./card.route.js";
 import menuRoute from "./menu.route.js";
 import regionRoute from "./region.route.js";
+<<<<<<< HEAD
 import billRoute from "./bill.route.js";
+=======
+import billRoute from './bill.route.js';
+import analaysisRoute from './analysis.route.js';
+>>>>>>> 5af844ef27ba0b0da1e01fac008a98490c50ee77
 
 router.use("/auth", authRoute);
 router.use("/order", orderRoute);
@@ -26,5 +31,6 @@ router.use("/card", cardRoute);
 router.use("/menu", menuRoute);
 router.use("/bill", billRoute);
 router.use("/region", regionRoute);
+router.use('/analysis', analaysisRoute);
 
 export default router;

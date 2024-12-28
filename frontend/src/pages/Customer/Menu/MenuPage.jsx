@@ -10,12 +10,6 @@ const MenuPage = () => {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortOrder, setSortOrder] = useState("asc");
   const [currentPage, setCurrentPage] = useState(1);
-  const [categories] = useState([
-    { value: "all", label: "All Categories" },
-    { value: "appetizer", label: "Appetizers" },
-    { value: "main", label: "Main Courses" },
-    { value: "dessert", label: "Desserts" },
-  ]);
 
   const itemsPerPage = 6;
 
@@ -26,6 +20,32 @@ const MenuPage = () => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await http("/dish", "GET");
+      const data = response.data;
+      if (data) {
+        const formattedCategories = [
+          { value: "all", label: "All Categories" }, // Always include the default "All Categories"
+          ...data.map((cat) => ({
+            value: cat.category_name.toLowerCase(),
+            label: cat.category_name,
+          })),
+        ];
+        setCategories(formattedCategories);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      setError("Failed to fetch categories.");
+    }
+  };
 
   const fetchDishes = async (
     page = 1,
@@ -131,11 +151,15 @@ const MenuPage = () => {
             className="filter-select"
             aria-label="Filter by category"
           >
-            {categories.map((cat) => (
-              <option key={cat.value} value={cat.value}>
-                {cat.label}
-              </option>
-            ))}
+            {categories.length > 0 ? (
+              categories.map((cat) => (
+                <option key={cat.value} value={cat.value}>
+                  {cat.label}
+                </option>
+              ))
+            ) : (
+              <option disabled>Loading categories...</option>
+            )}
           </select>
         </div>
 

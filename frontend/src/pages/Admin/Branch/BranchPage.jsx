@@ -4,6 +4,9 @@ import { FaSpinner } from "react-icons/fa";
 import "./BranchPage.css"; // Import the CSS file
 import { toast } from "react-toastify";
 import { http } from "../../../helpers/http";
+import { FaSearch } from "react-icons/fa";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+
 const BranchPage = () => {
   const [formData, setFormData] = useState({
     area: "",
@@ -28,72 +31,109 @@ const BranchPage = () => {
   const [branchList, setBranchList] = useState([]);
   const [editMode, setEditMode] = useState(false);
   const [selectedBranch, setSelectedBranch] = useState(null);
+  //123
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    hasMore: false,
+    pageSize: 0,
+  });
+
+  const [filters, setFilters] = useState({
+    query: "",
+    area: "",
+    page: 1,
+    limit: 4,
+  });
 
   useEffect(() => {
-    fetchAreas();
+    fetchRegions();
+    fetchBranches();
   }, []);
 
-  const fetchAreas = async () => {
+  useEffect(() => {
+    fetchBranches();
+  }, [filters]);
+
+  const fetchRegions = async () => {
     setIsLoading(true);
     try {
-      const response = await new Promise((resolve) =>
-        setTimeout(() => resolve(["North", "South", "East", "West"]), 1000)
-      );
-      setAreas(response);
+      const response = await http(`/region`, "GET");
+      const data = response.data;
+      setAreas(data || []);
     } catch (error) {
-      console.error("Error fetching areas:", error);
+      console.error("Error fetching regions:", error);
+      toast.error("Failed to fetch regions.", {
+        position: "top-right",
+        autoClose: 1500,
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const fetchBranchList = async (area) => {
+  const fetchBranches = async () => {
     setIsLoading(true);
     try {
-      const response = await new Promise((resolve) =>
-        setTimeout(
-          () =>
-            resolve([
-              {
-                id: 1,
-                area,
-                branchName: `${area} Main`,
-                address: `123 ${area} Street`,
-                phone: "0123123123",
-                email: `${area.toLowerCase()}@example.com`,
-                operationHours: { opening: "09:00", closing: "22:00" },
-                tableCount: 20,
-                hasCarParking: true,
-                hasBikeParking: true,
-              },
-              {
-                id: 2,
-                area,
-                branchName: `${area} Downtown`,
-                address: `456 ${area} Avenue`,
-                phone: "0123456789",
-                email: `${area.toLowerCase()}downtown@example.com`,
-                operationHours: { opening: "08:00", closing: "21:00" },
-                tableCount: 50,
-                hasCarParking: false,
-                hasBikeParking: true,
-              },
-            ]),
-          100
-        )
-      );
-      setBranchList(response);
+      const queryParams = new URLSearchParams(filters).toString();
+      const response = await http(`/branch?${queryParams}`, "GET");
+      const data = response.data;
+
+      setBranches(data.branches || []);
+      setPagination({
+        currentPage: data.pagination?.currentPage || 1,
+        totalPages: data.pagination?.totalPages || 1,
+        pageSize: data.pagination?.pageSize || 4,
+        hasMore: data.pagination?.hasMore || false,
+      });
     } catch (error) {
-      console.error("Error fetching branch list:", error);
+      console.error("Error fetching branches:", error);
+      toast.error("Failed to fetch branches.", {
+        position: "top-right",
+        autoClose: 1500,
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleEditBranch = (branch) => {
-    setSelectedBranch(branch);
-    setFormData(branch);
-    setEditMode(true);
+    setSelectedBranch(branch); // Lưu branch đang được chỉnh sửa
+    setFormData({
+      area: branch.region_id || "", // Cập nhật `area` nếu có
+      branchName: branch.branch_name || "",
+      address: branch.address || "",
+      phone: branch.phone_number || "",
+      email: branch.email || "",
+      operationHours: {
+        opening: branch.open_time
+          ? branch.open_time.split("T")[1].slice(0, 5)
+          : "07:00",
+        closing: branch.close_time
+          ? branch.close_time.split("T")[1].slice(0, 5)
+          : "22:00",
+      },
+      tableCount: branch.table_amount || 0,
+      hasCarParking: !!branch.has_car_park,
+      hasBikeParking: !!branch.has_motorbike_park,
+    });
+    setEditMode(true); // Kích hoạt chế độ chỉnh sửa
+  };
+
+  const handleSearch = (e) => {
+    const searchValue = e.target.value;
+    setFilters((prev) => ({
+      ...prev,
+      query: searchValue,
+      page: 1, // Reset về trang đầu khi tìm kiếm
+    }));
+  };
+
+  const goToPage = (page) => {
+    setFilters((prev) => ({
+      ...prev,
+      page: Math.max(1, Math.min(page, pagination.totalPages)), // Giới hạn trong khoảng hợp lệ
+    }));
   };
 
   const handleDeleteBranch = async (branchId) => {
@@ -146,7 +186,7 @@ const BranchPage = () => {
       try {
         await new Promise((resolve) => setTimeout(resolve, 800));
         if (editMode && selectedBranch) {
-          await updateBranch(selectedBranch.id);
+          await updateBranch(selectedBranch.branch_id);
         } else {
           await addBranch();
         }
@@ -180,13 +220,41 @@ const BranchPage = () => {
     setSelectedBranch(null);
   };
 
-  const handleAreaChange = (e) => {
-    const area = e.target.value;
-    setFormData((prev) => ({ ...prev, area, branch: "" }));
-    if (area) {
-      fetchBranchList(area);
-      setShowBranchList(true);
+  const handleAreaChange = async (e) => {
+    const selectedRegion = e.target.value; // Lấy region_id được chọn
+    setFormData((prev) => ({ ...prev, area: selectedRegion })); // Cập nhật state formData.area
+
+    if (selectedRegion) {
+      setIsLoading(true); // Bật trạng thái loading
+      try {
+        const queryParams = new URLSearchParams({
+          region_id: selectedRegion,
+          page: 1,
+          limit: pagination.pageSize || 4,
+        }).toString();
+
+        const response = await http(`/branch/search?${queryParams}`, "GET"); // Gọi API với tham số
+        const data = response.data;
+
+        setBranchList(data.branches || []);
+        setPagination({
+          currentPage: data.pagination?.currentPage || 1,
+          totalPages: data.pagination?.totalPages || 1,
+          pageSize: data.pagination?.pageSize || 4,
+          hasMore: data.pagination?.hasMore || false,
+        });
+        setShowBranchList(true);
+      } catch (error) {
+        console.error("Error fetching branches for region:", error);
+        toast.error("Failed to fetch branches for selected region.", {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      } finally {
+        setIsLoading(false); // Tắt trạng thái loading
+      }
     } else {
+      // Nếu không chọn region, reset danh sách branch
       setBranchList([]);
       setShowBranchList(false);
     }
@@ -194,7 +262,7 @@ const BranchPage = () => {
 
   const addBranch = async () => {
     const dataAdd = {
-      region_id: areas.findIndex((area) => area === formData.area) + 1, // Giả định vùng có id là 1, 2, 3, ...
+      region_id: formData.area,
       branch_name: formData.branchName,
       address: formData.address,
       open_time: formData.operationHours.opening,
@@ -205,34 +273,30 @@ const BranchPage = () => {
       has_motorbike_park: formData.hasBikeParking,
       table_amount: formData.tableCount,
     };
+
     setIsLoading(true);
 
     try {
-      const fetchAddBranch = http(`/branch`, "POST", dataAdd);
+      const response = await http(`/branch`, "POST", dataAdd);
 
-      if (fetchAddBranch) {
-        toast.success(`Branch added successfully!`, {
+      if (response?.status === 201) {
+        toast.success("Branch added successfully!", {
           position: "top-right",
           autoClose: 1500,
         });
-        resetForm();
-        fetchBranchList(formData.area); // Refresh danh sách branch sau khi thêm mới
+        resetForm(); // Reset form sau khi thêm thành công
+        setBranchList((prev) => [...prev, response.data]);
       } else {
-        const errorData = await response.json();
-        console.error("Error adding branch:", errorData);
-        toast.error(`Failed to add branch: ${errorData.message}`, {
-          position: "top-right",
-          autoClose: 1500,
-        });
+        throw new Error(response?.data?.message || "Failed to add branch");
       }
     } catch (error) {
       console.error("Error adding branch:", error);
-      toast.error("An unexpected error occurred while adding the branch", {
+      toast.error("An error occurred while adding the branch.", {
         position: "top-right",
         autoClose: 1500,
       });
     } finally {
-      setIsLoading(false);
+      setIsLoading(false); // Dừng trạng thái loading
     }
   };
 
@@ -253,7 +317,7 @@ const BranchPage = () => {
 
     try {
       const fetchUpdateBranch = await http(
-        `/branch/${idBranch}`,
+        `/branch/${idBranch}`, // Sử dụng `idBranch` đúng cách
         "PATCH",
         dataUpdate
       );
@@ -264,7 +328,11 @@ const BranchPage = () => {
           autoClose: 1500,
         });
         resetForm();
-        fetchBranchList(formData.area); // Làm mới danh sách branch
+        setBranchList((prev) =>
+          prev.map((branch) =>
+            branch.branch_id === idBranch ? fetchUpdateBranch.data : branch
+          )
+        );
       } else {
         const errorData = await fetchUpdateBranch.json();
         console.error("Error updating branch:", errorData);
@@ -275,7 +343,7 @@ const BranchPage = () => {
       }
     } catch (error) {
       console.error("Error updating branch:", error);
-      toast.error("An unexpected error occurred while updating the branch", {
+      toast.error("An unexpected error occurred while updating the branch.", {
         position: "top-right",
         autoClose: 1500,
       });
@@ -287,34 +355,49 @@ const BranchPage = () => {
   return (
     <div className="branch-management-container">
       <div className="form-container">
-        <div className="header">
+        <div className="header" style={{ marginBottom: 0 }}>
           <h2 className="title">Branch Management</h2>
-          <div className="controls">
-            <select
-              value={formData.area}
-              onChange={handleAreaChange}
-              className="area-select"
+        </div>
+        <div className="search-bar-emp">
+          <FaSearch className="search-icon-emp" />
+          <input
+            type="text"
+            placeholder="Search by name..."
+            className="search-input-emp"
+            value={filters.query}
+            onChange={handleSearch} // Cập nhật filters.query
+            onKeyDown={(e) => {
+              if (e.key === "Enter") fetchBranches(); // Gọi API khi nhấn Enter
+            }}
+          />
+        </div>
+
+        <div className="controls">
+          <select
+            value={formData.area}
+            onChange={handleAreaChange}
+            className="area-select"
+          >
+            <option value="">Select Region</option>
+            {areas.map((region) => (
+              <option key={region.region_id} value={region.region_id}>
+                {region.region_name}
+              </option>
+            ))}
+          </select>
+
+          {formData.area && (
+            <button
+              onClick={() => {
+                resetForm(); // Đảm bảo form được reset (dữ liệu rỗng)
+                setFormData((prev) => ({ ...prev, area: formData.area })); // Giữ lại area được chọn
+                setEditMode(true); // Kích hoạt chế độ thêm branch
+              }}
+              className="add-branch-btn"
             >
-              <option value="">Select Region</option>
-              {areas.map((area) => (
-                <option key={area} value={area}>
-                  {area}
-                </option>
-              ))}
-            </select>
-            {formData.area && (
-              <button
-                onClick={() => {
-                  resetForm(); // Đảm bảo form được reset (dữ liệu rỗng)
-                  setFormData((prev) => ({ ...prev, area: formData.area })); // Giữ lại area được chọn
-                  setEditMode(true); // Kích hoạt chế độ thêm branch
-                }}
-                className="add-branch-btn"
-              >
-                <MdList /> Add Branch
-              </button>
-            )}
-          </div>
+              <MdList /> Add Branch
+            </button>
+          )}
         </div>
 
         {!editMode && branchList.length === 0 && (
@@ -324,14 +407,16 @@ const BranchPage = () => {
         {!editMode && branchList.length > 0 && (
           <div className="branch-cards">
             {branchList.map((branch) => (
-              <div key={branch.id} className="branch-card">
+              <div key={branch.branch_id} className="branch-card">
                 <div className="branch-info">
-                  <h4>{branch.branchName}</h4>
+                  <h4>{branch.branch_name}</h4>
                   <p>Address: {branch.address}</p>
-                  <p>Phone: {branch.phone}</p>
-                  <p>Table Amount: {branch.tableCount}</p>
-                  <p>Car Parking: {branch.hasCarParking ? "Yes" : "No"}</p>
-                  <p>Bike Parking: {branch.hasBikeParking ? "Yes" : "No"}</p>
+                  <p>Phone: {branch.phone_number}</p>
+                  <p>Table Amount: {branch.table_amount}</p>
+                  <p>Car Parking: {branch.has_car_park ? "Yes" : "No"}</p>
+                  <p>
+                    Bike Parking: {branch.has_motorbike_park ? "Yes" : "No"}
+                  </p>
                 </div>
                 <div className="branch-actions">
                   <button
@@ -341,7 +426,7 @@ const BranchPage = () => {
                     <MdEdit />
                   </button>
                   <button
-                    onClick={() => handleDeleteBranch(branch.id)}
+                    onClick={() => handleDeleteBranch(branch.branch_id)}
                     className="delete-btn"
                   >
                     <MdDelete />
@@ -515,6 +600,29 @@ const BranchPage = () => {
             </div>
           </form>
         )}
+
+        {/* Pagination */}
+        <div className="pagination">
+          <button
+            onClick={() => goToPage(filters.page - 1)} // Chuyển sang trang trước
+            disabled={filters.page === 1}
+            className="pagination-button"
+            aria-label="Previous page"
+          >
+            <FiChevronLeft className="pagination-icon" />
+          </button>
+          <span className="pagination-info">
+            Page {filters.page} of {pagination.totalPages}
+          </span>
+          <button
+            onClick={() => goToPage(filters.page + 1)} // Chuyển sang trang kế
+            disabled={filters.page === pagination.totalPages}
+            className="pagination-button"
+            aria-label="Next page"
+          >
+            <FiChevronRight className="pagination-icon" />
+          </button>
+        </div>
       </div>
     </div>
   );

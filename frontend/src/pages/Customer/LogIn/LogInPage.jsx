@@ -122,6 +122,10 @@ export const LogInPage = () => {
           const { is_staff, is_admin } = fetchData.data.user;
           if (is_staff == 1) {
             navigate("/staff/dashboard"); // Staff dashboard
+            localStorage.setItem(
+              "staff_branch",
+              fetchData.data.user.staff_branch
+            );
           } else if (is_admin == 1) {
             navigate("/admin/dashboard"); // Admin dashboard
           } else {

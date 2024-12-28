@@ -72,7 +72,7 @@ function App() {
               }
             />
             <Route
-              path="/detail/:name"
+              path="/detail/:id"
               element={
                 <MainLayout title="Detail">
                   <DetailPage />

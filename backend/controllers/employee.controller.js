@@ -201,8 +201,7 @@ export const searchEmployeesController = async (req, res, next) => {
 };
 
 export const getEmployeeInformation = async (req, res) => {
-  let { employeeId } = req.params;
-  employeeId = parseInt(employeeId, 10);
+  const employeeId = req.user.staff_id;
 
   if (isNaN(employeeId)) {
     throw new CustomError(

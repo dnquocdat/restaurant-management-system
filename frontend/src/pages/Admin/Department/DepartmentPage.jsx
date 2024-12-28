@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiEdit2, FiCheck, FiX, FiTrash2, FiPlus } from "react-icons/fi";
 import { BiBuildings } from "react-icons/bi";
 import { BsPeople } from "react-icons/bs";
@@ -6,6 +6,7 @@ import { FaSearch } from "react-icons/fa";
 import "./DepartmentPage.css"; // Import the custom CSS file
 import { http } from "../../../helpers/http";
 import { toast } from "react-toastify";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 const DepartmentPage = () => {
   // State to manage editing
@@ -61,6 +62,20 @@ const DepartmentPage = () => {
   // State for modal
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
+  const [filters, setFilters] = useState({
+    query: "",
+    sort: "salary,desc", // Default sort by salary descending
+    page: 1,
+    limit: 10,
+  });
+
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    pageSize: 10,
+    hasMore: false,
+  });
+
   // Validation for edit form
   const validateForm = () => {
     const errors = {};
@@ -83,6 +98,43 @@ const DepartmentPage = () => {
       errors.salary = "Salary cannot be negative";
     }
     return errors;
+  };
+
+  useEffect(() => {
+    fetchDepartments();
+  }, [filters]);
+
+  const fetchDepartments = async () => {
+    try {
+      const queryParams = new URLSearchParams({
+        query: filters.query || "",
+        sort: filters.sort || "salary,desc",
+        page: filters.page.toString(),
+        limit: filters.limit.toString(),
+      }).toString();
+
+      const response = await http(`/department/search?${queryParams}`, "GET");
+      const { departments, pagination } = response.data;
+
+      // Gán employees mặc định cho mỗi department
+      const updatedDepartments = departments.map((dept) => ({
+        id: dept.department_id,
+        name: dept.department_name,
+        salary: dept.salary,
+        people: dept.people || 0,
+      }));
+
+      setDepartments(updatedDepartments); // Cập nhật danh sách phòng ban
+      setPagination({
+        currentPage: pagination.currentPage,
+        totalPages: pagination.totalPages,
+        hasMore: pagination.hasMore,
+        pageSize: pagination.pageSize,
+      });
+    } catch (error) {
+      console.error("Error fetching departments:", error);
+      toast.error("Failed to fetch departments.");
+    }
   };
 
   // Handle edit button click
@@ -182,12 +234,11 @@ const DepartmentPage = () => {
         salary: newDepartment.salary,
       };
       try {
-        // Use the http function to make the API call
         const fetchAddDept = await http("/department", "POST", newDept);
-        // setDepartments([...departments, fetchAddDept.data]); // Assuming the API returns the new department
-        // setNewDepartment({ name: "", salary: 0 });
+
         setAddFormErrors({});
         setIsAddModalOpen(false);
+        fetchDepartments();
         if (fetchAddDept.status == 201) {
           toast.success(`Add department successfully!`, {
             position: "top-right",
@@ -222,16 +273,36 @@ const DepartmentPage = () => {
 
   // Handle search input change
   const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
+    setFilters((prev) => ({
+      ...prev,
+      query: e.target.value,
+      page: 1, // Reset về trang đầu tiên khi tìm kiếm
+    }));
   };
 
   // Handle sorting
   const handleSort = (key) => {
-    let direction = "ascending";
-    if (sortConfig.key === key && sortConfig.direction === "ascending") {
-      direction = "descending";
-    }
-    setSortConfig({ key, direction });
+    setFilters((prev) => ({
+      ...prev,
+      sort:
+        prev.sort.startsWith(key) && prev.sort.endsWith("asc")
+          ? `${key},desc`
+          : `${key},asc`,
+      page: 1, // Reset về trang đầu tiên
+    }));
+  };
+
+  const handlePageChange = (direction) => {
+    setFilters((prev) => {
+      const newPage =
+        direction === "prev"
+          ? Math.max(prev.page - 1, 1) // Giảm trang, tối thiểu là 1
+          : Math.min(prev.page + 1, pagination.totalPages); // Tăng trang, tối đa là totalPages
+      return {
+        ...prev,
+        page: newPage,
+      };
+    });
   };
 
   // Get sorted and filtered departments
@@ -274,28 +345,17 @@ const DepartmentPage = () => {
           <input
             type="text"
             placeholder="Search by department name..."
-            value={searchTerm}
+            value={filters.query}
             onChange={handleSearchChange}
             className="search-input"
             aria-label="Search Departments"
           />
         </div>
         <div className="sort-buttons">
-          {/* <button onClick={() => handleSort("name")} className="sort-button">
-            Sort by Name{" "}
-            {sortConfig.key === "name"
-              ? sortConfig.direction === "ascending"
-                ? "↑"
-                : "↓"
-              : ""}
-          </button> */}
           <button onClick={() => handleSort("salary")} className="sort-button">
             Sort by Salary{" "}
-            {sortConfig.key === "salary"
-              ? sortConfig.direction === "ascending"
-                ? "↑"
-                : "↓"
-              : ""}
+            {sortConfig.key === "salary" &&
+              (sortConfig.direction === "ascending" ? "↑" : "↓")}
           </button>
         </div>
         <button
@@ -431,7 +491,7 @@ const DepartmentPage = () => {
                   <BsPeople />
                   <div>
                     <h3>People</h3>
-                    <p>{department.employees.length}</p>
+                    <p>{department.people}</p>
                   </div>
                 </div>
 
@@ -462,6 +522,29 @@ const DepartmentPage = () => {
         {sortedDepartments.length === 0 && (
           <p className="no-results">No departments found.</p>
         )}
+      </div>
+
+      {/* Panigation */}
+      <div className="pagination">
+        <button
+          onClick={() => handlePageChange("prev")}
+          disabled={pagination.currentPage === 1}
+          className="pagination-button"
+          aria-label="Previous page"
+        >
+          <FiChevronLeft className="pagination-icon" />
+        </button>
+        <span className="pagination-info">
+          Page {pagination.currentPage} of {pagination.totalPages}
+        </span>
+        <button
+          onClick={() => handlePageChange("next")}
+          disabled={pagination.currentPage === pagination.totalPages}
+          className="pagination-button"
+          aria-label="Next page"
+        >
+          <FiChevronRight className="pagination-icon" />
+        </button>
       </div>
     </div>
   );

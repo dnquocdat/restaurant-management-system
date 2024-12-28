@@ -46,14 +46,6 @@ export const ProfilePage = () => {
     setActiveTab(tab);
   };
 
-  const handleAvatarChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setAvatar(imageUrl);
-    }
-  };
-
   const handleEditToggle = async () => {
     if (isEditing) {
       // Gọi API khi nhấn nút Save
@@ -159,14 +151,6 @@ export const ProfilePage = () => {
             {/* Avatar Section */}
             <div className="avatar-section">
               <img src={avatar} alt="Avatar" className="avatar-img" />
-              <label className="avatar-upload">
-                Change Avatar
-                <input
-                  type="file"
-                  onChange={handleAvatarChange}
-                  accept="image/*"
-                />
-              </label>
             </div>
 
             {/* Form Section */}
