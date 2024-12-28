@@ -190,6 +190,7 @@ export const searchReservationSlipsByBranchController = async (req, res, next) =
             guests_number: reservation.guests_number,
             arrival_time: reservation.arrival_time,
             arrival_date: reservation.arrival_date,
+            table_number: reservation.table_number || -1,
             status: reservation.status,
             created_at: reservation.created_at
         })),
