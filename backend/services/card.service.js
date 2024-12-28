@@ -14,7 +14,7 @@ async function searchMemberCards({ query = '', page = 1, limit = 10 }) {
     const p_category_name = '';
     const p_category = '';
     const p_id_name = 'member_cards.member_card_id';
-    const p_selectFields = 'member_cards.member_card_id, member_cards.member_id, member_cards.member_name, member_cards.member_phone_number, member_cards.member_gender, member_cards.card_issuer, member_cards.branch_created, member_cards.is_active, member_cards.created_at, card_types.card_type_name, card_types.card_type_id';
+    const p_selectFields = 'member_cards.member_card_id, member_cards.member_id, member_cards.member_name, member_cards.member_phone_number, member_cards.member_gender, member_cards.card_issuer, member_cards.branch_created, member_cards.is_active, member_cards.created_at, card_types.card_type_name, card_types.card_type_id, member_cards.total_points';
     const p_joinClause = 'JOIN card_types ON member_cards.card_type_id = card_types.card_type_id'; 
     const p_branch_name = '';
     const p_branch_id = '';

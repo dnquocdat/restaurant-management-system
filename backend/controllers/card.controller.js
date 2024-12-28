@@ -157,6 +157,7 @@ export const searchMemberCardsController = async (req, res, next) => {
         memberCards: memberCards.map(card => ({
             member_card_id: card.member_card_id,
             member_id: card.member_id,
+            total_points: card.total_points,
             member_name: card.member_name,
             member_phone_number: card.member_phone_number,
             member_gender: card.member_gender,
