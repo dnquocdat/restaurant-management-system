@@ -6,27 +6,44 @@ import { toast } from "react-toastify";
 export const ProfilePage = () => {
   const [activeTab, setActiveTab] = useState("personal-info");
   const [avatar, setAvatar] = useState(
-    "https://via.placeholder.com/150" // Placeholder URL for avatar
+    "https://cdn-icons-png.flaticon.com/256/5894/5894085.png"
   );
   const [isEditing, setIsEditing] = useState(false);
+
+  // fetch user info
   const [userInfo, setUserInfo] = useState({
-    name: "Dang Ngoc Quoc Dat",
-    email: "dangngocquocdat10112004@gmail.com",
-    address: "123 Main St, City, Country",
-    phoneNumber: "+1234567890",
-    memberCard: "Gold",
+    // avatar: "",
+    name: "",
+    email: "",
+    address: "",
+    phoneNumber: "",
+    memberCard: "",
   });
+
+  React.useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await http(`/user`, "GET");
+        const data = await response.data;
+        setUserInfo({
+          // avatar: null,
+          name: data.user_name,
+          email: data.user_email,
+          address: data.user_address,
+          phoneNumber: data.user_phone_number,
+          memberCard: data.user_member_card_id,
+        });
+        // setAvatar(avatar);
+      } catch (error) {
+        console.error("Error fetching user information:", error);
+      }
+    };
+    fetchUserInfo();
+    // avatar = setAvatar();
+  }, []);
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
-  };
-
-  const handleAvatarChange = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const imageUrl = URL.createObjectURL(file);
-      setAvatar(imageUrl);
-    }
   };
 
   const handleEditToggle = async () => {
@@ -134,14 +151,6 @@ export const ProfilePage = () => {
             {/* Avatar Section */}
             <div className="avatar-section">
               <img src={avatar} alt="Avatar" className="avatar-img" />
-              <label className="avatar-upload">
-                Change Avatar
-                <input
-                  type="file"
-                  onChange={handleAvatarChange}
-                  accept="image/*"
-                />
-              </label>
             </div>
 
             {/* Form Section */}

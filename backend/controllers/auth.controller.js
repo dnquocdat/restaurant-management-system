@@ -20,11 +20,12 @@ export function test(req, res) {
 const generateToken = (user, secret_key, expire) => {
   return jwt.sign(
     {
+      staff_id: user.staff_id,
       user_id: user.user_id,
       user_email: user.user_email,
       user_phone_number: user.user_phone_number,
       is_staff: user.is_staff,
-      is_admin: user.is_admin
+      is_admin: user.is_admin,
     },
     secret_key,
     { expiresIn: expire }

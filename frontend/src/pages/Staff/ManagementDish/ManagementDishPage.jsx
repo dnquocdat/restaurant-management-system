@@ -1,83 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FiEdit2, FiTrash2, FiSearch, FiPlus } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-toastify";
-
+import Select from "react-select";
+import { http } from "../../../helpers/http";
 import "./ManagementDishPage.css"; // Import file CSS
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 const ManagementDishPage = () => {
-  const [dishes, setDishes] = useState([
-    {
-      id: 1,
-      name: "Grilled Salmon",
-      price: 24.99,
-      description:
-        "Fresh Atlantic salmon grilled to perfection with a blend of herbs and citrus. Served with seasonal vegetables and herb-infused rice.",
-      category: "Seafood",
-      image:
-        "images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=500",
-    },
-    {
-      id: 2,
-      name: "Margherita Pizza",
-      price: 18.99,
-      description:
-        "Traditional Neapolitan pizza featuring San Marzano tomatoes, fresh mozzarella, and aromatic basil leaves on a perfectly crispy crust.",
-      category: "Pizza",
-      image:
-        "images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=500",
-    },
-    {
-      id: 3,
-      name: "Margherita Pizza",
-      price: 18.99,
-      description:
-        "Traditional Neapolitan pizza featuring San Marzano tomatoes, fresh mozzarella, and aromatic basil leaves on a perfectly crispy crust.",
-      category: "Pizza",
-      image:
-        "images.unsplash.com/photo-1513104890138-7c749659a591?auto=format&fit=crop&w=500",
-    },
-  ]);
-  const [availableDishes, setAvailableDishes] = useState([]);
-  const DishesFromDB = [
-    {
-      id: 4,
-      name: "Spaghetti Carbonara",
-      price: 12.99,
-      description: "Classic Italian pasta dish with creamy sauce and pancetta.",
-      category: "Pasta",
-      image:
-        "images.unsplash.com/photo-1586190848861-99aa4a171e90?auto=format&fit=crop&w=500",
-    },
-    {
-      id: 5,
-      name: "Chicken Tikka Masala",
-      price: 15.99,
-      description: "Tender chicken pieces in a creamy tomato-based curry.",
-      category: "Indian",
-      image:
-        "images.unsplash.com/photo-1608752866955-472c77ed5af6?auto=format&fit=crop&w=500",
-    },
-    {
-      id: 6,
-      name: "Sushi Platter",
-      price: 22.5,
-      description: "Assorted sushi rolls with fresh fish and vegetables.",
-      category: "Japanese",
-      image:
-        "images.unsplash.com/photo-1593807181913-3ad0fbeebf7d?auto=format&fit=crop&w=500",
-    },
-    {
-      id: 7,
-      name: "Caesar Salad",
-      price: 8.99,
-      description: "Crisp romaine lettuce with Caesar dressing and croutons.",
-      category: "Salad",
-      image:
-        "images.unsplash.com/photo-1555992336-03a23cffe6e2?auto=format&fit=crop&w=500",
-    },
-  ];
-
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDish, setSelectedDish] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -92,16 +22,95 @@ const ManagementDishPage = () => {
     image: "",
     isShip: false, // Thêm thuộc tính isShip
   });
+  const [dishes, setDishes] = useState([]);
+
+  const [availableDishes, setAvailableDishes] = useState([]);
+
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
+    setPagination((prev) => ({ ...prev, currentPage: 1 }));
   };
 
-  const filteredDishes = dishes.filter(
-    (dish) =>
-      dish.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      dish.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    fetchDishes(pagination.currentPage, 6, "price,desc", searchTerm);
+  }, [pagination.currentPage, searchTerm]);
+
+  useEffect(() => {
+    if (isModalOpen && formMode === "add") {
+      fetchAvailableDishes();
+    }
+  }, [isModalOpen, formMode]);
+
+  const fetchDishes = async (
+    page = 1,
+    limit = 6,
+    sort = "price,desc",
+    query = ""
+  ) => {
+    setLoading(true);
+    setError("");
+    try {
+      const branchId = localStorage.getItem("staff_branch");
+      const response = await http(
+        `/menu/${branchId}?limit=${limit}&sort=${sort}&page=${page}&query=${query}`,
+        "GET"
+      );
+
+      const data = response.data;
+      setDishes(data.listDish);
+      setPagination({
+        currentPage: data.pagination.currentPage,
+        totalPages: data.pagination.totalPages,
+      });
+    } catch (err) {
+      console.error(err);
+      setError("Không thể lấy dữ liệu món ăn.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAvailableDishes = async (query = "", page = 1, limit = 10) => {
+    try {
+      const response = await http(
+        `/dish/search?query=${query}&page=${page}&limit=${limit}`,
+        "GET"
+      );
+
+      const data = response.data;
+      setAvailableDishes(data.dishes);
+    } catch (err) {
+      console.error(err);
+      toast.error("Không thể lấy danh sách món ăn.", {
+        position: "top-right",
+        autoClose: 1500,
+      });
+    }
+  };
+
+  const handleDishSelect = (selectedOption) => {
+    const selectedDish = availableDishes.find(
+      (dish) => dish.dish_name === selectedOption.value
+    );
+    setFormData({
+      ...selectedDish,
+      isShip: formData.isShip,
+    });
+  };
+
+  const options = availableDishes.map((dish) => ({
+    value: dish.dish_name,
+    label: dish.dish_name,
+  }));
+
+  const filteredDishes = dishes;
 
   const handleAddDish = () => {
     setFormMode("add");
@@ -112,7 +121,7 @@ const ManagementDishPage = () => {
       category: "",
       image: "",
     });
-    setAvailableDishes(DishesFromDB);
+    // setAvailableDishes(DishesFromDB);
     setIsModalOpen(true);
   };
 
@@ -120,7 +129,12 @@ const ManagementDishPage = () => {
     setFormMode("edit");
     setSelectedDish(dish);
     setFormData({
-      ...dish,
+      name: dish.dish_name,
+      price: dish.price,
+      description: dish.description,
+      category: dish.category,
+      image: dish.image_link,
+      isShip: dish.isShip || false,
     });
     setIsModalOpen(true);
   };
@@ -128,6 +142,10 @@ const ManagementDishPage = () => {
   const handleDeleteDish = (dish) => {
     setSelectedDish(dish);
     setIsDeleteModalOpen(true);
+  };
+
+  const handleSelectInputChange = (inputValue) => {
+    fetchAvailableDishes(inputValue);
   };
 
   const confirmDelete = () => {
@@ -140,9 +158,10 @@ const ManagementDishPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+
     const newDish = {
       ...formData,
-      id: formMode === "add" ? dishes.length + 1 : selectedDish.id,
+      id: formMode === "add" ? dishes.length + 1 : selectedDish.dish_id,
       price: parseFloat(formData.price),
     };
 
@@ -150,10 +169,13 @@ const ManagementDishPage = () => {
       setDishes([...dishes, newDish]);
     } else {
       setDishes(
-        dishes.map((dish) => (dish.id === selectedDish.id ? newDish : dish))
+        dishes.map((dish) =>
+          dish.dish_id === selectedDish.dish_id ? newDish : dish
+        )
       );
     }
-    addDishToBranch(formData.id, formData.isShip);
+
+    addDishToBranch(selectedDish?.dish_id || newDish.id, formData.isShip);
     setIsModalOpen(false);
   };
 
@@ -164,24 +186,16 @@ const ManagementDishPage = () => {
 
   const addDishToBranch = async (idDish, isShip) => {
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/dish/${idDish}/branch/8`,
-        // 8 sẽ thanh thành /:branchID của staff
+      const branchId = localStorage.getItem("staff_branch");
+      const response = await http(
+        `/dish/${idDish}/branch/${branchId}`,
+        "POST",
         {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify({
-            is_ship: isShip,
-          }),
+          is_ship: isShip,
         }
       );
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Dish added successfully:", result);
+      if (response) {
         toast.success(`Dish added successfully!`, {
           position: "top-right",
           autoClose: 1500,
@@ -196,21 +210,13 @@ const ManagementDishPage = () => {
 
   const deleteDishFromBranch = async (dishId) => {
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/dish/${dishId}/branch/2`,
-        // 2 sẽ thay là /:branchID của staff
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        }
+      const branchId = localStorage.getItem("staff_branch");
+      const response = await http(
+        `/dish/${dishId}/branch/${branchId}`,
+        "DELETE"
       );
 
-      if (response.ok) {
-        const result = await response.json();
-        console.log("Dish deleted successfully:", result);
+      if (response) {
         toast.success(`Dish deleted successfully!`, {
           position: "top-right",
           autoClose: 1500,
@@ -258,16 +264,16 @@ const ManagementDishPage = () => {
 
         <div className="dishes-grid">
           <AnimatePresence>
-            {filteredDishes.map((dish) => (
+            {filteredDishes.map((dish, index) => (
               <motion.div
-                key={dish.id}
+                key={dish.dish_id || index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 className="dish-card"
               >
                 <img
-                  src={`https://${dish.image}`}
+                  src={dish.image_link}
                   alt={dish.name}
                   className="dish-image"
                   onError={(e) => {
@@ -276,7 +282,7 @@ const ManagementDishPage = () => {
                   }}
                 />
                 <div className="dish-info">
-                  <h3 className="dish-name">{dish.name}</h3>
+                  <h3 className="dish-name">{dish.dish_name}</h3>
                   <p className="dish-price">${dish.price.toFixed(2)}</p>
                   <p className="dish-description">{dish.description}</p>
                   <div className="dish-actions">
@@ -324,33 +330,15 @@ const ManagementDishPage = () => {
                   <>
                     <div className="form-group-adddish">
                       <label htmlFor="availableDishes">Select a Dish</label>
-                      <select
-                        style={{
-                          padding: "5px",
-                          fontSize: "14px",
-                          border: "1px solid #ccc",
-                          borderRadius: "5px",
-                        }}
-                        id="availableDishes"
-                        required
-                        value={formData.name}
-                        onChange={(e) => {
-                          const selectedDish = availableDishes.find(
-                            (dish) => dish.name === e.target.value
-                          );
-                          setFormData({
-                            ...selectedDish,
-                            isShip: formData.isShip, // Giữ giá trị checkbox
-                          });
-                        }}
-                      >
-                        <option value="">-- Select a Dish --</option>
-                        {availableDishes.map((dish) => (
-                          <option key={dish.id} value={dish.name}>
-                            {dish.name}
-                          </option>
-                        ))}
-                      </select>
+                      <Select
+                        options={availableDishes.map((dish) => ({
+                          value: dish.dish_name,
+                          label: dish.dish_name,
+                        }))}
+                        onChange={handleDishSelect}
+                        onInputChange={handleSelectInputChange}
+                        placeholder="Search or select a dish..."
+                      />
                     </div>
                     <div className="form-group-adddish checkbox-group">
                       <label htmlFor="isShip" className="checkbox-label">
@@ -370,6 +358,7 @@ const ManagementDishPage = () => {
                     </div>
                   </>
                 )}
+
                 {formMode === "edit" && (
                   <>
                     <div className="form-group-adddish">
@@ -411,34 +400,7 @@ const ManagementDishPage = () => {
                         }
                       />
                     </div>
-                    <div className="form-group-adddish">
-                      <label htmlFor="category">Category</label>
-                      <input
-                        type="text"
-                        id="category"
-                        required
-                        value={formData.category}
-                        onChange={(e) =>
-                          setFormData({ ...formData, category: e.target.value })
-                        }
-                      />
-                    </div>
-                    {/* <div className="form-group-adddish checkbox-group">
-                      <label htmlFor="isShip" className="checkbox-label">
-                        <input
-                          type="checkbox"
-                          id="isShip"
-                          checked={formData.isShip}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              isShip: e.target.checked,
-                            })
-                          }
-                        />
-                        Available for Shipping
-                      </label>
-                    </div> */}
+
                     <div className="form-group-adddish">
                       <label htmlFor="image">Image URL</label>
                       <input
@@ -500,15 +462,14 @@ const ManagementDishPage = () => {
               <h2 className="modal-title">Dish Details</h2>
               <div className="view-dish-details">
                 <img
-                  src={`https://${selectedDish?.image}`}
-                  alt={selectedDish?.name}
+                  src={selectedDish?.image_link}
+                  alt={selectedDish?.dish_name}
                   className="dish-image"
                 />
                 <div className="dish-info">
                   <h3>{selectedDish?.name}</h3>
                   <p>{selectedDish?.description}</p>
                   <p>Price: ${selectedDish?.price}</p>
-                  <p>Category: {selectedDish?.category}</p>
                 </div>
                 <div className="form-actions">
                   <button
@@ -522,6 +483,39 @@ const ManagementDishPage = () => {
             </div>
           </div>
         )}
+
+        {/* Pagination */}
+        <div className="pagination">
+          <button
+            onClick={() =>
+              setPagination((prev) => ({
+                ...prev,
+                currentPage: Math.max(prev.currentPage - 1, 1),
+              }))
+            }
+            disabled={pagination.currentPage === 1}
+            className="pagination-button"
+            aria-label="Previous page"
+          >
+            <FiChevronLeft className="pagination-icon" />
+          </button>
+          <span className="pagination-info">
+            Page {pagination.currentPage} of {pagination.totalPages}
+          </span>
+          <button
+            onClick={() =>
+              setPagination((prev) => ({
+                ...prev,
+                currentPage: Math.min(prev.currentPage + 1, prev.totalPages),
+              }))
+            }
+            disabled={pagination.currentPage === pagination.totalPages}
+            className="pagination-button"
+            aria-label="Next page"
+          >
+            <FiChevronRight className="pagination-icon" />
+          </button>
+        </div>
       </div>
     </div>
   );

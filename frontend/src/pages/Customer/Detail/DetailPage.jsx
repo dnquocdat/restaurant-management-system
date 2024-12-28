@@ -7,22 +7,51 @@ import { toast } from "react-toastify";
 import "./DetailPage.css";
 import { CardFood } from "../../../component/CardFood/CardFood";
 import { CartContext } from "../../../component/CardContext/CardContext";
+import { useEffect } from "react";
+import { http } from "../../../helpers/http";
+import { useParams } from "react-router-dom";
+// import { set } from "react-datepicker/dist/date_utils";
 
 const DishDetail = () => {
   const { addToCart } = useContext(CartContext);
   const [quantity, setQuantity] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-
-  const dish = {
-    name: "Grilled Salmon with Asparagus",
-    price: 24.99,
-    description:
-      "Fresh Atlantic salmon fillet grilled to perfection, served with sautéed asparagus and lemon butter sauce.",
-    image:
-      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800",
-    stock: 20,
+  const [dish, setDish] = useState({
+    name: "",
+    price: 0,
+    description: "",
+    image: "",
+    stock: 0,
+  });
+  const { id } = useParams();
+  useEffect(() => {
+    GetDishDetail();
+  }, []);
+  const GetDishDetail = async () => {
+    try {
+      const response = await http(`/dish/${id}`, "GET");
+      const data = {
+        name: response.data.dish_name,
+        price: response.data.price,
+        description: response.data.description,
+        image: response.data.image_link,
+      };
+      setDish(data);
+    } catch (err) {
+      console.log(err);
+    }
   };
+
+  // const dish = {
+  //   name: "Grilled Salmon with Asparagus",
+  //   price: 24.99,
+  //   description:
+  //     "Fresh Atlantic salmon fillet grilled to perfection, served with sautéed asparagus and lemon butter sauce.",
+  //   image:
+  //     "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800",
+  //   stock: 20,
+  // };
 
   const reviews = [
     {
@@ -76,7 +105,6 @@ const DishDetail = () => {
       setLoading(false);
       dish.quantity = quantity;
       addToCart(dish);
-      console.log(dish);
       toast.success(`${dish.name} added to cart!`, {
         position: "top-right",
         autoClose: 1500,
