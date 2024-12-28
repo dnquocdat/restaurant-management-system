@@ -13,6 +13,7 @@ import cardRoute from "./card.route.js";
 import menuRoute from "./menu.route.js";
 import regionRoute from "./region.route.js";
 import billRoute from './bill.route.js';
+import analaysisRoute from './analysis.route.js';
 
 router.use("/auth", authRoute);
 router.use("/order", orderRoute);
@@ -26,5 +27,6 @@ router.use("/card", cardRoute);
 router.use("/menu", menuRoute);
 router.use('/bill', billRoute);
 router.use("/region", regionRoute);
+router.use('/analysis', analaysisRoute);
 
 export default router;
