@@ -10,6 +10,7 @@ import {
     checkReservationExists,
     checkDishExists,
     checkMenu
+    
 } from '../services/check.service.js';
 
 import {
@@ -18,7 +19,8 @@ import {
     addDishToMenu,
     removeDishFromMenu,
     updateDish as updateDishService,
-    searchDishes
+    searchDishes,
+    GetDishById
 } from '../services/dish.service.js';
 
 export const submitReview = async (req, res) => {
@@ -26,7 +28,7 @@ export const submitReview = async (req, res) => {
     const dish_id = parseInt(req.params.dishId, 10);
 
     // Check reservation exists
-    await checkDishExists(dish_id);
+    // await checkDishExists(dish_id);
 
     const success = await createDishReview({
         user_id : req.user.user_id,
@@ -130,7 +132,9 @@ export const removeDishFromMenuController = async (req, res) => {
 
 export const updateDish = async (req, res, next) => {
     let { dishId } = req.params;
-    dishId = parseInt(dishId, 10);
+    dishId = parseInt(dishId, 10); 
+    
+
 
     if (isNaN(dishId)) {
         throw new CustomError("BAD_REQUEST", "Invalid dish ID", STATUS_CODE.BAD_REQUEST);
@@ -216,3 +220,25 @@ export const searchDishesController = async (req, res, next) => {
 
     return formatResponse(res, "Search Dishes", "Dishes retrieved successfully", STATUS_CODE.SUCCESS, data);
 };
+
+export const getDishDetail = async (req, res) => {
+    let {dishId} = req.params;
+    dishId = parseInt(dishId,10);
+
+    if(isNaN(dishId)){
+        throw new CustomError("BAD_REQUEST", "Invalid dish ID", STATUS_CODE.BAD_REQUEST);
+    }
+
+    // await checkDishExists(dishId);
+    
+    const rows = await GetDishById(dishId);
+
+
+    return formatResponse(
+        res,
+        "Get Dish Detail",
+        "Dish detail retrieved successfully",
+        STATUS_CODE.SUCCESS,
+        rows[0]
+    );
+}

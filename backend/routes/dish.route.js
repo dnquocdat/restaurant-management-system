@@ -7,14 +7,15 @@ import {
     submitDish,
     removeDishFromMenuController,
     updateDish,
-    searchDishesController
+    searchDishesController,
+    getDishDetail
 } from '../controllers/dish.controller.js';
 
 import verifyToken from "../middlewares/verify-token.js";
 
 import asyncErrorHandler from "../utils/asyncErrorHandler.js";
 
-router.post('/:dishId/review', verifyToken, asyncErrorHandler(submitReview));
+router.post('/:dishId/review',verifyToken , asyncErrorHandler(submitReview));
 router.post('/', verifyToken, asyncErrorHandler(submitDish));
 router.post('/:dishId/branch/:branchId', verifyToken, asyncErrorHandler(addDishtoMenu));
 // router.delete('/:dishId', verifyToken, asyncErrorHandler(deleteDish));
@@ -25,5 +26,7 @@ router.patch('/:dishId', verifyToken, asyncErrorHandler(updateDish));
 
 // Add Search Dishes endpoint with middleware
 router.get('/search', verifyToken, asyncErrorHandler(searchDishesController));
+
+router.get('/:dishId', asyncErrorHandler(getDishDetail));
 
 export default router;

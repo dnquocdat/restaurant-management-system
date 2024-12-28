@@ -16,12 +16,8 @@ const router = Router();
 router.patch("/", verifyToken, asyncErrorHandler(updateUser));
 
 // Update User Password endpoint with middleware
-router.patch(
-  "/update_password",
-  verifyToken,
-  asyncErrorHandler(updateUserPassword)
-);
+router.patch('/update_password', verifyToken, asyncErrorHandler(updateUserPassword));
 
-router.get("/", verifyToken, asyncErrorHandler(GetUser));
+router.get('/', verifyToken, asyncErrorHandler(GetUser));
 
 export default router;

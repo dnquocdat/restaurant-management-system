@@ -106,3 +106,9 @@ export async function searchDishes({ query = '', page = 1, limit = 10 }) {
 //     const callProcedure = 'CALL DeleteDish(?);';
 //     await db.query(callProcedure, [dish_id]);
 // };
+
+export const GetDishById = async (dish_id) => {
+    const Query = 'call GetDishDetail(?);';
+    const rows = await db.query(Query, [dish_id]);
+    return rows[0][0];
+};

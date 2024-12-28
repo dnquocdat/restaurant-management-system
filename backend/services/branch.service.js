@@ -82,3 +82,10 @@ export async function getBranch() {
   const branches = result[0];
   return branches;
 }
+
+
+export async function GetContract(branch_id){
+    const sql = `CALL GetContract(?)`;
+    const [result] = await db.query(sql, [branch_id]);
+    return result[0][0];
+}

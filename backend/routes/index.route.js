@@ -11,6 +11,7 @@ import userRoute from './user.route.js';
 import branchRoute from './branch.route.js';
 import cardRoute from './card.route.js';
 import menuRoute from './menu.route.js';
+import billRoute from './bill.route.js';
 
 router.use('/auth', authRoute);
 router.use('/order', orderRoute);
@@ -22,5 +23,6 @@ router.use('/user', userRoute);
 router.use('/branch', branchRoute);
 router.use('/card', cardRoute);
 router.use('/menu', menuRoute);
+router.use('/bill', billRoute);
 
 export default router;
