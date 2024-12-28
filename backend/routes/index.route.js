@@ -25,7 +25,7 @@ router.use("/user", userRoute);
 router.use("/branch", branchRoute);
 router.use("/card", cardRoute);
 router.use("/menu", menuRoute);
-router.use('/bill', billRoute);
+router.use("/bill", billRoute);
 router.use("/region", regionRoute);
 router.use('/analysis', analaysisRoute);
 

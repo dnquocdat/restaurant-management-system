@@ -11,6 +11,9 @@ import { FaSearch } from "react-icons/fa";
 import { toast } from "react-toastify";
 import "./ManagementEmployeePage.css"; // Import the external CSS file
 import { http } from "../../../helpers/http.js";
+
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+
 const ManagementEmployeePage = () => {
   const [selectedBranch, setSelectedBranch] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
@@ -37,8 +40,6 @@ const ManagementEmployeePage = () => {
   const [filterOptions, setFilterOptions] = useState({
     branchName: "",
     position: "",
-    sortBy: "",
-    sortOrder: "asc",
   });
 
   const [isFilterApplied, setIsFilterApplied] = useState(false);
@@ -46,94 +47,111 @@ const ManagementEmployeePage = () => {
   const [searchTerm, setSearchTerm] = useState(""); // Thêm trạng thái tìm kiếm
 
   const [currentPage, setCurrentPage] = useState(1);
-  const employeesPerPage = 5; // Adjust as needed
 
-  const branches = [
-    { id: 1, name: "Branch North 1" },
-    { id: 2, name: "Branch South 1" },
-    { id: 3, name: "Branch East 1" },
-  ];
+  const [branches, setBranches] = useState([]);
+  const [departments, setDepartments] = useState([]);
 
-  const positions = [
-    "Developer",
-    "Sales",
-    "Marketing",
-    "Chef",
-    "Manager",
-    "Waiter",
-  ];
+  const [employees, setEmployees] = useState([]);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    hasMore: false,
+    pageSize: 0,
+  });
+  const [filters, setFilters] = useState({
+    query: "",
+    branch_id: "",
+    department_id: "",
+    page: 1,
+    limit: 5,
+  });
 
-  const [employees, setEmployees] = useState([
-    {
-      id: 1,
-      branchName: "",
-      name: "John Doe",
-      position: "Manager",
-      email: "john@example.com",
-      phone: "0123456789",
-      address: "123 Main St, City A",
-      gender: "Male",
-      hire_date: "2022-01-15",
-      quit_date: null,
-      date_of_birth: "1990-06-20",
-    },
-    {
-      id: 2,
-      branchName: "VietNam",
-      name: "Jane Smith",
-      position: "Chef",
-      email: "jane@example.com",
-      phone: "0234567890",
-      address: "456 Elm St, City B",
-      gender: "Female",
-      hire_date: "2020-09-10",
-      quit_date: null,
-      date_of_birth: "1988-12-12",
-    },
-  ]);
+  useEffect(() => {
+    const fetchBranchesAndDepartments = async () => {
+      try {
+        const fetchBranch = await http(`/branch`, "GET");
+        const fetchDepartment = await http(`/department`, "GET");
 
-  // Filtered and Sorted Employees
+        const branchData = fetchBranch.data;
+        const departmentData = fetchDepartment.data;
+
+        setBranches(branchData);
+        setDepartments(departmentData);
+      } catch (error) {
+        console.error("Error fetching branch/department data:", error);
+      }
+    };
+
+    fetchBranchesAndDepartments();
+  }, []);
+
+  const fetchEmployees = async () => {
+    try {
+      const queryParams = new URLSearchParams({
+        query: searchTerm || filters.query, // Ưu tiên search term nếu có
+        branch_id: filters.branch_id || "",
+        department_id: filters.department_id || "",
+        page: filters.page.toString(),
+        limit: filters.limit.toString(),
+      });
+
+      const response = await http(
+        `/employee/search?${queryParams.toString()}`,
+        "GET"
+      );
+
+      const data = response.data;
+      setEmployees(data.employees || []); // Cập nhật danh sách employees
+      setPagination({
+        currentPage: data.pagination?.currentPage || 1,
+        totalPages: data.pagination?.totalPages || 1,
+        hasMore: data.pagination?.hasMore || false,
+        pageSize: data.pagination?.pageSize || 0,
+      });
+    } catch (error) {
+      console.error("Error fetching employees:", error);
+      toast.error("Failed to fetch employees.");
+    }
+  };
+
+  useEffect(() => {
+    fetchEmployees();
+  }, [filters, searchTerm]);
+
+  useEffect(() => {
+    setFilters((prev) => ({
+      ...prev,
+      query: searchTerm, // Gán giá trị search term vào query
+    }));
+  }, [searchTerm]);
+
   const [displayEmployees, setDisplayEmployees] = useState([]);
 
   useEffect(() => {
-    let filtered = [...employees];
+    setDisplayEmployees(employees);
+  }, [employees]);
 
-    // Apply Search Filter
-    if (searchTerm.trim() !== "") {
-      filtered = filtered.filter((emp) =>
-        emp.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
+  const applyFilter = () => {
+    const branch = branches.find(
+      (b) => b.branch_name === filterOptions.branchName
+    );
+    const department = departments.find(
+      (d) => d.department_name === filterOptions.position
+    );
 
-    // Apply Other Filters
-    if (isFilterApplied) {
-      if (filterOptions.branchName) {
-        filtered = filtered.filter(
-          (emp) => emp.branchName === filterOptions.branchName
-        );
-      }
+    setFilters((prev) => ({
+      ...prev,
+      branch_id: branch?.branch_id || "",
+      department_id: department?.department_id || "",
+      query: searchTerm, // Gán giá trị tìm kiếm hiện tại
+      page: 1, // Reset trang
+    }));
+    setIsFilterApplied(true);
+  };
 
-      if (filterOptions.position) {
-        filtered = filtered.filter(
-          (emp) => emp.position === filterOptions.position
-        );
-      }
-    }
-
-    // Apply Sorting
-    if (filterOptions.sortBy) {
-      filtered.sort((a, b) => {
-        if (a[filterOptions.sortBy] < b[filterOptions.sortBy])
-          return filterOptions.sortOrder === "asc" ? -1 : 1;
-        if (a[filterOptions.sortBy] > b[filterOptions.sortBy])
-          return filterOptions.sortOrder === "asc" ? 1 : -1;
-        return 0;
-      });
-    }
-
-    setDisplayEmployees(filtered);
-    setCurrentPage(1); // Reset to first page when filter/sort/search changes
-  }, [employees, isFilterApplied, filterOptions, searchTerm]);
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   const validateForm = () => {
     const errors = {};
@@ -230,16 +248,14 @@ const ManagementEmployeePage = () => {
 
       try {
         const response = await http(
-          `/employee/${selectedEmployee.id}`,
+          `/employee/${selectedEmployee.employee_id}`,
           "PATCH",
           updateData
         );
+
         const updatedEmployee = response.data;
-        setEmployees((prev) =>
-          prev.map((emp) =>
-            emp.id === updatedEmployee.id ? updatedEmployee : emp
-          )
-        );
+        console.log("Updated employee:", updatedEmployee);
+        fetchEmployees();
         toast.success("Employee updated successfully!", {
           position: "top-right",
           autoClose: 1500,
@@ -261,7 +277,7 @@ const ManagementEmployeePage = () => {
         });
 
         const newEmployee = response.data;
-        setEmployees((prev) => [...prev, newEmployee]);
+        fetchEmployees();
         toast.success("Employee added successfully!", {
           position: "top-right",
           autoClose: 1500,
@@ -297,17 +313,6 @@ const ManagementEmployeePage = () => {
     setShowDeleteModal(false);
     setSelectedEmployee(null);
   };
-
-  // Pagination Logic
-  const indexOfLastEmployee = currentPage * employeesPerPage;
-  const indexOfFirstEmployee = indexOfLastEmployee - employeesPerPage;
-  const currentEmployees = displayEmployees.slice(
-    indexOfFirstEmployee,
-    indexOfLastEmployee
-  );
-  const totalPages = Math.ceil(displayEmployees.length / employeesPerPage);
-
-  const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
   const deleteEmployee = async (employeeId) => {
     try {
@@ -379,8 +384,8 @@ const ManagementEmployeePage = () => {
               >
                 <option value="">--All Branches--</option>
                 {branches.map((branch) => (
-                  <option key={branch.id} value={branch.name}>
-                    {branch.name}
+                  <option key={branch.branch_id} value={branch.branch_name}>
+                    {branch.branch_name}
                   </option>
                 ))}
               </select>
@@ -402,18 +407,18 @@ const ManagementEmployeePage = () => {
                 }
               >
                 <option value="">--All Departments--</option>
-                {positions.map((position, index) => (
-                  <option key={index} value={position}>
-                    {position}
+                {departments.map((department) => (
+                  <option
+                    key={department.department_id}
+                    value={department.department_name}
+                  >
+                    {department.department_name}
                   </option>
                 ))}
               </select>
             </div>
           </div>
-          <button
-            onClick={() => setIsFilterApplied(true)}
-            className="filter-button"
-          >
+          <button onClick={applyFilter} className="filter-button">
             <FiFilter className="icon" /> Apply Filter
           </button>
         </div>
@@ -449,6 +454,7 @@ const ManagementEmployeePage = () => {
             <table>
               <thead>
                 <tr>
+                  <th>Emp ID</th>
                   <th>Name</th>
                   <th>Branch</th>
                   <th>Department</th>
@@ -458,14 +464,26 @@ const ManagementEmployeePage = () => {
                 </tr>
               </thead>
               <tbody>
-                {currentEmployees.length > 0 ? (
-                  currentEmployees.map((employee) => (
-                    <tr key={employee.id}>
-                      <td>{employee.name}</td>
-                      <td>{employee.branchName || "N/A"}</td>
-                      <td>{employee.position || "N/A"}</td>
-                      <td>{employee.email}</td>
-                      <td>{employee.phone}</td>
+                {displayEmployees.length > 0 ? (
+                  displayEmployees.map((employee) => (
+                    <tr key={employee.employee_id}>
+                      {" "}
+                      {/* Sử dụng employee_id làm key */}
+                      <td>{employee.employee_id}</td>
+                      <td>{employee.employee_name}</td>
+                      <td>
+                        {branches.find(
+                          (branch) => branch.branch_id === employee.branch_id
+                        )?.branch_name || "N/A"}
+                      </td>
+                      <td>
+                        {departments.find(
+                          (dept) =>
+                            dept.department_id === employee.department_id
+                        )?.department_name || "N/A"}
+                      </td>
+                      <td>{employee.employee_email}</td>
+                      <td>{employee.employee_phone_number}</td>
                       <td className="actions">
                         <button
                           onClick={() => {
@@ -480,16 +498,38 @@ const ManagementEmployeePage = () => {
                           onClick={() => {
                             setSelectedEmployee(employee);
                             setFormData({
-                              branchName: employee.branchName || "",
-                              name: employee.name,
-                              position: employee.position || "",
-                              email: employee.email,
-                              phone: employee.phone,
-                              address: employee.address || "",
+                              branchName:
+                                branches.find(
+                                  (branch) =>
+                                    branch.branch_id === employee.branch_id
+                                )?.branch_name || "",
+                              name: employee.employee_name || "",
+                              position:
+                                departments.find(
+                                  (dept) =>
+                                    dept.department_id ===
+                                    employee.department_id
+                                )?.department_name || "", // Đảm bảo lấy department_name
+                              email: employee.employee_email || "",
+                              phone: employee.employee_phone_number || "",
+                              address: employee.employee_address || "",
                               gender: employee.gender || "",
                               hire_date: employee.hire_date || "",
-                              quit_date: employee.quit_date || "",
-                              date_of_birth: employee.date_of_birth || "",
+                              hire_date: employee.hire_date
+                                ? new Date(employee.hire_date)
+                                    .toISOString()
+                                    .split("T")[0]
+                                : "",
+                              quit_date: employee.quit_date
+                                ? new Date(employee.quit_date)
+                                    .toISOString()
+                                    .split("T")[0]
+                                : "",
+                              date_of_birth: employee.date_of_birth
+                                ? new Date(employee.date_of_birth)
+                                    .toISOString()
+                                    .split("T")[0]
+                                : "",
                             });
 
                             setShowAddForm(true); // Open the modal for editing
@@ -523,35 +563,37 @@ const ManagementEmployeePage = () => {
           </div>
 
           {/* Pagination Controls */}
-          {totalPages > 0 && (
-            <div className="pagination">
-              <button
-                onClick={() => paginate(currentPage - 1)}
-                className="pagination-button"
-                disabled={currentPage === 1}
-              >
-                Previous
-              </button>
-              {[...Array(totalPages)].map((_, index) => (
-                <button
-                  key={index + 1}
-                  onClick={() => paginate(index + 1)}
-                  className={`pagination-button ${
-                    currentPage === index + 1 ? "active" : ""
-                  }`}
-                >
-                  {index + 1}
-                </button>
-              ))}
-              <button
-                onClick={() => paginate(currentPage + 1)}
-                className="pagination-button"
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </button>
-            </div>
-          )}
+          <div className="pagination">
+            <button
+              onClick={() =>
+                setFilters((prev) => ({
+                  ...prev,
+                  page: Math.max(prev.page - 1, 1),
+                }))
+              }
+              disabled={pagination.currentPage === 1}
+              className="pagination-button"
+              aria-label="Previous page"
+            >
+              <FiChevronLeft className="pagination-icon" />
+            </button>
+            <span className="pagination-info">
+              Page {pagination.currentPage} of {pagination.totalPages}
+            </span>
+            <button
+              onClick={() =>
+                setFilters((prev) => ({
+                  ...prev,
+                  page: Math.min(prev.page + 1, pagination.totalPages),
+                }))
+              }
+              disabled={pagination.currentPage === pagination.totalPages}
+              className="pagination-button"
+              aria-label="Next page"
+            >
+              <FiChevronRight className="pagination-icon" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -694,8 +736,11 @@ const ManagementEmployeePage = () => {
                       >
                         <option value="">--Select Branch--</option>
                         {branches.map((branch) => (
-                          <option key={branch.id} value={branch.name}>
-                            {branch.name}
+                          <option
+                            key={branch.branch_id}
+                            value={branch.branch_name}
+                          >
+                            {branch.branch_name}
                           </option>
                         ))}
                       </select>
@@ -707,20 +752,24 @@ const ManagementEmployeePage = () => {
                     <div className="form-field">
                       <label className="label">Department</label>
                       <select
-                        id="filter-department"
-                        className="select"
-                        value={filterOptions.department}
+                        className={`select ${
+                          formErrors.position ? "input-error" : ""
+                        }`}
+                        value={formData.position}
                         onChange={(e) =>
-                          setFilterOptions({
-                            ...filterOptions,
-                            department: e.target.value,
+                          setFormData({
+                            ...formData,
+                            position: e.target.value,
                           })
                         }
                       >
-                        <option value="">--All Departments--</option>
-                        {departments.map((department, index) => (
-                          <option key={index} value={department}>
-                            {department}
+                        <option value="">--Select Department--</option>
+                        {departments.map((dept) => (
+                          <option
+                            key={dept.department_id}
+                            value={dept.department_name}
+                          >
+                            {dept.department_name}
                           </option>
                         ))}
                       </select>
@@ -829,47 +878,77 @@ const ManagementEmployeePage = () => {
               </button>
             </div>
 
-            {/* Thông tin cá nhân */}
+            {/* Infomation */}
             <div className="form-section">
               <h4 className="section-title">Personal Information</h4>
               <p>
-                <strong>Name:</strong> {detailedEmployee.name}
+                <strong>Name:</strong> {detailedEmployee.employee_name}
               </p>
               <p>
-                <strong>Email:</strong> {detailedEmployee.email}
+                <strong>Email:</strong> {detailedEmployee.employee_email}
               </p>
               <p>
-                <strong>Phone:</strong> {detailedEmployee.phone}
+                <strong>Phone:</strong> {detailedEmployee.employee_phone_number}
               </p>
               <p>
-                <strong>Address:</strong> {detailedEmployee.address}
+                <strong>Address:</strong> {detailedEmployee.employee_address}
               </p>
               <p>
                 <strong>Gender:</strong> {detailedEmployee.gender}
               </p>
               <p>
-                <strong>Date of Birth:</strong> {detailedEmployee.date_of_birth}
+                <strong>Date of Birth:</strong>{" "}
+                {new Date(detailedEmployee.date_of_birth).toLocaleDateString()}
               </p>
             </div>
 
-            {/* Thông tin công việc */}
+            {/* Infomation work */}
             <div className="form-section">
               <h4 className="section-title" style={{ marginTop: "15px" }}>
                 Work Information
               </h4>
               <p>
-                <strong>Branch:</strong> {detailedEmployee.branchName || "N/A"}
+                <strong>Branch:</strong>{" "}
+                {branches.find(
+                  (branch) => branch.branch_id === detailedEmployee.branch_id
+                )?.branch_name || "N/A"}
               </p>
               <p>
-                <strong>Department:</strong> {detailedEmployee.position}
+                <strong>Department:</strong>{" "}
+                {departments.find(
+                  (dept) =>
+                    dept.department_id === detailedEmployee.department_id
+                )?.department_name || "N/A"}
               </p>
               <p>
-                <strong>Hire Date:</strong> {detailedEmployee.hire_date}
+                <strong>Hire Date:</strong>{" "}
+                {new Date(detailedEmployee.hire_date).toLocaleDateString()}
               </p>
               <p>
                 <strong>Quit Date:</strong>{" "}
                 {detailedEmployee.quit_date
-                  ? detailedEmployee.quit_date
+                  ? new Date(detailedEmployee.quit_date).toLocaleDateString()
+                  : "N/A"}
+              </p>
+              <p>
+                <strong>Salary:</strong>{" "}
+                {detailedEmployee.employee_salary.toLocaleString()} VND
+              </p>
+              <p>
+                <strong>Rating:</strong> {detailedEmployee.employees_rating}
+              </p>
+              <p>
+                <strong>Start Date at Branch:</strong>{" "}
+                {new Date(
+                  detailedEmployee.start_date_branch
+                ).toLocaleDateString()}
+              </p>
+              <p>
+                <strong>End Date at Branch:</strong>{" "}
+                {detailedEmployee.end_date_branch
+                  ? new Date(
+                      detailedEmployee.end_date_branch
+                    ).toLocaleDateString()
                   : "N/A"}
               </p>
             </div>
