@@ -142,7 +142,7 @@ export const searchEmployeesController = async (req, res, next) => {
 
   // Validate branch if provided
   if (branch_id) {
-    await checkBranchExists(branch);
+    await checkBranchExists(branch_id);
   }
 
   const { employees, totalRecords } = await searchEmployees({
