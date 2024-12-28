@@ -3,7 +3,8 @@ import STATUS_CODE from "../utils/constants.js";
 import formatResponse from "../utils/formatresponse.js";
 import {
   addBranch as addBranchService,
-  updateBranch as updateBranchService, searchBranches,
+  updateBranch as updateBranchService,
+  searchBranches,
   getBranch as getBranchService,
 } from "../services/branch.service.js";
 import { parse } from "dotenv";
@@ -12,52 +13,67 @@ import e from "express";
 // ...existing code...
 
 export const createBranch = async (req, res, next) => {
-    const { region_id, branch_name, address, open_time, close_time, phone_number, email, has_car_park, has_motorbike_park, table_amount } = req.body;
+  const {
+    region_id,
+    branch_name,
+    address,
+    open_time,
+    close_time,
+    phone_number,
+    email,
+    has_car_park,
+    has_motorbike_park,
+    table_amount,
+  } = req.body;
 
-    // Validate required fields
-    if (
-        !branch_name ||
-        !address ||
-        !open_time ||
-        !close_time ||
-        !phone_number ||
-        !region_id || 
-        !email ||
-        has_car_park === undefined ||
-        has_motorbike_park === undefined ||
-        table_amount === undefined
-    ) {
-        throw new CustomError("BAD_REQUEST", "Please provide all required fields", STATUS_CODE.BAD_REQUEST);
-    }
+  // Validate required fields
+  if (
+    !branch_name ||
+    !address ||
+    !open_time ||
+    !close_time ||
+    !phone_number ||
+    !region_id ||
+    !email ||
+    has_car_park === undefined ||
+    has_motorbike_park === undefined ||
+    table_amount === undefined
+  ) {
+    throw new CustomError(
+      "BAD_REQUEST",
+      "Please provide all required fields",
+      STATUS_CODE.BAD_REQUEST
+    );
+  }
 
-    // Add branch
-    const branch = await addBranchService({
-        region_id,
-        branch_name,
-        address,
-        open_time,
-        close_time,
-        phone_number,
-        email,
-        has_car_park,
-        has_motorbike_park,
-        table_amount
-    });
+  // Add branch
+  const branch = await addBranchService({
+    region_id,
+    branch_name,
+    address,
+    open_time,
+    close_time,
+    phone_number,
+    email,
+    has_car_park,
+    has_motorbike_park,
+    table_amount,
+  });
 
-    // Format response
-    const data = {
-        region: branch.region,
-        branch_id: branch.branch_id,
-        branch_name: branch.branch_name,
-        address: branch.address,
-        open_time: branch.open_time,
-        close_time: branch.close_time,
-        phone_number: branch.phone_number,
-        email: branch.email,
-        has_car_park: branch.has_car_park,
-        has_motorbike_park: branch.has_motorbike_park,
-        table_amount: branch.table_amount
-    };
+  // Format response
+  const data = {
+    region: branch.region,
+    branch_id: branch.branch_id,
+    branch_name: branch.branch_name,
+    address: branch.address,
+    open_time: branch.open_time,
+    close_time: branch.close_time,
+    phone_number: branch.phone_number,
+    email: branch.email,
+    has_car_park: branch.has_car_park,
+    has_motorbike_park: branch.has_motorbike_park,
+    table_amount: branch.table_amount,
+  };
 
   return formatResponse(
     res,
@@ -143,51 +159,74 @@ export const updateBranch = async (req, res, next) => {
 
 // Add the searchBranchesController
 export const searchBranchesController = async (req, res, next) => {
-    const { query = '', page = 1, limit = 10, region_id = '' } = req.query;
+  const { query = "", page = 1, limit = 10, region_id = "" } = req.query;
 
-    // Validate page and limit
-    const parsedPage = parseInt(page, 10);
-    const parsedLimit = parseInt(limit, 10);
-    if (isNaN(parsedPage) || parsedPage < 1) {
-        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
-    }
-    if (isNaN(parsedLimit) || parsedLimit < 1) {
-        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST);
-    }
+  // Validate page and limit
+  const parsedPage = parseInt(page, 10);
+  const parsedLimit = parseInt(limit, 10);
+  if (isNaN(parsedPage) || parsedPage < 1) {
+    throw new CustomError(
+      "BAD_REQUEST",
+      "Invalid page number",
+      STATUS_CODE.BAD_REQUEST
+    );
+  }
+  if (isNaN(parsedLimit) || parsedLimit < 1) {
+    throw new CustomError(
+      "BAD_REQUEST",
+      "Invalid limit value",
+      STATUS_CODE.BAD_REQUEST
+    );
+  }
 
-    const { branches, totalRecords } = await searchBranches({ query, page: parsedPage, limit: parsedLimit, region_id });
+  const { branches, totalRecords } = await searchBranches({
+    query,
+    page: parsedPage,
+    limit: parsedLimit,
+    region_id,
+  });
 
-    // Calculate pagination details
-    const totalPages = Math.ceil(totalRecords / parsedLimit);
-    const hasMore = parsedPage < totalPages;
+  // Calculate pagination details
+  const totalPages = Math.ceil(totalRecords / parsedLimit);
+  const hasMore = parsedPage < totalPages;
 
-    if (parsedPage > totalPages && totalPages !== 0) {
-        throw new CustomError("BAD_REQUEST", "Page number exceeds total pages", STATUS_CODE.BAD_REQUEST);
-    }
+  if (parsedPage > totalPages && totalPages !== 0) {
+    throw new CustomError(
+      "BAD_REQUEST",
+      "Page number exceeds total pages",
+      STATUS_CODE.BAD_REQUEST
+    );
+  }
 
-    const data = {
-        branches: branches.map(branch => ({
-            branch_id: branch.branch_id,
-            region_id: branch.region_id,
-            branch_name: branch.branch_name,
-            address: branch.address,
-            open_time: branch.open_time,
-            close_time: branch.close_time,
-            phone_number: branch.phone_number,
-            email: branch.email,
-            has_car_park: branch.has_car_park,
-            has_motorbike_park: branch.has_motorbike_park,
-            table_amount: branch.table_amount,
-        })),
-        pagination: {
-            currentPage: parsedPage,
-            pageSize: parsedLimit,
-            totalPages: totalPages,
-            hasMore: hasMore
-        }
-    };
+  const data = {
+    branches: branches.map((branch) => ({
+      branch_id: branch.branch_id,
+      region_id: branch.region_id,
+      branch_name: branch.branch_name,
+      address: branch.address,
+      open_time: branch.open_time,
+      close_time: branch.close_time,
+      phone_number: branch.phone_number,
+      email: branch.email,
+      has_car_park: branch.has_car_park,
+      has_motorbike_park: branch.has_motorbike_park,
+      table_amount: branch.table_amount,
+    })),
+    pagination: {
+      currentPage: parsedPage,
+      pageSize: parsedLimit,
+      totalPages: totalPages,
+      hasMore: hasMore,
+    },
+  };
 
-    return formatResponse(res, "Search Branches", "Branches retrieved successfully", STATUS_CODE.SUCCESS, data);
+  return formatResponse(
+    res,
+    "Search Branches",
+    "Branches retrieved successfully",
+    STATUS_CODE.SUCCESS,
+    data
+  );
 };
 
 // ...existing code...
@@ -199,6 +238,15 @@ export const getBranch = async (req, res, next) => {
     branch_id: branch.branch_id,
     branch_name: branch.branch_name,
     address: branch.address,
+    open_time: branch.open_time,
+    close_time: branch.close_time,
+    phone_number: branch.phone_number,
+    has_car_park: branch.has_car_park,
+    has_motorbike_park: branch.has_motorbike_park,
+    table_amount: branch.table_amount,
+    region_id: branch.region_id,
+    manager_id: branch.manager_id,
+    email: branch.email,
   }));
 
   return formatResponse(

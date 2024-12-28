@@ -23,6 +23,7 @@ const generateToken = (user, secret_key, expire) => {
       user_id: user.user_id,
       user_email: user.user_email,
       user_phone_number: user.user_phone_number,
+      staff_id: user.staff_id,
     },
     secret_key,
     { expiresIn: expire }

@@ -30,6 +30,6 @@ router.get(
 );
 
 // Get Employee Information endpoint with middleware
-router.get('/:employeeId', verifyToken, asyncErrorHandler(getEmployeeInformation));
+router.get("/profile", verifyToken, asyncErrorHandler(getEmployeeInformation));
 
 export default router;
