@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { Router } from "express";
 const router = Router();
 
 import authRoute from "./auth.route.js";
@@ -13,7 +12,7 @@ import branchRoute from "./branch.route.js";
 import cardRoute from "./card.route.js";
 import menuRoute from "./menu.route.js";
 import regionRoute from "./region.route.js";
-import billRoute from './bill.route.js';
+import billRoute from "./bill.route.js";
 
 router.use("/auth", authRoute);
 router.use("/order", orderRoute);
@@ -25,7 +24,7 @@ router.use("/user", userRoute);
 router.use("/branch", branchRoute);
 router.use("/card", cardRoute);
 router.use("/menu", menuRoute);
-router.use('/bill', billRoute);
+router.use("/bill", billRoute);
 router.use("/region", regionRoute);
 
 export default router;
