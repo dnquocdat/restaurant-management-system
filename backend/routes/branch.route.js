@@ -7,7 +7,7 @@ import asyncErrorHandler from "../utils/asyncErrorHandler.js";
 
 import {
     createBranch,
-    updateBranch,
+    updateBranch,getContract,
     searchBranchesController,
     getBranch
 } from "../controllers/branch.controller.js";
@@ -25,5 +25,7 @@ router.get('/search', verifyToken, asyncErrorHandler(searchBranchesController));
 
 // Get Branches's name
 router.get("/", verifyToken, asyncErrorHandler(getBranch));
+
+router.get('/:branchId', verifyToken, asyncErrorHandler(getContract));
 
 export default router;

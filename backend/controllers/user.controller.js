@@ -4,11 +4,7 @@ import formatResponse from "../utils/formatresponse.js";
 import bcrypt from "bcryptjs";
 import db from "../configs/db.js";
 
-import {
-  updateUser as updateUserService,
-  updateUserPassword as updateUserPasswordService,
-  getUser,
-} from "../services/user.service.js";
+import { updateUser as updateUserService, updateUserPassword as updateUserPasswordService, getUser } from '../services/user.service.js';
 
 // ...existing code...
 
@@ -130,20 +126,11 @@ export const updateUserPassword = async (req, res, next) => {
 export const GetUser = async (req, res, next) => {
   const userId = req.user.user_id;
   if (isNaN(userId)) {
-    throw new CustomError(
-      "BAD_REQUEST",
-      "Invalid user ID",
-      STATUS_CODE.BAD_REQUEST
-    );
+      throw new CustomError("BAD_REQUEST", "Invalid user ID", STATUS_CODE.BAD_REQUEST);
   }
 
   const rows = await getUser(userId);
 
-  return formatResponse(
-    res,
-    "Get User Information",
-    "Get user information successfully",
-    STATUS_CODE.SUCCESS,
-    rows
-  );
+  return formatResponse(res, "Get User Information", "Get user information successfully", STATUS_CODE.SUCCESS, rows);
+
 };

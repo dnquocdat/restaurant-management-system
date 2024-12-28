@@ -7,7 +7,8 @@ import {
     updateOrderStatus,
     searchOrdersByUserController,
     searchOrdersByBranchController,
-    searchBillsController
+    searchBillsController,
+    getOnlineOrderDetails
 } from '../controllers/order.controller.js';
 
 import verifyToken from "../middlewares/verify-token.js";
@@ -28,5 +29,7 @@ router.get('/branch/:branchId', verifyToken, asyncErrorHandler(searchOrdersByBra
 
 // Add Search Bills endpoint with middleware
 router.get('/bill', verifyToken, asyncErrorHandler(searchBillsController));
+
+router.get('/:orderId', verifyToken, asyncErrorHandler(getOnlineOrderDetails));
 
 export default router;
