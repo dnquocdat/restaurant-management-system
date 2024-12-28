@@ -5,6 +5,7 @@ import {
   updateEmployee,
   searchEmployeesController,
   getEmployeeInformation,
+  getEmployeeDetails,
 } from "../controllers/employee.controller.js";
 
 import verifyToken from "../middlewares/verify-token.js";
@@ -30,6 +31,12 @@ router.get(
 );
 
 // Get Employee Information endpoint with middleware
-router.get('/:employeeId', verifyToken, asyncErrorHandler(getEmployeeInformation));
+router.get("/profile", verifyToken, asyncErrorHandler(getEmployeeInformation));
+
+router.get(
+  "/get-info/:employeeId",
+  verifyToken,
+  asyncErrorHandler(getEmployeeDetails)
+);
 
 export default router;
