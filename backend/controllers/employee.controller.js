@@ -13,6 +13,7 @@ import {
   updateEmployee as updateEmployeeService,
   getEmployeeInformation as getEmployeeInformationService,
   searchEmployees,
+  getEmployeeDetails as getEmployeeDetailsService, // thêm chỗ này ann
 } from "../services/employee.service.js";
 
 export const addEmployee = async (req, res, next) => {
@@ -212,6 +213,30 @@ export const getEmployeeInformation = async (req, res) => {
   }
 
   const employee = await getEmployeeInformationService(employeeId);
+
+  return formatResponse(
+    res,
+    "Get Employee Information",
+    "Employee information retrieved successfully",
+    STATUS_CODE.SUCCESS,
+    employee
+  );
+};
+
+// Thêm chỗ này ann
+// get employee details with employee id
+export const getEmployeeDetails = async (req, res) => {
+  const { employeeId } = req.params;
+
+  if (isNaN(employeeId)) {
+    throw new CustomError(
+      "BAD_REQUEST",
+      "Invalid employee ID",
+      STATUS_CODE.BAD_REQUEST
+    );
+  }
+
+  const employee = await getEmployeeDetailsService(employeeId);
 
   return formatResponse(
     res,
