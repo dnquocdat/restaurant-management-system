@@ -29,6 +29,8 @@ const ManagementDishPage = () => {
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
+    limit: 6, // Số lượng món ăn trên mỗi trang
+    totalItems: 0, // Tổng số món ăn
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -49,8 +51,8 @@ const ManagementDishPage = () => {
   }, [isModalOpen, formMode]);
 
   const fetchDishes = async (
-    page = 1,
-    limit = 6,
+    page = pagination.currentPage,
+    limit = pagination.limit,
     sort = "price,desc",
     query = ""
   ) => {
