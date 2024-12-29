@@ -351,7 +351,7 @@ const ManagementEmployeePage = () => {
             <FaSearch className="search-icon-emp" />
             <input
               type="text"
-              placeholder="Search by name..."
+              placeholder="Search by id..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="search-input-emp"
