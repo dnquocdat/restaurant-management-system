@@ -35,7 +35,7 @@ export const LogInPage = () => {
       case "username":
         if (isLogin) {
           if (value.trim() === "") {
-            newErrors.username = "Username is required";
+            newErrors.username = "Email is required";
           } else {
             delete newErrors.username;
           }
