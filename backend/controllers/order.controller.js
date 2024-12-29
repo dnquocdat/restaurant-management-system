@@ -161,9 +161,9 @@ export const searchOrdersByUserController = async (req, res, next) => {
 
     // Calculate pagination details
     const totalPages = Math.ceil(totalRecords / limit);
-    if (totalPages === 0) {
-        throw new CustomError("NOT_FOUND", "No orders found", STATUS_CODE.NOT_FOUND, []);
-    }
+    // if (totalPages === 0) {
+    //     throw new CustomError("NOT_FOUND", "No orders found", STATUS_CODE.NOT_FOUND, []);
+    // }
     const hasMore = page < totalPages;
 
     // if (page > totalPages) {
