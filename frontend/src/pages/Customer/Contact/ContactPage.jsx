@@ -87,29 +87,14 @@ export const ContactPage = () => {
         address: data.address,
         phone: data.phone_number,
         email: `${data.branch_name}@gmail.com`,
-        // workingHours: [
-        //   { day: "Monday - Friday", hours: "11:00 AM - 10:00 PM" },
-        //   { day: "Saturday - Sunday", hours: "10:00 AM - 11:00 PM" },
-        // ],
         workingHours: [
           {
-            hours: `${new Date(data.open_time).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            })} - ${new Date(data.close_time).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-              hour12: true,
-            })}`,
+            hours: `${formatTime(data.open_time)} - ${formatTime(
+              data.close_time
+            )}`,
+            //hàm format ở dưới
           },
         ],
-        // workingHours: JSON.parse(data.branch_working_hours),
-        // workingHours: `${new Date(
-        //   data.open_time
-        // ).toLocaleTimeString()} - ${new Date(
-        //   data.close_time
-        // ).toLocaleTimeString()}`,
         socialMedia: [
           {
             platform: "Facebook",
@@ -140,7 +125,17 @@ export const ContactPage = () => {
       console.error(err);
     }
   };
+  const formatTime = (timeString) => {
+    const [hours, minutes, seconds] = timeString.split(":");
+    const date = new Date();
+    date.setHours(hours, minutes, seconds);
 
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+  };
   return (
     <div className="contact-map-container">
       <div className="contact-map-grid">
