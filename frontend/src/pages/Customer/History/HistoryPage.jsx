@@ -80,22 +80,30 @@ export const HistoryPage = () => {
     } catch (error) {
       console.error("Error fetching dishes:", error);
       setError("Failed to fetch dishes. Please try again later.");
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Initialize ratings state for each reservation and each criterion
-  const initialRatings = reservationHistory.reduce((acc, reservation) => {
-    acc[reservation.id] = {
-      service: 0,
-      location: 0,
-      foodQuality: 0,
-      price: 0,
-      ambience: 0,
-    };
-    return acc;
-  }, {});
+  const [ratings, setRatings] = useState({});
+
+  useEffect(() => {
+    const newRatings = reservationHistory.reduce((acc, reservation) => {
+      if (!ratings[reservation.reservation_slip_id]) {
+        acc[reservation.reservation_slip_id] = {
+          service: 0,
+          location: 0,
+          foodQuality: 0,
+          price: 0,
+          ambience: 0,
+        };
+      }
+      return acc;
+    }, {});
+
+    setRatings((prevRatings) => ({
+      ...prevRatings,
+      ...newRatings,
+    }));
+  }, [reservationHistory]);
 
   useEffect(() => {
     if (activeTab === "orders") {
@@ -105,13 +113,17 @@ export const HistoryPage = () => {
     }
   }, [activeTab, currentPage, searchQuery]);
 
-  const [ratings, setRatings] = useState(initialRatings);
-
   const handleRatingChange = (reservationId, criterion, rating) => {
     setRatings((prev) => ({
       ...prev,
       [reservationId]: {
-        ...prev[reservationId],
+        ...(prev[reservationId] || {
+          service: 0,
+          location: 0,
+          foodQuality: 0,
+          price: 0,
+          ambience: 0,
+        }),
         [criterion]: rating,
       },
     }));
@@ -217,7 +229,6 @@ export const HistoryPage = () => {
                     <div className="card-header">
                       <div>
                         <h3>Order #{order.order_id}</h3>
-                        <p>{order.date}</p>
                       </div>
                       <span className="status">{order.status}</span>
                     </div>
@@ -254,7 +265,15 @@ export const HistoryPage = () => {
                 <div className="card-header">
                   <h3>Table {reservation.table_number}</h3>
                   <p>
-                    {reservation.arrival_date} at {reservation.arrival_time}
+                    {new Date(reservation.arrival_date).toLocaleDateString(
+                      "vi-VN",
+                      {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      }
+                    )}{" "}
+                    at {reservation.arrival_time}
                   </p>
                   <p>
                     {reservation.guests_number}{" "}
@@ -288,9 +307,9 @@ export const HistoryPage = () => {
                             }
                             className={`star ${
                               star <=
-                              ratings[reservation.reservation_slip_id][
+                              (ratings[reservation.reservation_slip_id]?.[
                                 criterion
-                              ]
+                              ] || 0)
                                 ? "active"
                                 : ""
                             }`}
@@ -303,7 +322,9 @@ export const HistoryPage = () => {
                   ))}
                   <button
                     className="submit-button"
-                    onClick={() => handleSubmitReservation(reservation.id)}
+                    onClick={() =>
+                      handleSubmitReservation(reservation.reservation_slip_id)
+                    }
                   >
                     Submit Ratings
                   </button>
