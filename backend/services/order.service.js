@@ -132,8 +132,8 @@ async function searchOrdersByBranch(branchId, { query = '', page = 1, limit = 10
     const p_tableName = 'orders';
     const p_orderByField = 'orders.created_at';
     const p_orderByDirection = 'DESC';
-    const p_category_name = '';
-    const p_category = '';
+    const p_category_name = 'orders.order_type';
+    const p_category = 'delivery'
     const p_id_name = 'orders.order_id';
     const p_selectFields = 'orders.order_id, orders.branch_id, orders.online_user_id, orders.order_type, orders.status, orders.created_at, bills.total_amount_with_benefits';
     const p_joinClause = 'JOIN bills on bills.order_id = orders.order_id'; // No joins needed as only the 'orders' table is used

@@ -82,9 +82,9 @@ export const submitDineIn = async (req, res) => {
     await checkReservationExists(reservation_slip_id); 
 
     // Check if user is the waiter of this reservation
-    if (waiter != req.user.user_id) {
-        throw new CustomError("UNAUTHORIZED", "You are not the waiter of this reservation", STATUS_CODE.UNAUTHORIZED);
-    }
+    // if (waiter != req.user.user_id) {
+    //     throw new CustomError("UNAUTHORIZED", "You are not the waiter of this reservation", STATUS_CODE.UNAUTHORIZED);
+    // }
 
     const order = await createOrderInDb({
         branch_id: branch_id,
