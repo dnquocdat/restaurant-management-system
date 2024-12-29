@@ -43,7 +43,6 @@ const HomePage = () => {
       if (data) {
         // Chỉ lấy 4 category đầu tiên
         const limitedData = data.slice(0, 4);
-        console.log("limitedData", limitedData);
 
         // Gán dữ liệu cứng cho id và icon
         const formattedCategories = limitedData.map((cat, index) => ({
@@ -98,7 +97,7 @@ const HomePage = () => {
         "GET"
       );
 
-      const response = fetchMenu.data; // Dữ liệu trả về từ API
+      const response = fetchMenu.data;
       if (response && response.listDish) {
         const formattedDishes = response.listDish.map((dish) => ({
           id: dish.dish_id,

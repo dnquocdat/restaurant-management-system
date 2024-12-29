@@ -26,7 +26,7 @@ export const OrderOnlinePage = () => {
   const [mockOrders, setMockOrders] = useState([]);
   useEffect(() => {
     fetchOrder();
-  }, []);
+  }, [orders]);
 
   useEffect(() => {
     fetchOrder(currentPage, 5, searchQuery);
@@ -78,14 +78,15 @@ export const OrderOnlinePage = () => {
     }
   };
 
-  const totalAmount = selectedOrder?.dishes.reduce(
-    (acc, dish) => acc + dish.price * dish.quantity,
+  const totalAmount = (selectedOrder?.dishes || []).reduce(
+    (acc, dish) => acc + (dish.price || 0) * (dish.quantity || 0),
     0
   );
 
-  const handleStatusUpdate = (orderId, newStatus) => {
+  useEffect(() => {}, [orders]);
+  const handleStatusUpdate = async (orderId, newStatus) => {
     try {
-      const fetchUpdateOrderStatus = http(`/order/${orderId}`, "PATCH", {
+      const fetchUpdateOrderStatus = await http(`/order/${orderId}`, "PATCH", {
         order_status: newStatus,
       });
       console.log(fetchUpdateOrderStatus);
@@ -97,7 +98,9 @@ export const OrderOnlinePage = () => {
       }
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
-          order.id === orderId ? { ...order, status: newStatus } : order
+          order.order_id === orderId
+            ? { ...order, status: fetchUpdateOrderStatus.order_status }
+            : order
         )
       );
       setIsModalOpen(false);
@@ -145,7 +148,7 @@ export const OrderOnlinePage = () => {
               Cancel
             </button>
             <button
-              onClick={() => handleStatusUpdate(order.id, newStatus)}
+              onClick={() => handleStatusUpdate(order.order_id, newStatus)}
               className="modal-button update-button"
             >
               Update Status

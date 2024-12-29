@@ -1,67 +1,89 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { FaStar, FaReceipt, FaCalendarAlt, FaSearch } from "react-icons/fa";
 import { useNavigate, Link } from "react-router-dom";
 import "./HistoryPage.css";
 import { toast } from "react-toastify";
+import { http } from "../../../helpers/http";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 export const HistoryPage = () => {
   const [activeTab, setActiveTab] = useState("orders");
   const [searchQuery, setSearchQuery] = useState(""); // for search by order ID
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 2; // Number of items per page
   const navigate = useNavigate();
   const [ratingSubmitted, setRatingSubmitted] = useState({});
 
-  const orderHistory = [
-    {
-      id: 1,
-      date: "2024-01-15",
-      items: [
-        { name: "Margherita Pizza", price: 12.99 },
-        { name: "Caesar Salad", price: 8.99 },
-      ],
-      total: 21.98,
-      status: "Delivered",
-    },
-    {
-      id: 2,
-      date: "2024-01-14",
-      items: [
-        { name: "Chicken Burger", price: 9.99 },
-        { name: "French Fries", price: 4.99 },
-      ],
-      total: 14.98,
-      status: "Delivered",
-    },
-    {
-      id: 3,
-      date: "2024-01-12",
-      items: [
-        { name: "Veggie Burger", price: 10.99 },
-        { name: "Onion Rings", price: 5.99 },
-      ],
-      total: 16.98,
-      status: "Pending",
-    },
-    // Add more orders for testing pagination
-  ];
+  const [orderHistory, setOrderHistory] = useState([]);
 
-  const reservationHistory = [
-    {
-      id: 1,
-      date: "2024-01-20",
-      time: "19:00",
-      guests: 4,
-      tableNumber: "A12",
-    },
-    {
-      id: 2,
-      date: "2024-01-18",
-      time: "20:30",
-      guests: 2,
-      tableNumber: "B08",
-    },
-  ];
+  const [reservationHistory, setReservationHistory] = useState([]);
+
+  const itemsPerPage = 5;
+
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+  });
+
+  const fetchOrder = async (page = 1, limit = itemsPerPage, query = "") => {
+    try {
+      const params = new URLSearchParams({
+        limit,
+        page,
+        query,
+      });
+
+      const response = await http(`/order/search?${params.toString()}`, "GET");
+
+      const data = response.data;
+      if (data) {
+        setOrderHistory(data.orders);
+        setPagination({
+          currentPage: data.pagination.currentPage,
+          totalPages: data.pagination.totalPages,
+        });
+      } else {
+        throw new Error("No data received from API");
+      }
+    } catch (error) {
+      console.error("Error fetching dishes:", error);
+      setError("Failed to fetch dishes. Please try again later.");
+    }
+  };
+
+  const fetchReservation = async (
+    page = 1,
+    limit = itemsPerPage,
+    query = ""
+  ) => {
+    try {
+      const params = new URLSearchParams({
+        limit,
+        page,
+        query,
+      });
+
+      const response = await http(
+        `reservation/search?${params.toString()}`,
+        "GET"
+      );
+
+      const data = response.data;
+      if (data) {
+        setReservationHistory(data.reservationSlips);
+        setPagination({
+          currentPage: data.pagination.currentPage,
+          totalPages: data.pagination.totalPages,
+        });
+      } else {
+        throw new Error("No data received from API");
+      }
+    } catch (error) {
+      console.error("Error fetching dishes:", error);
+      setError("Failed to fetch dishes. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Initialize ratings state for each reservation and each criterion
   const initialRatings = reservationHistory.reduce((acc, reservation) => {
@@ -74,6 +96,14 @@ export const HistoryPage = () => {
     };
     return acc;
   }, {});
+
+  useEffect(() => {
+    if (activeTab === "orders") {
+      fetchOrder(currentPage, itemsPerPage, searchQuery);
+    } else if (activeTab === "reservations") {
+      fetchReservation(currentPage, itemsPerPage, searchQuery);
+    }
+  }, [activeTab, currentPage, searchQuery]);
 
   const [ratings, setRatings] = useState(initialRatings);
 
@@ -98,19 +128,13 @@ export const HistoryPage = () => {
     };
     console.log(body);
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/reservation/${reservationId}/review`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify(body),
-        }
+      const response = await http(
+        `/reservation/${reservationId}/review`,
+        "POST",
+        body
       );
 
-      if (response.ok) {
+      if (response) {
         setRatingSubmitted((prev) => ({
           ...prev,
           [reservationId]: true,
@@ -144,24 +168,6 @@ export const HistoryPage = () => {
   const handleSearchChange = (event) => {
     setSearchQuery(event.target.value);
     setCurrentPage(1); // Reset to first page on search change
-  };
-
-  // Filter orders by search query
-  const filteredOrders = orderHistory.filter((order) =>
-    order.id.toString().includes(searchQuery)
-  );
-
-  // Pagination logic
-  const indexOfLastOrder = currentPage * itemsPerPage;
-  const indexOfFirstOrder = indexOfLastOrder - itemsPerPage;
-  const currentOrders = filteredOrders.slice(
-    indexOfFirstOrder,
-    indexOfLastOrder
-  );
-
-  // Handle page change
-  const handlePageChange = (pageNumber) => {
-    setCurrentPage(pageNumber);
   };
 
   return (
@@ -202,63 +208,57 @@ export const HistoryPage = () => {
               />
             </div>
             <div className="orders">
-              {currentOrders.map((order) => (
-                <Link to={`/order-detail/${order.id}`} key={order.id}>
+              {orderHistory.map((order) => (
+                <Link
+                  to={`/order-detail/${order.order_id}`}
+                  key={order.order_id}
+                >
                   <div className="card">
                     <div className="card-header">
                       <div>
-                        <h3>Order #{order.id}</h3>
+                        <h3>Order #{order.order_id}</h3>
                         <p>{order.date}</p>
                       </div>
                       <span className="status">{order.status}</span>
                     </div>
                     <div className="card-body">
-                      {order.items.map((item, index) => (
-                        <div key={index} className="item">
-                          <span>{item.name}</span>
-                          <span>${item.price.toFixed(2)}</span>
-                        </div>
-                      ))}
                       <div className="total">
                         <span>Total</span>
                         <span>${order.total.toFixed(2)}</span>
+                        {/* doi api sua total */}
                       </div>
                     </div>
                   </div>
                 </Link>
               ))}
-            </div>
-
-            {/* Pagination */}
-            <div className="pagination">
-              {Array.from(
-                { length: Math.ceil(filteredOrders.length / itemsPerPage) },
-                (_, index) => index + 1
-              ).map((pageNumber) => (
-                <button
-                  key={pageNumber}
-                  onClick={() => handlePageChange(pageNumber)}
-                  className={`page-button ${
-                    pageNumber === currentPage ? "active" : ""
-                  }`}
-                >
-                  {pageNumber}
-                </button>
-              ))}
+              {activeTab === "orders" && orderHistory.length === 0 && (
+                <p>No orders available.</p>
+              )}
             </div>
           </>
         ) : (
           <div className="reservations">
+            <div className="search-bar-his">
+              <div className="searchid-icon">
+                <FaSearch />
+              </div>
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                placeholder="Search by Reservation ID"
+              />
+            </div>
             {reservationHistory.map((reservation) => (
-              <div key={reservation.id} className="card">
+              <div key={reservation.reservation_slip_id} className="card">
                 <div className="card-header">
-                  <h3>Table {reservation.tableNumber}</h3>
+                  <h3>Table {reservation.table_number}</h3>
                   <p>
-                    {reservation.date} at {reservation.time}
+                    {reservation.arrival_date} at {reservation.arrival_time}
                   </p>
                   <p>
-                    {reservation.guests}{" "}
-                    {reservation.guests === 1 ? "Guest" : "Guests"}
+                    {reservation.guests_number}{" "}
+                    {reservation.guests_number === 1 ? "Guest" : "Guests"}
                   </p>
                 </div>
                 <div className="rating-form">
@@ -281,13 +281,16 @@ export const HistoryPage = () => {
                             type="button"
                             onClick={() =>
                               handleRatingChange(
-                                reservation.id,
+                                reservation.reservation_slip_id,
                                 criterion,
                                 star
                               )
                             }
                             className={`star ${
-                              star <= ratings[reservation.id][criterion]
+                              star <=
+                              ratings[reservation.reservation_slip_id][
+                                criterion
+                              ]
                                 ? "active"
                                 : ""
                             }`}
@@ -307,8 +310,39 @@ export const HistoryPage = () => {
                 </div>
               </div>
             ))}
+            {activeTab === "reservations" &&
+              reservationHistory.length === 0 && (
+                <p>No reservations available.</p>
+              )}
           </div>
         )}
+
+        {/* Pagination */}
+        <div className="pagination">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="pagination-button"
+            aria-label="Previous page"
+          >
+            <FiChevronLeft className="pagination-icon" />
+          </button>
+          <span className="pagination-info">
+            Page {currentPage} of {pagination.totalPages}
+          </span>
+          <button
+            onClick={() =>
+              setCurrentPage((prev) =>
+                Math.min(prev + 1, pagination.totalPages)
+              )
+            }
+            disabled={currentPage === pagination.totalPages}
+            className="pagination-button"
+            aria-label="Next page"
+          >
+            <FiChevronRight className="pagination-icon" />
+          </button>
+        </div>
       </div>
     </div>
   );

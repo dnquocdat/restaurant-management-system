@@ -27,7 +27,6 @@ export const OrderPage = () => {
 
   // thong tin sau nay se lay param hay url
   const [customerName, setCustomerName] = useState("dn quoc dat"); // Tên khách hàng
-  const [waiterId, setWaiterId] = useState("12"); // ID người phục vụ
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -157,7 +156,6 @@ export const OrderPage = () => {
       cus_name: customerName,
       member_card_id: memberId || null,
       branch_id: branchId,
-      waiter: waiterId,
       listDish: cart.map((item) => ({
         dish_id: item.id,
         dish_name: item.name,

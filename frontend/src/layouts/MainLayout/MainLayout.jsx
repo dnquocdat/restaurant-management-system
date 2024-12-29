@@ -93,9 +93,9 @@ export const MainLayout = ({ children, title }) => {
           </div>
           <div className="footer-section">
             <h3>Contact</h3>
-            <p>Phone: +123 456 7890</p>
-            <p>Email: contact@restaurant.com</p>
-            <p>Address: 123 Main Street, City, Country</p>
+            <p>Phone: 0123 456 789</p>
+            <p>Email: sushix@restaurant.com</p>
+            <p>Address: KHTN, HCM City</p>
           </div>
           <div className="footer-section">
             <h3>Follow Us</h3>
@@ -107,7 +107,7 @@ export const MainLayout = ({ children, title }) => {
           </div>
         </div>
         <div className="footer-bottom">
-          <p>&copy; 2024 Restaurant Name. All Rights Reserved.</p>
+          <p>&copy; 2024 Restaurant Sushix. All Rights Reserved.</p>
         </div>
       </footer>
     </div>
