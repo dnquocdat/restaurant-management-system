@@ -125,9 +125,9 @@ export const searchReservationSlipsController = async (req, res, next) => {
     const totalPages = Math.ceil(totalRecords / parsedLimit);
     const hasMore = parsedPage < totalPages;
 
-    if(parsedPage > totalPages) {
-        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST, []);
-    }
+    // if(parsedPage > totalPages) {
+    //     throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST, []);
+    // }
 
     const data = {
         reservationSlips: reservationSlips.map(reservation => ({
@@ -177,9 +177,9 @@ export const searchReservationSlipsByBranchController = async (req, res, next) =
     const totalPages = Math.ceil(totalRecords / parsedLimit);
     const hasMore = parsedPage < totalPages;
 
-    if (parsedPage > totalPages && totalPages !== 0) {
-        throw new CustomError("BAD_REQUEST", "Page number exceeds total pages", STATUS_CODE.BAD_REQUEST);
-    }
+    // if (parsedPage > totalPages && totalPages !== 0) {
+    //     throw new CustomError("BAD_REQUEST", "Page number exceeds total pages", STATUS_CODE.BAD_REQUEST);
+    // }
 
     const data = {
         reservationSlips: reservationSlips.map(reservation => ({

@@ -166,9 +166,9 @@ export const searchOrdersByUserController = async (req, res, next) => {
     }
     const hasMore = page < totalPages;
 
-    if (page > totalPages) {
-        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST, []);
-    }
+    // if (page > totalPages) {
+    //     throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST, []);
+    // }
 
     const data = {
         orders: orders.map(order => ({
@@ -217,9 +217,9 @@ export const searchOrdersByBranchController = async (req, res, next) => {
     const totalPages = Math.ceil(totalRecords / parsedLimit);
     const hasMore = parsedPage < totalPages;
 
-    if (parsedPage > totalPages && totalPages !== 0) {
-        throw new CustomError("BAD_REQUEST", "Page number exceeds total pages", STATUS_CODE.BAD_REQUEST);
-    }
+    // if (parsedPage > totalPages && totalPages !== 0) {
+    //     throw new CustomError("BAD_REQUEST", "Page number exceeds total pages", STATUS_CODE.BAD_REQUEST);
+    // }
 
     const data = {
         orders: orders.map(order => ({
@@ -268,9 +268,9 @@ export const searchBillsController = async (req, res, next) => {
     const totalPages = Math.ceil(totalRecords / parsedLimit);
     const hasMore = parsedPage < totalPages;
 
-    if (parsedPage > totalPages && totalPages !== 0) {
-        throw new CustomError("BAD_REQUEST", "Page number exceeds total pages", STATUS_CODE.BAD_REQUEST);
-    }
+    // if (parsedPage > totalPages && totalPages !== 0) {
+    //     throw new CustomError("BAD_REQUEST", "Page number exceeds total pages", STATUS_CODE.BAD_REQUEST);
+    // }
 
     // throw new CustomError("NOT_FOUND", "No bills found", STATUS_CODE.NOT_FOUND, bills);
 
