@@ -49,7 +49,7 @@ const BranchPage = () => {
   useEffect(() => {
     fetchRegions();
     fetchBranches();
-  }, []);
+  }, [filters]);
 
   useEffect(() => {
     fetchBranches();
@@ -75,11 +75,17 @@ const BranchPage = () => {
   const fetchBranches = async () => {
     setIsLoading(true);
     try {
-      const queryParams = new URLSearchParams(filters).toString();
-      const response = await http(`/branch?${queryParams}`, "GET");
+      // const queryParams = new URLSearchParams(filters).toString();
+      const queryParams = new URLSearchParams({
+        query: filters.query,
+        area: filters.area,
+        page: filters.page,
+        limit: filters.limit,
+      }).toString();
+      const response = await http(`/branch/search?${queryParams}`, "GET");
       const data = response.data;
 
-      setBranches(data.branches || []);
+      setBranchList(data.branches || []);
       setPagination({
         currentPage: data.pagination?.currentPage || 1,
         totalPages: data.pagination?.totalPages || 1,
@@ -121,10 +127,9 @@ const BranchPage = () => {
   };
 
   const handleSearch = (e) => {
-    const searchValue = e.target.value;
     setFilters((prev) => ({
       ...prev,
-      query: searchValue,
+      query: e.target.value, // Cập nhật filters.query
       page: 1, // Reset về trang đầu khi tìm kiếm
     }));
   };
