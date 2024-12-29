@@ -71,10 +71,10 @@ export const submitOnline = async (req, res) => {
 
 export const submitDineIn = async (req, res) => {
     const reservation_slip_id = parseInt(req.params.reservationSlipId, 10);
-    const { cus_name, member_card_id, branch_id, waiter, listDish} = req.body;
+    const { cus_name, member_card_id, branch_id, listDish} = req.body;
 
     // Validate required fields
-    if (!cus_name || !branch_id || !listDish || !waiter) {
+    if (!cus_name || !branch_id || !listDish ) {
         throw new CustomError("BAD_REQUEST", "Please fill in all fields", STATUS_CODE.BAD_REQUEST);
     }
 
