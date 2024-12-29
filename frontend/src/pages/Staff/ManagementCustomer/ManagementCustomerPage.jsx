@@ -1,10 +1,12 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { FaSearch, FaTimes, FaEye, FaEdit } from "react-icons/fa";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import "./ManagementCustomerPage.css";
-import { http } from "../../../helpers//http";
+import { http } from "../../../helpers/http";
 import { toast } from "react-toastify";
 
 // Mock dữ liệu nhân viên (staff)
+// Nếu bạn có API để lấy dữ liệu staff, hãy thay thế phần này bằng gọi API tương ứng.
 const mockStaffs = [
   {
     staff_id: 101,
@@ -44,73 +46,18 @@ const getMemberCardRank = (typeId) => {
   }
 };
 
-// Mock dữ liệu khách hàng + thẻ thành viên
-// Mock dữ liệu khách hàng + thẻ thành viên
-const mockCustomers = [
-  {
-    id: 1,
-    name: "John Doe",
-    phone: "123-456-7890",
-    cccd: "123456789012", // Thêm trường CCCD
-    memberCard: {
-      member_card_id: 1001,
-      created_at: "2024-01-10",
-      updated_at: "2024-02-15",
-      total_points: 150,
-      card_issuer: 101,
-      branch_created: 1,
-      card_type_id: 2, // Silver
-      member_id: "123456789012", // Đặt bằng CCCD
-      member_name: "John Doe",
-      member_phone_number: "123-456-7890",
-      member_gender: "Male",
-      is_active: true,
-    },
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    phone: "098-765-4321",
-    cccd: "098765432109", // Thêm trường CCCD
-    memberCard: {
-      member_card_id: 1002,
-      created_at: "2024-01-12",
-      updated_at: "2024-02-18",
-      total_points: 200,
-      card_issuer: 102,
-      branch_created: 2,
-      card_type_id: 1, // Membership
-      member_id: "", // Ban đầu là rỗng
-      member_name: "Jane Smith",
-      member_phone_number: "098-765-4321",
-      member_gender: "Female",
-      is_active: true,
-    },
-  },
-  {
-    id: 3,
-    name: "Alice Johnson",
-    phone: "555-123-4567",
-    cccd: "555555555555", // Thêm trường CCCD
-    memberCard: {
-      member_card_id: 1003,
-      created_at: "2024-01-15",
-      updated_at: "2024-02-20",
-      total_points: 50,
-      card_issuer: 101,
-      branch_created: 1,
-      card_type_id: 3, // Gold
-      member_id: "555555555555", // Đặt bằng CCCD
-      member_name: "Alice Johnson",
-      member_phone_number: "555-123-4567",
-      member_gender: "Female",
-      is_active: true,
-    },
-  },
-];
-
 export const ManagementCustomerPage = () => {
-  const [customers, setCustomers] = useState(mockCustomers);
+  // State để lưu trữ member cards và thông tin phân trang
+  const [memberCards, setMemberCards] = useState([]);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    pageSize: 10,
+    hasMore: false,
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
   const [searchQuery, setSearchQuery] = useState("");
 
   // Modal state cho Detail View
@@ -124,10 +71,10 @@ export const ManagementCustomerPage = () => {
   // Modal state cho Edit Customer
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editCustomer, setEditCustomer] = useState({
-    id: null,
-    name: "",
-    email: "",
-    phone: "",
+    member_card_id: null,
+    member_name: "",
+    member_phone_number: "",
+    member_gender: "Male",
   });
 
   // Modal state cho Add Card
@@ -141,31 +88,59 @@ export const ManagementCustomerPage = () => {
 
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 3;
+  const itemsPerPage = 10; // Đồng bộ với pageSize từ API
 
-  const filteredCustomers = useMemo(
-    () =>
-      customers.filter((customer) =>
-        customer.name.toLowerCase().includes(searchQuery.toLowerCase())
-      ),
-    [customers, searchQuery]
-  );
+  // Hàm fetch member cards từ API
+  const fetchMemberCards = async (
+    page = 1,
+    limit = itemsPerPage,
+    query = ""
+  ) => {
+    setLoading(true);
+    setError("");
+    try {
+      const params = new URLSearchParams({
+        page,
+        limit,
+        query,
+      });
 
-  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+      const response = await http(`/card/search?${params.toString()}`, "GET");
+      const data = response.data;
+      if (data) {
+        setMemberCards(data.memberCards);
+        setPagination({
+          currentPage: data.pagination.currentPage,
+          totalPages: data.pagination.totalPages,
+          pageSize: data.pagination.pageSize,
+          hasMore: data.pagination.hasMore,
+        });
+      } else {
+        throw new Error("No data received from API");
+      }
+    } catch (error) {
+      console.error("Error fetching member cards:", error);
+      setError("Failed to fetch member cards. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const currentCustomers = useMemo(() => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return filteredCustomers.slice(startIndex, startIndex + itemsPerPage);
-  }, [filteredCustomers, currentPage, itemsPerPage]);
+  // Gọi fetchMemberCards khi component mount và khi currentPage hoặc searchQuery thay đổi
+  useEffect(() => {
+    fetchMemberCards(currentPage, itemsPerPage, searchQuery);
+  }, [currentPage, searchQuery]);
 
+  // Hàm xử lý thay đổi trang
   const handlePageChange = (pageNumber) => {
-    if (pageNumber > 0 && pageNumber <= totalPages) {
+    if (pageNumber > 0 && pageNumber <= pagination.totalPages) {
       setCurrentPage(pageNumber);
     }
   };
 
-  const handleViewDetailClick = (customer) => {
-    setSelectedCustomer(customer);
+  // Hàm mở modal xem chi tiết khách hàng
+  const handleViewDetailClick = (card) => {
+    setSelectedCustomer(card);
     setIsDetailModalOpen(true);
   };
 
@@ -174,11 +149,7 @@ export const ManagementCustomerPage = () => {
     setIsDetailModalOpen(false);
   };
 
-  const closeStaffModal = () => {
-    setSelectedStaff(null);
-    setIsStaffModalOpen(false);
-  };
-
+  // Hàm mở modal xem chi tiết nhân viên
   const handleViewStaffDetail = (staffId) => {
     const staff = mockStaffs.find((s) => s.staff_id === staffId);
     if (staff) {
@@ -187,13 +158,18 @@ export const ManagementCustomerPage = () => {
     }
   };
 
-  const handleEditClick = (customer) => {
+  const closeStaffModal = () => {
+    setSelectedStaff(null);
+    setIsStaffModalOpen(false);
+  };
+
+  // Hàm mở modal chỉnh sửa khách hàng
+  const handleEditClick = (card) => {
     setEditCustomer({
-      id: customer.id,
-      name: customer.name,
-      email: customer.email || "", // Khởi tạo email trống nếu không tồn tại
-      phone: customer.phone,
-      gender: customer.memberCard.member_gender, // Thêm gender vào form
+      member_card_id: card.member_card_id,
+      member_name: card.member_name,
+      member_phone_number: card.member_phone_number,
+      member_gender: card.member_gender,
     });
     setIsEditModalOpen(true);
   };
@@ -202,106 +178,46 @@ export const ManagementCustomerPage = () => {
     setIsEditModalOpen(false);
   };
 
+  // Hàm lưu chỉnh sửa khách hàng
   const handleSaveEdit = async () => {
     try {
-      // Chuẩn bị dữ liệu để gửi
       const data = {
-        member_id: editCustomer.member_id, // Giữ nguyên Member ID
-        member_name: editCustomer.name,
-        member_phone_number: editCustomer.phone,
-        member_gender: editCustomer.gender,
-        email: editCustomer.email, // Thêm email vào body
+        member_name: editCustomer.member_name,
+        member_phone_number: editCustomer.member_phone_number,
+        member_gender: editCustomer.member_gender,
       };
-      // số 1 là idMemberCard, sẽ thay đổi khi có API thật
-      await updateMemberCard(1, data);
+      // Thay '1' bằng ID thực tế của member card nếu có API thật
+      await updateMemberCard(editCustomer.member_card_id, data);
 
-      // Cập nhật danh sách khách hàng trong UI
-      setCustomers((prev) =>
-        prev.map((customer) =>
-          customer.id === editCustomer.id
+      // Cập nhật danh sách memberCards trong UI
+      setMemberCards((prev) =>
+        prev.map((card) =>
+          card.member_card_id === editCustomer.member_card_id
             ? {
-                ...customer,
-                name: editCustomer.name,
-                phone: editCustomer.phone,
-                email: editCustomer.email,
-                memberCard: {
-                  ...customer.memberCard,
-                  member_gender: editCustomer.gender,
-                },
+                ...card,
+                member_name: editCustomer.member_name,
+                member_phone_number: editCustomer.member_phone_number,
+                member_gender: editCustomer.member_gender,
               }
-            : customer
+            : card
         )
       );
 
       closeEditModal(); // Đóng modal sau khi lưu
     } catch (error) {
       console.error("Failed to save edit:", error.message);
-    }
-  };
-
-  // Xử lý thêm thẻ mới
-  const handleAddCard = () => {
-    const { member_id, member_name, member_phone_number, member_gender } =
-      newMemberCard;
-
-    if (!member_id || !member_name || !member_phone_number || !member_gender) {
-      alert("Vui lòng điền đầy đủ thông tin.");
-      return;
-    }
-
-    const cccdRegex = /^\d{9}$/;
-    if (!cccdRegex.test(member_id)) {
-      alert("Member ID (CCCD) phải là 9 chữ số.");
-      return;
-    }
-
-    const dataAdd = {
-      member_id,
-      member_name,
-      member_phone_number,
-      member_gender,
-    };
-
-    try {
-      const idBranch = 1;
-      const fetchAddCart = http(`/card/${idBranch}`, "POST", dataAdd);
-
-      if (fetchAddCart) {
-        toast.success(`Added membercard successfully!`, {
-          position: "top-right",
-          autoClose: 1000,
-        });
-      }
-      // Thêm khách hàng mới vào danh sách
-      const newCustomer = {
-        id: customers.length + 1, // Tăng ID mới
-        name: newMemberCard.member_name, // Đúng biến
-        phone: newMemberCard.member_phone_number,
-        cccd: newMemberCard.member_id,
-        memberCard: {
-          ...newMemberCard, // Đúng biến
-          created_at: new Date().toISOString().split("T")[0],
-          updated_at: new Date().toISOString().split("T")[0],
-        },
-      };
-
-      setCustomers((prev) => [...prev, newCustomer]);
-      setIsAddCardModalOpen(false);
-      setNewMemberCard({
-        member_id: "",
-        member_name: "",
-        member_phone_number: "",
-        member_gender: "Male",
+      toast.error("Failed to save changes. Please try again.", {
+        position: "top-right",
+        autoClose: 2000,
       });
-    } catch (error) {
-      alert(error.message);
     }
   };
 
-  const updateMemberCard = async (idMemberCard, data) => {
+  // Hàm cập nhật member card
+  const updateMemberCard = async (member_card_id, data) => {
     try {
-      const fetchUpdateCard = http(`/card/${idMemberCard}`, "PATCH", data);
-      if (fetchUpdateCard) {
+      const response = await http(`/api/card/${member_card_id}`, "PATCH", data);
+      if (response.data) {
         toast.success("Member card updated successfully!", {
           position: "top-right",
           autoClose: 1000,
@@ -317,6 +233,72 @@ export const ManagementCustomerPage = () => {
     }
   };
 
+  // Hàm xử lý thêm thẻ mới
+  const handleAddCard = async () => {
+    const { member_id, member_name, member_phone_number, member_gender } =
+      newMemberCard;
+
+    // Kiểm tra thông tin đầy đủ
+    if (!member_id || !member_name || !member_phone_number || !member_gender) {
+      toast.error("Vui lòng điền đầy đủ thông tin.", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+      return;
+    }
+
+    // Kiểm tra định dạng CCCD (ở đây giả sử là 12 chữ số)
+    const cccdRegex = /^\d{12}$/;
+    if (!cccdRegex.test(member_id)) {
+      toast.error("Member ID (CCCD) phải là 12 chữ số.", {
+        position: "top-right",
+        autoClose: 2000,
+      });
+      return;
+    }
+
+    const dataAdd = {
+      member_id,
+      member_name,
+      member_phone_number,
+      member_gender,
+    };
+
+    try {
+      const response = await http("/api/card", "POST", dataAdd);
+      if (response.data) {
+        toast.success("Added member card successfully!", {
+          position: "top-right",
+          autoClose: 1000,
+        });
+
+        // Thêm khách hàng mới vào danh sách
+        const newCard = response.data.data.memberCard; // Giả sử API trả về memberCard mới
+
+        setMemberCards((prev) => [newCard, ...prev]);
+        setPagination((prev) => ({
+          ...prev,
+          totalPages: Math.ceil(
+            (prev.totalPages * prev.pageSize + 1) / prev.pageSize
+          ),
+        }));
+        setIsAddCardModalOpen(false);
+        setNewMemberCard({
+          member_id: "",
+          member_name: "",
+          member_phone_number: "",
+          member_gender: "Male",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding member card:", error.message);
+      toast.error(`Error: ${error.message}`, {
+        position: "top-right",
+        autoClose: 2000,
+      });
+    }
+  };
+
   return (
     <div className="customer-list-container">
       <div className="customer-list-wrapper">
@@ -329,19 +311,21 @@ export const ManagementCustomerPage = () => {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            marginBottom: "1rem",
           }}
         >
           <div className="search-bar">
             <FaSearch className="search-icon" />
             <input
               type="text"
-              placeholder="Search by Customer Name"
+              placeholder="Search by Card ID"
               className="search-input"
               value={searchQuery}
               onChange={(e) => {
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
+              aria-label="Search by Card ID"
             />
           </div>
           <button
@@ -354,95 +338,103 @@ export const ManagementCustomerPage = () => {
 
         {/* Customer Table */}
         <div className="table-container">
-          <table className="customer-table">
-            <thead>
-              <tr>
-                <th>Card ID</th>
-                <th>Name</th>
-                <th>Phone</th>
-                <th>Total Points</th>
-                <th>Level Card</th>
-                <th>Issuer</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {currentCustomers.map((customer) => (
-                <tr key={customer.id}>
-                  <td>{customer.memberCard.member_card_id}</td>
-                  <td>{customer.name}</td>
-                  <td>{customer.memberCard.member_phone_number}</td>
-                  <td style={{ textAlign: "center" }}>
-                    {customer.memberCard.total_points}
-                  </td>
-                  <td
-                    className={`member-card ${getMemberCardRank(
-                      customer.memberCard.card_type_id
-                    )}`}
-                  >
-                    {getMemberCardRank(customer.memberCard.card_type_id)}
-                  </td>
-                  <td>
-                    <button
-                      onClick={() =>
-                        handleViewStaffDetail(customer.memberCard.card_issuer)
-                      }
-                      className="staff-detail-button"
-                    >
-                      {getStaffName(customer.memberCard.card_issuer)}
-                    </button>
-                  </td>
-                  <td style={{ display: "flex", gap: "0.5rem" }}>
-                    <button
-                      onClick={() => handleViewDetailClick(customer)}
-                      className="view-detail-button"
-                      aria-label={`View details for ${customer.name}`}
-                    >
-                      <FaEye />
-                    </button>
-                    <button
-                      onClick={() => handleEditClick(customer)}
-                      className="edit-button"
-                      style={{ margin: 0, padding: 8 }}
-                      aria-label={`Edit ${customer.name}`}
-                    >
-                      <FaEdit />
-                    </button>
-                  </td>
+          {loading ? (
+            <div className="loading">Loading member cards...</div>
+          ) : error ? (
+            <div className="error">{error}</div>
+          ) : (
+            <table className="customer-table">
+              <thead>
+                <tr>
+                  <th>Card ID</th>
+                  <th>Name</th>
+                  <th>Phone</th>
+                  <th>Total Points</th>
+                  <th>Level Card</th>
+                  <th>Issuer</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody>
+                {memberCards.length > 0 ? (
+                  memberCards.map((card) => (
+                    <tr key={card.member_card_id}>
+                      <td>{card.member_card_id}</td>
+                      <td>{card.member_name}</td>
+                      <td>{card.member_phone_number}</td>
+                      <td style={{ textAlign: "center" }}>
+                        {card.total_points}
+                      </td>
+                      <td
+                        className={`member-card ${getMemberCardRank(
+                          card.card_type_id
+                        )}`}
+                      >
+                        {card.card_type_name}
+                      </td>
+                      <td>
+                        <button
+                          onClick={() =>
+                            handleViewStaffDetail(card.card_issuer)
+                          }
+                          className="staff-detail-button"
+                        >
+                          {getStaffName(card.card_issuer)}
+                        </button>
+                      </td>
+                      <td style={{ display: "flex", gap: "0.5rem" }}>
+                        <button
+                          onClick={() => handleViewDetailClick(card)}
+                          className="view-detail-button"
+                          aria-label={`View details for ${card.member_name}`}
+                        >
+                          <FaEye />
+                        </button>
+                        <button
+                          onClick={() => handleEditClick(card)}
+                          className="edit-button"
+                          style={{ margin: 0, padding: 8 }}
+                          aria-label={`Edit ${card.member_name}`}
+                        >
+                          <FaEdit />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="no-results">
+                      No member cards found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
 
         {/* Pagination */}
-        {filteredCustomers.length > itemsPerPage && (
+        {pagination.totalPages > 1 && (
           <div className="pagination">
             <button
-              className="pagination-button"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-            >
-              Previous
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                className={`pagination-button ${
-                  currentPage === page ? "active" : ""
-                }`}
-                onClick={() => handlePageChange(page)}
-              >
-                {page}
-              </button>
-            ))}
-            <button
               className="pagination-button"
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages}
+              aria-label="Previous page"
             >
-              Next
+              <FiChevronLeft className="pagination-icon" />
+            </button>
+            <span className="pagination-info">
+              Page {pagination.currentPage} of {pagination.totalPages}
+            </span>
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === pagination.totalPages}
+              className="pagination-button"
+              aria-label="Next page"
+            >
+              <FiChevronRight className="pagination-icon" />
             </button>
           </div>
         )}
@@ -453,7 +445,7 @@ export const ManagementCustomerPage = () => {
             <div className="modal-content" role="dialog" aria-modal="true">
               <div className="modal-header">
                 <h2 className="modal-title">
-                  Member Card Detail - {selectedCustomer.name}
+                  Member Card Detail - {selectedCustomer.member_name}
                 </h2>
                 <button
                   onClick={closeDetailModal}
@@ -465,69 +457,62 @@ export const ManagementCustomerPage = () => {
               </div>
 
               <div className="modal-body">
-                {/* Hiển thị ảnh khách hàng */}
                 <h3 className="modal-subtitle">Member Card Info</h3>
                 <div className="modal-section">
                   <p>
                     <strong>Member Card ID:</strong>{" "}
-                    {selectedCustomer.memberCard.member_card_id}
+                    {selectedCustomer.member_card_id}
                   </p>
                   <p>
                     <strong>Created At:</strong>{" "}
-                    {selectedCustomer.memberCard.created_at}
+                    {new Date(selectedCustomer.created_at).toLocaleDateString()}
                   </p>
                   <p>
                     <strong>Updated At:</strong>{" "}
-                    {selectedCustomer.memberCard.updated_at}
+                    {new Date(selectedCustomer.updated_at).toLocaleDateString()}
                   </p>
                   <p>
                     <strong>Total Points:</strong>{" "}
-                    {selectedCustomer.memberCard.total_points}
+                    {selectedCustomer.total_points}
                   </p>
                   <p>
                     <strong>Card Issuer (Staff):</strong>{" "}
                     <button
                       onClick={() =>
-                        handleViewStaffDetail(
-                          selectedCustomer.memberCard.card_issuer
-                        )
+                        handleViewStaffDetail(selectedCustomer.card_issuer)
                       }
                       className="staff-detail-button"
                     >
-                      {getStaffName(selectedCustomer.memberCard.card_issuer)}
+                      {getStaffName(selectedCustomer.card_issuer)}
                     </button>
                   </p>
                   <p>
                     <strong>Branch Created:</strong>{" "}
-                    {selectedCustomer.memberCard.branch_created}
+                    {selectedCustomer.branch_created}
                   </p>
                   <p>
-                    <strong>Card Type ID:</strong>{" "}
-                    {selectedCustomer.memberCard.card_type_id} (
-                    {getMemberCardRank(
-                      selectedCustomer.memberCard.card_type_id
-                    )}
-                    )
+                    <strong>Card Type:</strong>{" "}
+                    {selectedCustomer.card_type_name} (
+                    {getMemberCardRank(selectedCustomer.card_type_id)})
                   </p>
                   <p>
-                    <strong>Member ID:</strong>{" "}
-                    {selectedCustomer.memberCard.member_id}
+                    <strong>Member ID (CCCD):</strong>{" "}
+                    {selectedCustomer.member_id}
                   </p>
                   <p>
-                    <strong>Member Name:</strong>{" "}
-                    {selectedCustomer.memberCard.member_name}
+                    <strong>Member Name:</strong> {selectedCustomer.member_name}
                   </p>
                   <p>
                     <strong>Member Phone Number:</strong>{" "}
-                    {selectedCustomer.memberCard.member_phone_number}
+                    {selectedCustomer.member_phone_number}
                   </p>
                   <p>
                     <strong>Member Gender:</strong>{" "}
-                    {selectedCustomer.memberCard.member_gender}
+                    {selectedCustomer.member_gender}
                   </p>
                   <p>
                     <strong>Is Active:</strong>{" "}
-                    {selectedCustomer.memberCard.is_active ? "Yes" : "No"}
+                    {selectedCustomer.is_active ? "Yes" : "No"}
                   </p>
                 </div>
               </div>
@@ -594,7 +579,7 @@ export const ManagementCustomerPage = () => {
                   <label>Member ID (CCCD):</label>
                   <input
                     type="text"
-                    value={editCustomer.member_id}
+                    value={editCustomer.member_id || selectedCustomer.member_id}
                     onChange={(e) =>
                       setEditCustomer((prev) => ({
                         ...prev,
@@ -602,46 +587,32 @@ export const ManagementCustomerPage = () => {
                       }))
                     }
                     className="modal-input"
+                    disabled // Giữ nguyên CCCD, không cho chỉnh sửa
                   />
                 </div>
                 <div className="modal-section">
                   <label>Name:</label>
                   <input
                     type="text"
-                    value={editCustomer.name}
+                    value={editCustomer.member_name}
                     onChange={(e) =>
                       setEditCustomer((prev) => ({
                         ...prev,
-                        name: e.target.value,
+                        member_name: e.target.value,
                       }))
                     }
                     className="modal-input"
-                  />
-                </div>
-                <div className="modal-section">
-                  <label>Email:</label>
-                  <input
-                    type="text"
-                    value={editCustomer.email}
-                    onChange={(e) =>
-                      setEditCustomer((prev) => ({
-                        ...prev,
-                        email: e.target.value,
-                      }))
-                    }
-                    className="modal-input"
-                    placeholder="Enter email"
                   />
                 </div>
                 <div className="modal-section">
                   <label>Phone:</label>
                   <input
                     type="text"
-                    value={editCustomer.phone}
+                    value={editCustomer.member_phone_number}
                     onChange={(e) =>
                       setEditCustomer((prev) => ({
                         ...prev,
-                        phone: e.target.value,
+                        member_phone_number: e.target.value,
                       }))
                     }
                     className="modal-input"
@@ -650,11 +621,11 @@ export const ManagementCustomerPage = () => {
                 <div className="modal-section">
                   <label>Gender:</label>
                   <select
-                    value={editCustomer.gender || "Male"} // Default là "Male"
+                    value={editCustomer.member_gender}
                     onChange={(e) =>
                       setEditCustomer((prev) => ({
                         ...prev,
-                        gender: e.target.value,
+                        member_gender: e.target.value,
                       }))
                     }
                     className="modal-input"
@@ -671,14 +642,12 @@ export const ManagementCustomerPage = () => {
                   <button
                     onClick={() => {
                       closeEditModal();
-                      setTimeout(() => {
-                        setNewMemberCard({
-                          member_id: "",
-                          member_name: "",
-                          member_phone_number: "",
-                          member_gender: "Male",
-                        });
-                      }, 0); // Reset form sau khi đóng modal
+                      setEditCustomer({
+                        member_card_id: null,
+                        member_name: "",
+                        member_phone_number: "",
+                        member_gender: "Male",
+                      });
                     }}
                     className="cancel-button"
                   >
@@ -774,7 +743,15 @@ export const ManagementCustomerPage = () => {
                     Submit
                   </button>
                   <button
-                    onClick={() => setIsAddCardModalOpen(false)}
+                    onClick={() => {
+                      setIsAddCardModalOpen(false);
+                      setNewMemberCard({
+                        member_id: "",
+                        member_name: "",
+                        member_phone_number: "",
+                        member_gender: "Male",
+                      });
+                    }}
                     className="cancel-button"
                   >
                     Cancel
