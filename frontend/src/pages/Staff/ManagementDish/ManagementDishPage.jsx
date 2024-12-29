@@ -26,6 +26,9 @@ const ManagementDishPage = () => {
 
   const [availableDishes, setAvailableDishes] = useState([]);
 
+  //sửa chỗ này
+  const [currentPage, setCurrentPage] = useState(1);
+  // ----------------
   const [pagination, setPagination] = useState({
     currentPage: 1,
     totalPages: 1,
@@ -38,15 +41,9 @@ const ManagementDishPage = () => {
     setPagination((prev) => ({ ...prev, currentPage: 1 }));
   };
 
-  useEffect(() => {
-    fetchDishes(pagination.currentPage, 6, "price,desc", searchTerm);
-  }, [pagination.currentPage, searchTerm]);
-
-  useEffect(() => {
-    if (isModalOpen && formMode === "add") {
-      fetchAvailableDishes();
-    }
-  }, [isModalOpen, formMode]);
+  // useEffect(() => {
+  //   fetchDishes(pagination.currentPage, 6, "price,desc", searchTerm);
+  // }, [pagination.currentPage, searchTerm]);
 
   const fetchDishes = async (
     page = 1,
@@ -64,18 +61,24 @@ const ManagementDishPage = () => {
       );
 
       const data = response.data;
-      setDishes(data.listDish);
-      setPagination({
-        currentPage: data.pagination.currentPage,
-        totalPages: data.pagination.totalPages,
-      });
+      if (data) {
+        setDishes(data.listDish);
+        setPagination({
+          currentPage: data.pagination.currentPage,
+          totalPages: data.pagination.totalPages,
+        });
+      } else {
+        throw new Error("No data received from API");
+      }
     } catch (err) {
-      console.error(err);
       setError("Không thể lấy dữ liệu món ăn.");
     } finally {
       setLoading(false);
     }
   };
+  useEffect(() => {
+    fetchDishes(currentPage, 6, "price,desc", searchTerm);
+  }, [currentPage, searchTerm]);
 
   const fetchAvailableDishes = async (query = "", page = 1, limit = 10) => {
     try {
@@ -132,7 +135,7 @@ const ManagementDishPage = () => {
       name: dish.dish_name,
       price: dish.price,
       description: dish.description,
-      category: dish.category,
+      category: dish.category_name,
       image: dish.image_link,
       isShip: dish.isShip || false,
     });
@@ -156,7 +159,7 @@ const ManagementDishPage = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     const newDish = {
@@ -167,15 +170,17 @@ const ManagementDishPage = () => {
 
     if (formMode === "add") {
       setDishes([...dishes, newDish]);
+      await addDishToBranch(newDish.id, formData.isShip);
     } else {
+      await editDish(selectedDish.dish_id, newDish);
       setDishes(
         dishes.map((dish) =>
           dish.dish_id === selectedDish.dish_id ? newDish : dish
         )
       );
+      // edit dish
     }
 
-    addDishToBranch(selectedDish?.dish_id || newDish.id, formData.isShip);
     setIsModalOpen(false);
   };
 
@@ -183,7 +188,21 @@ const ManagementDishPage = () => {
     setSelectedDish(dish);
     setIsViewModalOpen(true);
   };
-
+  const editDish = async (idDish, updatedData) => {
+    try {
+      const response = await http(`/dish/${idDish}`, "PATCH", updatedData);
+      if (response) {
+        toast.success(`Dish updated successfully!`, {
+          position: "top-right",
+          autoClose: 1500,
+        });
+      } else {
+        console.error("Failed to update dish:", response.statusText);
+      }
+    } catch (error) {
+      console.error("Error updating dish:", error);
+    }
+  };
   const addDishToBranch = async (idDish, isShip) => {
     try {
       const branchId = localStorage.getItem("staff_branch");
@@ -487,29 +506,23 @@ const ManagementDishPage = () => {
         {/* Pagination */}
         <div className="pagination">
           <button
-            onClick={() =>
-              setPagination((prev) => ({
-                ...prev,
-                currentPage: Math.max(prev.currentPage - 1, 1),
-              }))
-            }
-            disabled={pagination.currentPage === 1}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
             className="pagination-button"
             aria-label="Previous page"
           >
             <FiChevronLeft className="pagination-icon" />
           </button>
           <span className="pagination-info">
-            Page {pagination.currentPage} of {pagination.totalPages}
+            Page {currentPage} of {pagination.totalPages}
           </span>
           <button
             onClick={() =>
-              setPagination((prev) => ({
-                ...prev,
-                currentPage: Math.min(prev.currentPage + 1, prev.totalPages),
-              }))
+              setCurrentPage((prev) =>
+                Math.min(prev + 1, pagination.totalPages)
+              )
             }
-            disabled={pagination.currentPage === pagination.totalPages}
+            disabled={currentPage === pagination.totalPages}
             className="pagination-button"
             aria-label="Next page"
           >
