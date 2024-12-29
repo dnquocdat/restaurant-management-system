@@ -47,7 +47,7 @@ async function searchReservationSlipsByUser(userId, { query = '', page = 1, limi
     const p_branch_name = '';
     const p_branch_id = '';
     const p_id_name = 'reservation_slip_id';
-    const p_selectFields = 'reservation_slip_id, branch_id, cus_name, phone_number, guests_number, arrival_time, arrival_date, status, created_at';
+    const p_selectFields = 'reservation_slip_id, branch_id, cus_name, phone_number, guests_number, arrival_time, arrival_date, status, created_at, table_number';
     const p_joinClause = ''; // No joins needed as only the 'reservation_slips' table is used
 
     let p_totalRecords = 0;

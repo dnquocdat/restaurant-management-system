@@ -139,6 +139,7 @@ export const searchReservationSlipsController = async (req, res, next) => {
             arrival_time: reservation.arrival_time,
             arrival_date: reservation.arrival_date,
             status: reservation.status,
+            table_number: reservation.table_number || -1,
             created_at: reservation.created_at
         })),
         pagination: {

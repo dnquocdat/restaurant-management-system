@@ -44,8 +44,8 @@ export const searchMenu = async (req, res, next) => {
     });
 
     // Calculate pagination details
-    // const totalPages = Math.ceil(totalRecords / limit);
-    // const hasMore = page < totalPages;
+    const totalPages = Math.ceil(totalRecords / limit);
+    const hasMore = page < totalPages;
     // if (page > totalPages) {
     //   throw new CustomError(
     //     "BAD_REQUEST",

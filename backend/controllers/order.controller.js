@@ -173,6 +173,7 @@ export const searchOrdersByUserController = async (req, res, next) => {
     const data = {
         orders: orders.map(order => ({
             order_id: order.order_id,
+            total: order.total_amount_with_benefits,
             branch_id: order.branch_id,
             cus_name: order.cus_name,
             order_type: order.order_type,
