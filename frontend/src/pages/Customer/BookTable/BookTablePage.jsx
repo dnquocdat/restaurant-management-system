@@ -291,18 +291,6 @@ export const BookTablePage = () => {
               />
             ))}
           </div>
-
-          <div className="map">
-            <LoadScript googleMapsApiKey="https://maps.app.goo.gl/tKgBcgsUwudGLqyo9">
-              <GoogleMap
-                mapContainerStyle={mapContainerStyle}
-                center={center}
-                zoom={15}
-              >
-                <Marker position={center} />
-              </GoogleMap>
-            </LoadScript>
-          </div>
         </div>
       </div>
     </div>
