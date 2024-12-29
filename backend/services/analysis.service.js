@@ -40,7 +40,7 @@ function getAllLabels(timeType, { year, month, quarter, start_year, end_year }) 
   
       case 'Quarterly': {
         // Just Q1..Q4
-        return [ 'Q1', 'Q2', 'Q3', 'Q4' ];
+        return [ '1', '2', '3', '4' ];
       }
   
       case 'Overall': {
@@ -100,6 +100,7 @@ export async function getAnalysis({
     const dbLabels = JSON.parse(row.revenueLabels || '[]');  
     const dbData   = JSON.parse(row.revenueData   || '[]');
 
+
     // Step 2: compute the "full" label set
     const allLabels = getAllLabels(time_type, { 
     year, month, quarter, start_year, end_year 
@@ -108,7 +109,7 @@ export async function getAnalysis({
     // Step 3: fill missing labels
     const finalRevenueData = fillMissingLabels(allLabels, dbLabels, dbData);
 
-    // If you're doing the same for service rates:
+    // throw new CustomError("NOT_IMPLEMENTED", "Not implemented", STATUS_CODE.SUCCESS, finalRevenueData);
     const dbServiceLabels = JSON.parse(row.serviceLabels || '[]');
     const dbServiceData   = JSON.parse(row.serviceData   || '[]');
     const finalServiceData = fillMissingLabels(allLabels, dbServiceLabels, dbServiceData);
