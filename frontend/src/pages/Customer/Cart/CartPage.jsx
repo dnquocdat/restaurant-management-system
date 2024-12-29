@@ -34,11 +34,11 @@ const CartPage = () => {
                 </div>
                 <div className="summary-row">
                   <span>Shipping</span>
-                  <span>$10.00</span>
+                  <span>$0.00</span>
                 </div>
                 <div className="summary-row total">
                   <span>Total</span>
-                  <span>${(calculateSubtotal() + 10).toFixed(2)}</span>
+                  <span>${(calculateSubtotal()).toFixed(2)}</span>
                 </div>
                 <button
                   onClick={() => setStep(2)}

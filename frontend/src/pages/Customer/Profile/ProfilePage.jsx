@@ -31,7 +31,7 @@ export const ProfilePage = () => {
           email: data.user_email,
           address: data.user_address,
           phoneNumber: data.user_phone_number,
-          memberCard: data.user_member_card_id,
+          memberCard: data.card_level
         });
         // setAvatar(avatar);
       } catch (error) {
