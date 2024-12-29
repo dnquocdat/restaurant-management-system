@@ -125,19 +125,19 @@ async function searchOrdersByUser(user_id, { query, page, limit}) {
 
 // Add the searchOrdersByBranch function
 async function searchOrdersByBranch(branchId, { query = '', page = 1, limit = 10 }) {
-    const p_query_name = 'order_id';
+    const p_query_name = 'orders.order_id';
     const p_query = query;
     const p_page = parseInt(page, 10) || 1;
     const p_limit = parseInt(limit, 10) || 10;
     const p_tableName = 'orders';
-    const p_orderByField = 'created_at';
+    const p_orderByField = 'orders.created_at';
     const p_orderByDirection = 'DESC';
     const p_category_name = '';
     const p_category = '';
-    const p_id_name = 'order_id';
-    const p_selectFields = 'order_id, branch_id, online_user_id, order_type, status, created_at';
-    const p_joinClause = ''; // No joins needed as only the 'orders' table is used
-    const p_branch_name = 'branch_id';
+    const p_id_name = 'orders.order_id';
+    const p_selectFields = 'orders.order_id, orders.branch_id, orders.online_user_id, orders.order_type, orders.status, orders.created_at, bills.total_amount_with_benefits';
+    const p_joinClause = 'JOIN bills on bills.order_id = orders.order_id'; // No joins needed as only the 'orders' table is used
+    const p_branch_name = 'orders.branch_id';
     const p_branch_id = branchId;
 
     let p_totalRecords = 0;

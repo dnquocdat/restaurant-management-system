@@ -226,7 +226,7 @@ export const searchOrdersByBranchController = async (req, res, next) => {
             order_id: order.order_id,
             branch_id: order.branch_id,
             online_user_id: order.online_user_id,
-            order_type: order.order_type,
+            total: order.total_amount_with_benefits,
             status: order.status,
             created_at: order.created_at,
         })),
