@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { FaEnvelope, FaPhone, FaBuilding, FaBriefcase } from "react-icons/fa";
 import "./EmployeesPage.css";
 import { http } from "../../../helpers/http.js";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight, FiX } from "react-icons/fi";
 import { toast } from "react-toastify";
 import { FaSearch } from "react-icons/fa";
 
@@ -18,7 +18,7 @@ export const EmployeesPage = () => {
   });
   const [filters, setFilters] = useState({
     query: "",
-    branch_id: "",
+    branch_id: localStorage.getItem("staff_branch_id"),
     department_id: "",
     page: 1,
     limit: 5,
@@ -79,7 +79,7 @@ export const EmployeesPage = () => {
         <FaSearch className="search-icon" />
         <input
           type="text"
-          placeholder="Search by name..."
+          placeholder="Search by employee id"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="search-input-emp"
@@ -87,11 +87,12 @@ export const EmployeesPage = () => {
         {searchTerm && (
           <button
             className="clear-search"
-            onClick={() => setSearchTerm("")}
+            onClick={() => {
+              setSearchTerm("");
+              setFilters((prev) => ({ ...prev, query: "" }));
+            }}
             aria-label="Clear Search"
-          >
-            <FiX />
-          </button>
+          ></button>
         )}
       </div>
       <div className="grid-content">
@@ -114,8 +115,13 @@ export const EmployeesPage = () => {
                   }}
                 />
                 <div>
+                  <p style={{ color: "black", fontWeight: "bold" }}>
+                    ID_Employee: {employee.employee_id}
+                  </p>
                   <h2 className="employee-name">{employee.employee_name}</h2>
-                  <p className="employee-department">{employee.department}</p>
+                  <p className="employee-department">
+                    {employee.department_name}
+                  </p>
                 </div>
               </div>
               <button
@@ -132,7 +138,7 @@ export const EmployeesPage = () => {
                 <div id={`details-${employee.employee_id}`} className="details">
                   <div className="detail-item">
                     <FaBriefcase className="icon" />
-                    <span>{employee.position}</span>
+                    <span>{employee.department_name}</span>
                   </div>
                   <div className="detail-item">
                     <FaEnvelope className="icon" />

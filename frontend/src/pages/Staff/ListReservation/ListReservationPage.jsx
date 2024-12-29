@@ -111,7 +111,11 @@ export const ListReservationPage = () => {
   };
 
   const handleRowClick = (id, status) => {
-    if (status === "waiting_for_guest") {
+    if (status === "waiting_for_guest" || status === "completed") {
+      toast.warning(`Table in use to add dish`, {
+        position: "top-right",
+        autoClose: 1500,
+      });
       return;
     }
     navigate("/staff/order", { state: { reservationId: id } });

@@ -10,7 +10,7 @@ import { IoIosCloseCircle } from "react-icons/io";
 import { motion, AnimatePresence } from "framer-motion";
 import "./OrderPage.css";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { http } from "../../../helpers/http";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
@@ -27,7 +27,6 @@ export const OrderPage = () => {
 
   // thong tin sau nay se lay param hay url
   const [customerName, setCustomerName] = useState("dn quoc dat"); // Tên khách hàng
-  const [branchId, setBranchId] = useState("1"); // Mã chi nhánh
   const [waiterId, setWaiterId] = useState("12"); // ID người phục vụ
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
@@ -37,9 +36,10 @@ export const OrderPage = () => {
     currentPage: 1,
     totalPages: 1,
   });
+  const location = useLocation();
+  const { reservationId } = location.state || {};
 
   const [menuCategories, setMenuCategories] = useState([]);
-
   useEffect(() => {
     fetchMenu();
   }, []);
@@ -142,36 +142,20 @@ export const OrderPage = () => {
     setCart(cart.filter((item) => item.dish_id !== itemId));
   };
 
-  // const fakeDiscountCodes = {
-  //   MEMBER123: 10, // 10% discount
-  //   MEMBER456: 15, // 15% discount
-  //   MEMBER789: 20, // 20% discount
-  // };
-
-  // // Function to validate and apply discount
-  // const applyDiscount = () => {
-  //   if (fakeDiscountCodes[memberId]) {
-  //     setDiscount(fakeDiscountCodes[memberId]);
-  //     showNotification(`Discount of ${fakeDiscountCodes[memberId]}% applied!`);
-  //   } else {
-  //     setDiscount(0);
-  //     showNotification("Invalid Member ID. No discount applied.");
-  //   }
-  // };
-
   const getTotalAmount = () => {
     const subtotal = cart.reduce(
       (total, item) => total + item.price * item.quantity,
       0
     );
     const discountAmount = subtotal * (discount / 100);
-    return subtotal - discountAmount; // Return as a number
+    return subtotal - discountAmount;
   };
 
   const handleCheckout = async () => {
+    const branchId = localStorage.getItem("staff_branch");
     const body = {
       cus_name: customerName,
-      member_card_id: memberId || null, // Member ID nếu có
+      member_card_id: memberId || null,
       branch_id: branchId,
       waiter: waiterId,
       listDish: cart.map((item) => ({
@@ -183,24 +167,16 @@ export const OrderPage = () => {
     };
     console.log(body);
     try {
-      const response = await fetch(
-        `http://localhost:3000/api/order/submit-dine-in/1`, // /:reservation slip id
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-          body: JSON.stringify(body),
-        }
+      const response = await http(
+        `/order/submit-dine-in/${reservationId}`,
+        "POST",
+        body
       );
 
-      if (response.ok) {
-        const result = await response.json();
+      if (response) {
         showNotification("Order submitted successfully!");
-
         setCart([]);
-        // navigate("/staff/reservation-list");
+        navigate("/staff/reservation-list");
       } else {
         showNotification("Failed to submit the order.");
       }

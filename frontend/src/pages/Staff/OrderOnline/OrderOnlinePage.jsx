@@ -49,7 +49,6 @@ export const OrderOnlinePage = () => {
       );
 
       const data = fetchMenu.data;
-      console.log(data);
       if (data) {
         setMockOrders(data.orders);
         setPagination({
@@ -65,32 +64,23 @@ export const OrderOnlinePage = () => {
     }
   };
 
-  const filteredOrders = orders
-    .filter((order) => {
-      if (statusFilter === "all") return true;
-      return order.status === statusFilter;
-    })
-    .filter(
-      (order) =>
-        order.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        order.id.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-    .sort((a, b) => {
-      if (sortBy === "orderTime") {
-        return new Date(b.orderTime) - new Date(a.orderTime);
+  const fetchOrderDetails = async (orderId) => {
+    try {
+      const response = await http(`/order/${orderId}`, "GET");
+      if (response) {
+        setSelectedOrder(response.data);
+      } else {
+        throw new Error("Failed to fetch order details.");
       }
-      if (sortBy === "totalAmount") {
-        return b.totalAmount - a.totalAmount;
-      }
-      return 0;
-    });
+    } catch (error) {
+      console.error("Error fetching order details:", error);
+      toast.error("Failed to load order details.");
+    }
+  };
 
-  const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
-  const indexOfLastOrder = currentPage * ordersPerPage;
-  const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
-  const currentOrders = filteredOrders.slice(
-    indexOfFirstOrder,
-    indexOfLastOrder
+  const totalAmount = selectedOrder?.dishes.reduce(
+    (acc, dish) => acc + dish.price * dish.quantity,
+    0
   );
 
   const handleStatusUpdate = (orderId, newStatus) => {
@@ -203,18 +193,18 @@ export const OrderOnlinePage = () => {
           <thead>
             <tr>
               <th>Order ID</th>
-              <th>Customer</th>
+              <th>Customer ID</th>
               <th>Total</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {currentOrders.map((order) => (
-              <tr key={order.id}>
-                <td>{order.id}</td>
-                <td>{order.customerName}</td>
-                <td>${order.totalAmount.toFixed(2)}</td>
+            {mockOrders.map((order) => (
+              <tr key={order.order_id}>
+                <td>{order.order_id}</td>
+                <td>{order.online_user_id}</td>
+                <td>${order.total}</td>
                 <td>
                   <StatusBadge status={order.status} />
                 </td>
@@ -228,7 +218,7 @@ export const OrderOnlinePage = () => {
                 >
                   <button
                     onClick={() => {
-                      setSelectedOrder(order);
+                      fetchOrderDetails(order.order_id);
                       setIsModalOpen("details");
                     }}
                     className="details-button-orderonline"
@@ -304,7 +294,7 @@ export const OrderOnlinePage = () => {
           <div className="modal-content" role="dialog" aria-modal="true">
             <div className="modal-header">
               <h2 className="modal-title">
-                Order Details - {selectedOrder.id}
+                Order Details - {selectedOrder.order_id}
               </h2>
               <button
                 onClick={() => {
@@ -322,20 +312,20 @@ export const OrderOnlinePage = () => {
               <div className="modal-section">
                 <span className="modal-label">Customer:</span>
                 <span className="modal-value">
-                  {selectedOrder.customerName}
+                  {selectedOrder.online_user_id}
                 </span>
               </div>
 
               <div className="modal-items">
                 <h3 className="modal-subtitle">Items:</h3>
-                {selectedOrder.items.map((item, index) => (
+                {selectedOrder.dishes.map((dish, index) => (
                   <div key={index} className="modal-item">
                     <div className="modal-item-details">
-                      <p className="item-name">{item.name}</p>
-                      <p className="item-quantity">Quantity: {item.quantity}</p>
+                      <p className="item-name">{dish.dish_name}</p>
+                      <p className="item-quantity">Quantity: {dish.quantity}</p>
                     </div>
                     <p className="item-price">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      ${(dish.price * dish.quantity).toFixed(2)}
                     </p>
                   </div>
                 ))}
@@ -343,9 +333,7 @@ export const OrderOnlinePage = () => {
 
               <div className="modal-total">
                 <span className="total-label">Total:</span>
-                <span className="total-amount">
-                  ${selectedOrder.totalAmount.toFixed(2)}
-                </span>
+                <span className="total-amount">${totalAmount.toFixed(2)}</span>
               </div>
 
               <div className="modal-discount">
