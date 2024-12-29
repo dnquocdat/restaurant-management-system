@@ -63,7 +63,7 @@ export const HistoryPage = () => {
       });
 
       const response = await http(
-        `reservation/search?${params.toString()}`,
+        `/reservation/search?${params.toString()}`,
         "GET"
       );
 
