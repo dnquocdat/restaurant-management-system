@@ -82,8 +82,8 @@ async function searchOrdersByUser(user_id, { query, page, limit}) {
     const p_tableName = 'orders';
     const p_orderByField = '';
     const p_orderByDirection = '';
-    const p_category_name = '';
-    const p_category = '';
+    const p_category_name = 'orders.order_type';
+    const p_category = 'delivery';
     const p_id_name = 'order_id';
     const p_selectFields = 'order_id, branch_id, online_user_id, order_type, status, created_at';
     const p_joinClause = ''; // No joins needed as only the 'orders' table is used
