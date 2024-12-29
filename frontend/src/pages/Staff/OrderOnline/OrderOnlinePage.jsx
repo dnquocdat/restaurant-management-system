@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 
 export const OrderOnlinePage = () => {
   const [orders, setOrders] = useState([]);
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [selectedOrder, setSelectedOrder] = useState();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("orderTime");
@@ -310,7 +310,7 @@ export const OrderOnlinePage = () => {
 
             <div className="modal-body">
               <div className="modal-section">
-                <span className="modal-label">Customer:</span>
+                <span className="modal-label">Customer</span>
                 <span className="modal-value">
                   {selectedOrder.online_user_id}
                 </span>
@@ -324,9 +324,7 @@ export const OrderOnlinePage = () => {
                       <p className="item-name">{dish.dish_name}</p>
                       <p className="item-quantity">Quantity: {dish.quantity}</p>
                     </div>
-                    <p className="item-price">
-                      ${(dish.price * dish.quantity).toFixed(2)}
-                    </p>
+                    <p className="item-price">${dish.price.toFixed(2)}</p>
                   </div>
                 ))}
               </div>
@@ -336,26 +334,9 @@ export const OrderOnlinePage = () => {
                 <span className="total-amount">${totalAmount.toFixed(2)}</span>
               </div>
 
-              <div className="modal-discount">
-                <span className="discount-label">Discount Applied:</span>
-                <span className="discount-amount">
-                  {selectedOrder.discount * 100}% ( $
-                  {(selectedOrder.totalAmount * selectedOrder.discount).toFixed(
-                    2
-                  )}
-                  )
-                </span>
-              </div>
-
               <div className="modal-final">
                 <span className="final-label">Final Amount:</span>
-                <span className="final-amount">
-                  $
-                  {(
-                    selectedOrder.totalAmount *
-                    (1 - selectedOrder.discount)
-                  ).toFixed(2)}
-                </span>
+                <span className="final-amount">${totalAmount.toFixed(2)}</span>
               </div>
             </div>
           </div>

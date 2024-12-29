@@ -242,7 +242,13 @@ export const BillPage = () => {
                 <div className="modal-total">
                   <span className="total-label">Total:</span>
                   <span className="total-amount">
-                    ${selectedInvoice.total_amount.toFixed(2)}
+                    $
+                    {selectedInvoice.dishes
+                      .reduce(
+                        (total, dish) => total + dish.price * dish.quantity,
+                        0
+                      )
+                      .toFixed(2)}
                   </span>
                 </div>
 
@@ -261,7 +267,13 @@ export const BillPage = () => {
                 <div className="modal-final">
                   <span className="final-label">Final Amount:</span>
                   <span className="final-amount">
-                    ${selectedInvoice.total_amount_with_benefits.toFixed(2)}
+                    $
+                    {selectedInvoice.dishes
+                      .reduce(
+                        (total, dish) => total + dish.price * dish.quantity,
+                        0
+                      )
+                      .toFixed(2)}
                   </span>
                 </div>
               </div>

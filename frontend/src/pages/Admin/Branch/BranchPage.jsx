@@ -112,12 +112,8 @@ const BranchPage = () => {
       phone: branch.phone_number || "",
       email: branch.email || "",
       operationHours: {
-        opening: branch.open_time
-          ? branch.open_time.split("T")[1].slice(0, 5)
-          : "07:00",
-        closing: branch.close_time
-          ? branch.close_time.split("T")[1].slice(0, 5)
-          : "22:00",
+        opening: branch.open_time ? branch.open_time.slice(0, 5) : "07:00",
+        closing: branch.close_time ? branch.close_time.slice(0, 5) : "22:00",
       },
       tableCount: branch.table_amount || 0,
       hasCarParking: !!branch.has_car_park,
