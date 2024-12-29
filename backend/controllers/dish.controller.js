@@ -219,10 +219,10 @@ export const searchDishesController = async (req, res, next) => {
     const parsedPage = parseInt(page, 10);
     const parsedLimit = parseInt(limit, 10);
     if (isNaN(parsedPage) || parsedPage < 1) {
-        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST, []);
     }
     if (isNaN(parsedLimit) || parsedLimit < 1) {
-        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST);
+        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST, []);
     }
 
     const { dishes, totalRecords } = await searchDishes({ query, page: parsedPage, limit: parsedLimit });

@@ -130,14 +130,16 @@ export const searchEmployeesController = async (req, res, next) => {
     throw new CustomError(
       "BAD_REQUEST",
       "Invalid page number",
-      STATUS_CODE.BAD_REQUEST
+      STATUS_CODE.BAD_REQUEST,
+      []
     );
   }
   if (isNaN(parsedLimit) || parsedLimit < 1) {
     throw new CustomError(
       "BAD_REQUEST",
       "Invalid limit value",
-      STATUS_CODE.BAD_REQUEST
+      STATUS_CODE.BAD_REQUEST,
+      []
     );
   }
 

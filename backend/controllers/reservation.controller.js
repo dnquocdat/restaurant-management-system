@@ -113,10 +113,10 @@ export const searchReservationSlipsController = async (req, res, next) => {
     const parsedPage = parseInt(page, 10);
     const parsedLimit = parseInt(limit, 10);
     if (isNaN(parsedPage) || parsedPage < 1) {
-        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST, []);
     }
     if (isNaN(parsedLimit) || parsedLimit < 1) {
-        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST);
+        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST, []);
     }
 
     const { reservationSlips, totalRecords } = await searchReservationSlipsByUser(userId, { query, page: parsedPage, limit: parsedLimit });
@@ -126,7 +126,7 @@ export const searchReservationSlipsController = async (req, res, next) => {
     const hasMore = parsedPage < totalPages;
 
     if(parsedPage > totalPages) {
-        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST, []);
     }
 
     const data = {
@@ -165,10 +165,10 @@ export const searchReservationSlipsByBranchController = async (req, res, next) =
     const parsedPage = parseInt(page, 10);
     const parsedLimit = parseInt(limit, 10);
     if (isNaN(parsedPage) || parsedPage < 1) {
-        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST, []);
     }
     if (isNaN(parsedLimit) || parsedLimit < 1) {
-        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST);
+        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST, []);
     }
 
     const { reservationSlips, totalRecords } = await searchReservationSlipsByBranch(parsedBranchId, { query, page: parsedPage, limit: parsedLimit });

@@ -151,10 +151,10 @@ export const searchOrdersByUserController = async (req, res, next) => {
 
     // Validate page and limit
     if (isNaN(parseInt(page, 10)) || parseInt(page, 10) < 1) {
-        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST, []);
     }
     if (isNaN(parseInt(limit, 10)) || parseInt(limit, 10) < 1) {
-        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST);
+        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST, []);
     }
 
     const { orders, totalRecords } = await searchOrdersByUser(user_id, { query, page, limit });
@@ -162,12 +162,12 @@ export const searchOrdersByUserController = async (req, res, next) => {
     // Calculate pagination details
     const totalPages = Math.ceil(totalRecords / limit);
     if (totalPages === 0) {
-        throw new CustomError("NOT_FOUND", "No orders found", STATUS_CODE.NOT_FOUND);
+        throw new CustomError("NOT_FOUND", "No orders found", STATUS_CODE.NOT_FOUND, []);
     }
     const hasMore = page < totalPages;
 
     if (page > totalPages) {
-        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST, []);
     }
 
     const data = {
@@ -205,10 +205,10 @@ export const searchOrdersByBranchController = async (req, res, next) => {
     const parsedPage = parseInt(page, 10);
     const parsedLimit = parseInt(limit, 10);
     if (isNaN(parsedPage) || parsedPage < 1) {
-        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST, []);
     }
     if (isNaN(parsedLimit) || parsedLimit < 1) {
-        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST);
+        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST, []);
     }
 
     const { orders, totalRecords } = await searchOrdersByBranch(parsedBranchId, { query, page: parsedPage, limit: parsedLimit });
@@ -256,10 +256,10 @@ export const searchBillsController = async (req, res, next) => {
     const parsedPage = parseInt(page, 10);
     const parsedLimit = parseInt(limit, 10);
     if (isNaN(parsedPage) || parsedPage < 1) {
-        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST);
+        throw new CustomError("BAD_REQUEST", "Invalid page number", STATUS_CODE.BAD_REQUEST, []);
     }
     if (isNaN(parsedLimit) || parsedLimit < 1) {
-        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST);
+        throw new CustomError("BAD_REQUEST", "Invalid limit value", STATUS_CODE.BAD_REQUEST, []);
     }
 
     const { bills, totalRecords } = await searchBills({ query, category, page: parsedPage, limit: parsedLimit });
