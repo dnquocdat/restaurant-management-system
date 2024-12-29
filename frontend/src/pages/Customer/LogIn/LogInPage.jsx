@@ -352,10 +352,9 @@ export const LogInPage = () => {
           {forgotPasswordStep === 0 ? (
             <div className="auth-form-fields">
               {isLogin ? (
-                // **Login Form: Username Instead of Email**
                 <div className="auth-form-field">
                   <label htmlFor="username" className="sr-only">
-                    Username
+                    Email
                   </label>
                   <div className="auth-form-input-wrapper">
                     <FiUser className="auth-form-icon" />
@@ -365,7 +364,7 @@ export const LogInPage = () => {
                       type="text"
                       required
                       className="auth-form-input"
-                      placeholder="Username"
+                      placeholder="Email@gmail.com"
                       value={formData.username}
                       onChange={handleChange}
                       aria-label="Username"
