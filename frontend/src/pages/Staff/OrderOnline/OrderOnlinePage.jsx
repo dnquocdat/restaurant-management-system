@@ -9,100 +9,61 @@ import { toast } from "react-toastify";
 
 export const OrderOnlinePage = () => {
   const [orders, setOrders] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("orderTime");
   const [searchQuery, setSearchQuery] = useState("");
-
+  const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 6;
 
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+  });
+
   // Mock data
-  const mockOrders = [
-    {
-      id: "1",
-      customerName: "John Smith",
-      items: [
-        { name: "Burger", quantity: 2, price: 5.0 },
-        { name: "Fries", quantity: 1, price: 3.5 },
-        { name: "Coke", quantity: 1, price: 2.0 },
-      ],
-      totalAmount: 25.99,
-      discount: 0.2,
-      status: "billed",
-      orderTime: "2024-01-20T10:30:00",
-    },
-    {
-      id: "ORD002",
-      customerName: "Emma Wilson",
-      items: [
-        { name: "Pizza", quantity: 1, price: 12.0 },
-        { name: "Garlic Bread", quantity: 2, price: 3.5 },
-        { name: "Lemonade", quantity: 1, price: 2.5 },
-      ],
-      totalAmount: 27.5,
-      discount: 0.1,
-      status: "in-delivery",
-      orderTime: "2024-01-20T11:15:00",
-    },
-    {
-      id: "ORD003",
-      customerName: "Michael Brown",
-      items: [
-        { name: "Pasta", quantity: 1, price: 10.0 },
-        { name: "Wine", quantity: 1, price: 20.0 },
-        { name: "Cheesecake", quantity: 2, price: 4.5 },
-      ],
-      totalAmount: 39.0,
-      discount: 0.15,
-      status: "delivered",
-      orderTime: "2024-01-20T09:45:00",
-    },
-    {
-      id: "ORD004",
-      customerName: "Sophia Green",
-      items: [
-        { name: "Salad", quantity: 1, price: 6.5 },
-        { name: "Soup", quantity: 2, price: 4.0 },
-        { name: "Iced Tea", quantity: 1, price: 2.0 },
-      ],
-      totalAmount: 20.5,
-      discount: 0.05,
-      status: "cancelled",
-      orderTime: "2024-01-20T08:30:00",
-    },
-    {
-      id: "ORD005",
-      customerName: "Oliver Taylor",
-      items: [
-        { name: "Steak", quantity: 1, price: 25.0 },
-        { name: "Mashed Potatoes", quantity: 1, price: 5.5 },
-        { name: "Beer", quantity: 2, price: 4.0 },
-      ],
-      totalAmount: 38.5,
-      discount: 0.25,
-      status: "billed",
-      orderTime: "2024-01-20T12:00:00",
-    },
-    {
-      id: "ORD006",
-      customerName: "Ava Martinez",
-      items: [
-        { name: "Fish Tacos", quantity: 2, price: 6.5 },
-        { name: "Rice", quantity: 1, price: 2.5 },
-        { name: "Margarita", quantity: 2, price: 8.0 },
-      ],
-      totalAmount: 31.0,
-      discount: 0.1,
-      status: "delivered",
-      orderTime: "2024-01-20T13:30:00",
-    },
-  ];
+  const [mockOrders, setMockOrders] = useState([]);
+  useEffect(() => {
+    fetchOrder();
+  }, []);
 
   useEffect(() => {
-    setOrders(mockOrders);
-  }, []);
+    fetchOrder(currentPage, 5, searchQuery);
+  }, [currentPage, searchQuery]);
+
+  const fetchOrder = async (page = 1, limit = 5, query = "") => {
+    try {
+      const branchId = localStorage.getItem("staff_branch");
+      if (!branchId) throw new Error("Branch ID not found in localStorage");
+
+      const params = new URLSearchParams({
+        limit,
+        page,
+        query,
+      });
+
+      const fetchMenu = await http(
+        `/order/branch/${branchId}?${params.toString()}`,
+        "GET"
+      );
+
+      const data = fetchMenu.data;
+      console.log(data);
+      if (data) {
+        setMockOrders(data.orders);
+        setPagination({
+          currentPage: data.pagination.currentPage,
+          totalPages: data.pagination.totalPages,
+        });
+      } else {
+        throw new Error("No data received from API");
+      }
+    } catch (error) {
+      console.error("Error fetching dishes:", error);
+      setError("Failed to fetch dishes. Please try again later.");
+    }
+  };
 
   const filteredOrders = orders
     .filter((order) => {
@@ -235,30 +196,6 @@ export const OrderOnlinePage = () => {
           />
           <AiOutlineSearch className="search-icon" />
         </div>
-
-        <div className="filter-sort">
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="status-filter"
-          >
-            <option value="all">All Status</option>
-            <option value="billed">Billed</option>
-            <option value="in-delivery">In Delivery</option>
-            <option value="delivered">Delivered</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-
-          <button
-            onClick={() =>
-              setSortBy(sortBy === "orderTime" ? "totalAmount" : "orderTime")
-            }
-            className="sort-button"
-          >
-            <BiSortAlt2 className="sort-icon" />
-            Sort by {sortBy === "orderTime" ? "Amount" : "Time"}
-          </button>
-        </div>
       </div>
 
       <div className="orders-table-container">
@@ -324,30 +261,31 @@ export const OrderOnlinePage = () => {
           </tbody>
         </table>
 
+        {/* pagination */}
         <div className="pagination">
-          <div className="pagination-info">
-            Showing {indexOfFirstOrder + 1} to{" "}
-            {Math.min(indexOfLastOrder, filteredOrders.length)} of{" "}
-            {filteredOrders.length} orders
-          </div>
-          <div className="pagination-controls">
-            <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-              className="pagination-button"
-            >
-              <FiChevronLeft />
-            </button>
-            <button
-              onClick={() =>
-                setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-              }
-              disabled={currentPage === totalPages}
-              className="pagination-button"
-            >
-              <FiChevronRight />
-            </button>
-          </div>
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="pagination-button"
+            aria-label="Previous page"
+          >
+            <FiChevronLeft className="pagination-icon" />
+          </button>
+          <span className="pagination-info">
+            Page {currentPage} of {pagination.totalPages}
+          </span>
+          <button
+            onClick={() =>
+              setCurrentPage((prev) =>
+                Math.min(prev + 1, pagination.totalPages)
+              )
+            }
+            disabled={currentPage === pagination.totalPages}
+            className="pagination-button"
+            aria-label="Next page"
+          >
+            <FiChevronRight className="pagination-icon" />
+          </button>
         </div>
       </div>
 

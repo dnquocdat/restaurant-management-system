@@ -5,33 +5,6 @@ import "./ManagementCustomerPage.css";
 import { http } from "../../../helpers/http";
 import { toast } from "react-toastify";
 
-// Mock dữ liệu nhân viên (staff)
-// Nếu bạn có API để lấy dữ liệu staff, hãy thay thế phần này bằng gọi API tương ứng.
-const mockStaffs = [
-  {
-    staff_id: 101,
-    name: "Nguyen Van A",
-    gender: "Male",
-    phone: "090-111-2222",
-    department: "Sales",
-    branch: "Ho Chi Minh",
-  },
-  {
-    staff_id: 102,
-    name: "Tran Thi B",
-    gender: "Female",
-    phone: "098-222-3333",
-    department: "Customer Service",
-    branch: "Ha Noi",
-  },
-];
-
-// Hàm lấy tên Staff từ staff_id
-const getStaffName = (staffId) => {
-  const staff = mockStaffs.find((s) => s.staff_id === staffId);
-  return staff ? staff.name : "Unknown Staff";
-};
-
 // Hàm lấy rank của member card từ card_type_id
 const getMemberCardRank = (typeId) => {
   switch (typeId) {
@@ -72,9 +45,11 @@ export const ManagementCustomerPage = () => {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editCustomer, setEditCustomer] = useState({
     member_card_id: null,
+    member_id: "",
     member_name: "",
     member_phone_number: "",
     member_gender: "Male",
+    user_email: "",
   });
 
   // Modal state cho Add Card
@@ -89,6 +64,9 @@ export const ManagementCustomerPage = () => {
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10; // Đồng bộ với pageSize từ API
+
+  // State để lưu trữ dữ liệu nhân viên đã lấy từ API
+  const [staffMap, setStaffMap] = useState({});
 
   // Hàm fetch member cards từ API
   const fetchMemberCards = async (
@@ -150,11 +128,39 @@ export const ManagementCustomerPage = () => {
   };
 
   // Hàm mở modal xem chi tiết nhân viên
-  const handleViewStaffDetail = (staffId) => {
-    const staff = mockStaffs.find((s) => s.staff_id === staffId);
-    if (staff) {
-      setSelectedStaff(staff);
+  const handleViewStaffDetail = async (staffId) => {
+    if (staffMap[staffId]) {
+      setSelectedStaff(staffMap[staffId]);
       setIsStaffModalOpen(true);
+      return;
+    }
+
+    // Nếu chưa có, fetch từ API
+    try {
+      const response = await http(`/employee/get-info/${staffId}`, "GET");
+      const data = response.data;
+      console.log(data);
+      if (data) {
+        const staff = {
+          staff_id: data.employee_id,
+          name: data.employee_name,
+          gender: data.gender,
+          phone: data.employee_phone_number,
+          department: data.department_name,
+          branch: data.branch_name,
+        };
+        setStaffMap((prev) => ({ ...prev, [staffId]: staff }));
+        setSelectedStaff(staff);
+        setIsStaffModalOpen(true);
+      } else {
+        throw new Error("No staff data received from API");
+      }
+    } catch (error) {
+      console.error("Error fetching staff data:", error);
+      toast.error("Failed to fetch staff information.", {
+        position: "top-right",
+        autoClose: 2000,
+      });
     }
   };
 
@@ -167,9 +173,11 @@ export const ManagementCustomerPage = () => {
   const handleEditClick = (card) => {
     setEditCustomer({
       member_card_id: card.member_card_id,
+      member_id: card.member_id,
       member_name: card.member_name,
       member_phone_number: card.member_phone_number,
       member_gender: card.member_gender,
+      user_email: card.user_email || "",
     });
     setIsEditModalOpen(true);
   };
@@ -185,11 +193,10 @@ export const ManagementCustomerPage = () => {
         member_name: editCustomer.member_name,
         member_phone_number: editCustomer.member_phone_number,
         member_gender: editCustomer.member_gender,
+        user_email: editCustomer.user_email,
       };
-      // Thay '1' bằng ID thực tế của member card nếu có API thật
       await updateMemberCard(editCustomer.member_card_id, data);
 
-      // Cập nhật danh sách memberCards trong UI
       setMemberCards((prev) =>
         prev.map((card) =>
           card.member_card_id === editCustomer.member_card_id
@@ -198,12 +205,13 @@ export const ManagementCustomerPage = () => {
                 member_name: editCustomer.member_name,
                 member_phone_number: editCustomer.member_phone_number,
                 member_gender: editCustomer.member_gender,
+                user_email: editCustomer.user_email,
               }
             : card
         )
       );
 
-      closeEditModal(); // Đóng modal sau khi lưu
+      closeEditModal();
     } catch (error) {
       console.error("Failed to save edit:", error.message);
       toast.error("Failed to save changes. Please try again.", {
@@ -216,8 +224,8 @@ export const ManagementCustomerPage = () => {
   // Hàm cập nhật member card
   const updateMemberCard = async (member_card_id, data) => {
     try {
-      const response = await http(`/api/card/${member_card_id}`, "PATCH", data);
-      if (response.data) {
+      const response = await http(`/card/${member_card_id}`, "PATCH", data);
+      if (response) {
         toast.success("Member card updated successfully!", {
           position: "top-right",
           autoClose: 1000,
@@ -247,15 +255,15 @@ export const ManagementCustomerPage = () => {
       return;
     }
 
-    // Kiểm tra định dạng CCCD (ở đây giả sử là 12 chữ số)
-    const cccdRegex = /^\d{12}$/;
-    if (!cccdRegex.test(member_id)) {
-      toast.error("Member ID (CCCD) phải là 12 chữ số.", {
-        position: "top-right",
-        autoClose: 2000,
-      });
-      return;
-    }
+    // // Kiểm tra định dạng CCCD (ở đây giả sử là 12 chữ số)
+    // const cccdRegex = /^\d{12}$/;
+    // if (!cccdRegex.test(member_id)) {
+    //   toast.error("Member ID (CCCD) phải là 12 chữ số.", {
+    //     position: "top-right",
+    //     autoClose: 2000,
+    //   });
+    //   return;
+    // }
 
     const dataAdd = {
       member_id,
@@ -265,23 +273,17 @@ export const ManagementCustomerPage = () => {
     };
 
     try {
-      const response = await http("/api/card", "POST", dataAdd);
-      if (response.data) {
+      const branchId = localStorage.getItem("staff_branch");
+      const response = await http(`/card/${branchId}`, "POST", dataAdd);
+      if (response) {
         toast.success("Added member card successfully!", {
           position: "top-right",
           autoClose: 1000,
         });
 
-        // Thêm khách hàng mới vào danh sách
-        const newCard = response.data.data.memberCard; // Giả sử API trả về memberCard mới
+        fetchMemberCards(currentPage, itemsPerPage, searchQuery);
 
-        setMemberCards((prev) => [newCard, ...prev]);
-        setPagination((prev) => ({
-          ...prev,
-          totalPages: Math.ceil(
-            (prev.totalPages * prev.pageSize + 1) / prev.pageSize
-          ),
-        }));
+        // Đóng modal và reset form
         setIsAddCardModalOpen(false);
         setNewMemberCard({
           member_id: "",
@@ -380,7 +382,9 @@ export const ManagementCustomerPage = () => {
                           }
                           className="staff-detail-button"
                         >
-                          {getStaffName(card.card_issuer)}
+                          {staffMap[card.card_issuer]
+                            ? staffMap[card.card_issuer].name
+                            : "Loading..."}
                         </button>
                       </td>
                       <td style={{ display: "flex", gap: "0.5rem" }}>
@@ -483,7 +487,9 @@ export const ManagementCustomerPage = () => {
                       }
                       className="staff-detail-button"
                     >
-                      {getStaffName(selectedCustomer.card_issuer)}
+                      {staffMap[selectedCustomer.card_issuer]
+                        ? staffMap[selectedCustomer.card_issuer].name
+                        : "Loading..."}
                     </button>
                   </p>
                   <p>
@@ -587,7 +593,6 @@ export const ManagementCustomerPage = () => {
                       }))
                     }
                     className="modal-input"
-                    disabled // Giữ nguyên CCCD, không cho chỉnh sửa
                   />
                 </div>
                 <div className="modal-section">
@@ -602,6 +607,21 @@ export const ManagementCustomerPage = () => {
                       }))
                     }
                     className="modal-input"
+                  />
+                </div>
+                <div className="modal-section">
+                  <label>Email:</label>
+                  <input
+                    type="email"
+                    value={editCustomer.user_email}
+                    onChange={(e) =>
+                      setEditCustomer((prev) => ({
+                        ...prev,
+                        user_email: e.target.value,
+                      }))
+                    }
+                    className="modal-input"
+                    placeholder="Enter email address"
                   />
                 </div>
                 <div className="modal-section">

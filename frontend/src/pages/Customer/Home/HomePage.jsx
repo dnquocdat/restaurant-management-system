@@ -24,47 +24,97 @@ const HomePage = () => {
     },
   ];
 
-  const categories = [
-    { id: 1, name: "Italian Cuisine", icon: <FaPizzaSlice /> },
-    { id: 2, name: "Asian Delights", icon: <FaGlobeAsia /> },
-    { id: 3, name: "Vegetarian Options", icon: <FaLeaf /> },
-    { id: 4, name: "Fine Dining", icon: <FaUtensils /> },
-  ];
-
-  const bestSellers = [
+  const [categories, setCategories] = useState([
     {
       id: 1,
-      name: "Margherita Pizza",
-      restaurant: "Luigi's Italian",
-      price: "18.99",
-      description: "Fresh basil, mozzarella, and tomato sauce",
-      image: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
+      name: "Default",
+      icon: <FaPizzaSlice />,
     },
+  ]);
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await http("/dish", "GET");
+      const data = response.data;
+      if (data) {
+        // Chỉ lấy 4 category đầu tiên
+        const limitedData = data.slice(0, 4);
+        console.log("limitedData", limitedData);
+
+        // Gán dữ liệu cứng cho id và icon
+        const formattedCategories = limitedData.map((cat, index) => ({
+          id: index + 1, // ID cứng theo chỉ số (1, 2, 3, 4)
+          name: cat.category_name,
+          icon:
+            index === 0 ? (
+              <FaPizzaSlice />
+            ) : index === 1 ? (
+              <FaGlobeAsia />
+            ) : index === 2 ? (
+              <FaLeaf />
+            ) : (
+              <FaUtensils />
+            ), // Icon cứng theo thứ tự
+        }));
+
+        setCategories(formattedCategories);
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+    }
+  };
+
+  // fetch api lấy ra 4 món ăn đầu tiên
+  const [bestSellers, setBestSellers] = useState([
     {
-      id: 2,
-      name: "Sushi Platter",
-      restaurant: "Sakura Japanese",
-      price: "24.99",
-      description: "Assorted fresh sushi and sashimi",
-      image: "https://images.unsplash.com/photo-1579871494447-9811cf80d66c",
+      id: "",
+      name: "",
+      price: "",
+      description: "",
+      image: "",
     },
-    {
-      id: 3,
-      name: "Buddha Bowl",
-      restaurant: "Green Garden",
-      price: "16.99",
-      description: "Quinoa, avocado, and fresh vegetables",
-      image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd",
-    },
-    {
-      id: 4,
-      name: "Beef Wellington",
-      restaurant: "The Grand Plaza",
-      price: "45.99",
-      description: "Premium beef wrapped in puff pastry",
-      image: "https://images.unsplash.com/photo-1544025162-d76694265947",
-    },
-  ];
+  ]);
+
+  useEffect(() => {
+    fetchBestSellers();
+  }, [selectedBranchId]);
+
+  const fetchBestSellers = async () => {
+    try {
+      const branchId = localStorage.getItem("selectedBranchId");
+      if (!branchId) throw new Error("Branch ID not found in localStorage");
+
+      // Dữ liệu cứng
+      const limit = 4;
+      const page = 1;
+      const sort = "price,desc";
+
+      const fetchMenu = await http(
+        `/menu/${branchId}?limit=${limit}&sort=${sort}&page=${page}`,
+        "GET"
+      );
+
+      const response = fetchMenu.data; // Dữ liệu trả về từ API
+      if (response && response.listDish) {
+        const formattedDishes = response.listDish.map((dish) => ({
+          id: dish.dish_id,
+          name: dish.dish_name,
+          price: dish.price,
+          description: dish.description,
+          image: dish.image_link,
+        }));
+        setBestSellers(formattedDishes);
+      } else {
+        throw new Error("No dishes found in the response");
+      }
+    } catch (error) {
+      console.error("Error fetching dishes:", error);
+    }
+  };
 
   const filteredBestSellers = bestSellers.filter(
     (dish) =>
@@ -72,13 +122,6 @@ const HomePage = () => {
       dish.restaurant.toLowerCase().includes(searchQuery.toLowerCase()) ||
       dish.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // const branches = [
-  //   { id: 1, name: "Downtown Branch", address: "123 Main St, City" },
-  //   { id: 2, name: "Uptown Branch", address: "456 High St, City" },
-  //   { id: 3, name: "Suburban Branch", address: "789 Suburb Rd, City" },
-  //   // Add more branches as needed
-  // ];
 
   //fetch api /branches here
   const [branches, setBranches] = useState([]);

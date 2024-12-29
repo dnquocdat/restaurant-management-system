@@ -13,7 +13,8 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import "./AnalyticPage.css"; // Importing the CSS
+import "./AnalyticPage.css";
+import { http } from "../../../helpers/http";
 
 ChartJS.register(
   CategoryScale,
@@ -27,27 +28,21 @@ ChartJS.register(
 );
 
 export const AnalyticPage = () => {
-  // Main filter states
+  const [region, setRegion] = useState("all");
+  const [branch, setBranch] = useState("main");
   const [periodType, setPeriodType] = useState("daily");
 
-  // Temporary filter states for selections
-  const [tempPeriodType, setTempPeriodType] = useState("daily");
+  const [regions, setRegions] = useState([]);
+  const [branches, setBranches] = useState([]);
+  const [appliedBranch, setAppliedBranch] = useState(null); // Branch được áp dụng
+  const [appliedPeriodType, setAppliedPeriodType] = useState("daily"); // PeriodType được áp dụng
 
-  // Dynamic filter states based on periodType
-  const [dailyFilters, setDailyFilters] = useState({
-    month: "",
-    year: "",
-  });
-
+  const [dailyFilters, setDailyFilters] = useState({ month: "", year: "" });
   const [monthlyFilters, setMonthlyFilters] = useState({
     year: "",
     quarter: "",
   });
-
-  const [quarterlyFilters, setQuarterlyFilters] = useState({
-    year: "",
-  });
-
+  const [quarterlyFilters, setQuarterlyFilters] = useState({ year: "" });
   const [overallFilters, setOverallFilters] = useState({
     startYear: "",
     endYear: "",
@@ -56,240 +51,89 @@ export const AnalyticPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [data, setData] = useState({
-    sales: 0,
-    invoices: 0,
+    totalRevenue: 0,
+    orders: 0,
     customers: 0,
-    revenueStats: {
-      labels: [],
-      datasets: [],
-    },
-    customerStats: {
-      labels: [],
-      datasets: [],
-    },
+    revenueStats: { labels: [], datasets: [] },
+    servicesRate: { labels: [], datasets: [] },
   });
 
-  // Sample data for different period types and filters
-  const sampleData = {
-    daily: {
-      "2024-03": {
-        sales: 50000,
-        invoices: 250,
-        customers: 120,
-        revenueStats: {
-          labels: Array.from({ length: 31 }, (_, i) => `${i + 1}`),
-          datasets: [
-            {
-              label: "Daily Revenue",
-              data: Array.from(
-                { length: 31 },
-                () => Math.floor(Math.random() * 10000) + 5000
-              ),
-              borderColor: "rgb(75, 192, 192)",
-              tension: 0.1,
-            },
-          ],
-        },
-        customerStats: {
-          labels: Array.from({ length: 31 }, (_, i) => `${i + 1}`),
-          datasets: [
-            {
-              label: "Table Service",
-              data: Array.from(
-                { length: 31 },
-                () => Math.floor(Math.random() * 100) + 50
-              ),
-              backgroundColor: "rgba(53, 162, 235, 0.5)",
-            },
-            {
-              label: "Online Orders",
-              data: Array.from(
-                { length: 31 },
-                () => Math.floor(Math.random() * 80) + 30
-              ),
-              backgroundColor: "rgba(255, 99, 132, 0.5)",
-            },
-          ],
-        },
-      },
-      // Add more daily data as needed
-    },
-    monthly: {
-      "2024-Q2": {
-        sales: 750000,
-        invoices: 375,
-        customers: 255,
-        revenueStats: {
-          labels: ["April", "May", "June"],
-          datasets: [
-            {
-              label: "Monthly Revenue",
-              data: [120000, 150000, 130000],
-              borderColor: "rgb(75, 192, 192)",
-              tension: 0.1,
-            },
-          ],
-        },
-        customerStats: {
-          labels: ["April", "May", "June"],
-          datasets: [
-            {
-              label: "Table Service",
-              data: [900, 1200, 1100],
-              backgroundColor: "rgba(53, 162, 235, 0.5)",
-            },
-            {
-              label: "Online Orders",
-              data: [600, 800, 750],
-              backgroundColor: "rgba(255, 99, 132, 0.5)",
-            },
-          ],
-        },
-      },
-      // Add more monthly data as needed
-    },
-    quarterly: {
-      2024: {
-        sales: 3000000,
-        invoices: 1500,
-        customers: 1020,
-        revenueStats: {
-          labels: ["Q1", "Q2", "Q3", "Q4"],
-          datasets: [
-            {
-              label: "Quarterly Revenue",
-              data: [900000, 1200000, 1100000, 1400000],
-              borderColor: "rgb(75, 192, 192)",
-              tension: 0.1,
-            },
-          ],
-        },
-        customerStats: {
-          labels: ["Q1", "Q2", "Q3", "Q4"],
-          datasets: [
-            {
-              label: "Table Service",
-              data: [900, 1200, 1100, 1400],
-              backgroundColor: "rgba(53, 162, 235, 0.5)",
-            },
-            {
-              label: "Online Orders",
-              data: [600, 800, 750, 900],
-              backgroundColor: "rgba(255, 99, 132, 0.5)",
-            },
-          ],
-        },
-      },
-      // Add more quarterly data as needed
-    },
-    overall: {
-      "2020-2024": {
-        sales: 15000000,
-        invoices: 7500,
-        customers: 5100,
-        revenueStats: {
-          labels: ["2020", "2021", "2022", "2023", "2024"],
-          datasets: [
-            {
-              label: "Overall Revenue",
-              data: [300000, 350000, 400000, 450000, 500000],
-              borderColor: "rgb(75, 192, 192)",
-              tension: 0.1,
-            },
-          ],
-        },
-        customerStats: {
-          labels: ["2020", "2021", "2022", "2023", "2024"],
-          datasets: [
-            {
-              label: "Table Service",
-              data: [3000, 3500, 4000, 4500, 5000],
-              backgroundColor: "rgba(53, 162, 235, 0.5)",
-            },
-            {
-              label: "Online Orders",
-              data: [2000, 2500, 3000, 3500, 4000],
-              backgroundColor: "rgba(255, 99, 132, 0.5)",
-            },
-          ],
-        },
-      },
-      // Add more overall data as needed
-    },
-  };
-
-  useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [periodType]);
-
-  const fetchData = async () => {
+  const fetchData = async (branchId, period) => {
     try {
       setLoading(true);
-      // Simulate API call delay
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const queryParams = new URLSearchParams();
 
-      let selectedData = {};
-
-      switch (periodType) {
-        case "daily":
-          const { month, year } = dailyFilters;
-          if (month && year) {
-            const key = `${year}-${month.padStart(2, "0")}`;
-            selectedData = sampleData.daily[key] || sampleData.daily["2024-03"]; // Fallback to a valid daily key
-          }
-          break;
-        case "monthly":
-          const { year: mYear, quarter } = monthlyFilters;
-          if (mYear && quarter) {
-            const key = `${mYear}-Q${quarter}`;
-            selectedData =
-              sampleData.monthly[key] || sampleData.monthly["2024-Q2"];
-          }
-          break;
-        case "quarterly":
-          const { year: qYear } = quarterlyFilters;
-          if (qYear) {
-            selectedData =
-              sampleData.quarterly[qYear] || sampleData.quarterly["2024"];
-          }
-          break;
-        case "overall":
-          const { startYear, endYear } = overallFilters;
-          if (startYear && endYear) {
-            if (parseInt(startYear) > parseInt(endYear)) {
-              setError("Start year cannot be greater than end year.");
-              setLoading(false);
-              return;
-            }
-            const key = `${startYear}-${endYear}`;
-            selectedData =
-              sampleData.overall[key] || sampleData.overall["2020-2024"];
-          }
-          break;
-        default:
-          selectedData = sampleData.monthly["2024-Q2"];
+      // Xây dựng query dựa trên periodType
+      if (period === "daily") {
+        const { month, year } = dailyFilters;
+        queryParams.append("time_type", "Daily");
+        queryParams.append("month", month);
+        queryParams.append("year", year);
+      } else if (period === "monthly") {
+        const { year, quarter } = monthlyFilters;
+        queryParams.append("time_type", "Monthly");
+        queryParams.append("year", year);
+        queryParams.append("quarter", quarter);
+      } else if (period === "quarterly") {
+        const { year } = quarterlyFilters;
+        queryParams.append("time_type", "Quarterly");
+        queryParams.append("year", year);
+      } else if (period === "overall") {
+        const { startYear, endYear } = overallFilters;
+        queryParams.append("time_type", "Overall");
+        queryParams.append("start_year", startYear);
+        queryParams.append("end_year", endYear);
       }
 
-      // Ensure selectedData has all required properties
-      selectedData = {
-        sales: selectedData.sales ?? 0,
-        invoices: selectedData.invoices ?? 0,
-        customers: selectedData.customers ?? 0,
-        revenueStats: selectedData.revenueStats ?? { labels: [], datasets: [] },
-        customerStats: selectedData.customerStats ?? {
-          labels: [],
-          datasets: [],
-        },
-      };
-
-      setData(selectedData);
-      setError(null);
+      queryParams.append("branch_id", branchId);
+      console.log("Query Params:", queryParams.toString());
+      const response = await http(`/analysis?${queryParams.toString()}`, "GET");
+      const result = response.data;
+      if (result) {
+        const { totalRevenue, orders, customers, revenueStats, ServicesRate } =
+          result;
+        console.log("Revenue Stats:", revenueStats);
+        setData({
+          totalRevenue,
+          orders,
+          customers,
+          revenueStats: {
+            labels: revenueStats.label,
+            datasets: [
+              {
+                label: revenueStats.datasets.label,
+                data: revenueStats.datasets.data,
+                borderColor: "rgb(75, 192, 192)",
+                tension: 0.1,
+              },
+            ],
+          },
+          servicesRate: {
+            labels: ServicesRate.label,
+            datasets: [
+              {
+                label: ServicesRate.datasets.label,
+                data: ServicesRate.datasets.data,
+                backgroundColor: "rgba(53, 162, 235, 0.5)",
+              },
+            ],
+          },
+        });
+        setError(null);
+      } else {
+        throw new Error(result.message || "Failed to fetch data");
+      }
     } catch (err) {
-      setError("Failed to fetch dashboard data. Please try again later.");
+      setError(err.message || "Lỗi khi lấy dữ liệu từ API.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleApply = () => {
+    const branchId = localStorage.getItem("staff_branch");
+    setAppliedPeriodType(periodType);
+    fetchData(branchId, periodType);
   };
 
   const StatCard = React.memo(({ icon: Icon, title, value, color }) => (
@@ -325,35 +169,15 @@ export const AnalyticPage = () => {
     );
   }
 
-  // Handle Apply Button Click
-  const handleApply = () => {
-    if (tempPeriodType === "overall") {
-      const { startYear, endYear } = overallFilters;
-      if (parseInt(startYear) > parseInt(endYear)) {
-        setError("Start year cannot be greater than end year.");
-        return;
-      }
-    }
-    setError(null);
-    setPeriodType(tempPeriodType);
-  };
-
-  // Handle Export Functionality (Placeholder)
-  const handleExport = () => {
-    // Implement export logic here, such as generating a PDF or CSV file
-    alert("Export functionality is under development.");
-  };
-
   return (
     <div className="revenue-dashboard">
       <div className="dashboard-container">
         <div className="header-dashboard">
           <h1 className="title">Revenue Dashboard</h1>
           <div className="filters">
-            {/* Select Period Type */}
             <select
-              value={tempPeriodType}
-              onChange={(e) => setTempPeriodType(e.target.value)}
+              value={periodType}
+              onChange={(e) => setPeriodType(e.target.value)} // Cập nhật trực tiếp state periodType
               className="filter-select"
               aria-label="Select Period Type"
             >
@@ -363,30 +187,41 @@ export const AnalyticPage = () => {
               <option value="overall">Overall</option>
             </select>
 
-            {/* Dynamic Filters Based on Period Type */}
-            {tempPeriodType === "daily" && (
-              <div className="dynamic-filters">
-                <label htmlFor="daily-picker" className="filter-label">
-                  Select Month-Year:
-                </label>
+            {/* Time-specific filters */}
+            {periodType === "daily" && (
+              <div className="time-filters">
+                <select
+                  value={dailyFilters.month}
+                  onChange={(e) =>
+                    setDailyFilters({ ...dailyFilters, month: e.target.value })
+                  }
+                  className="filter-select"
+                  aria-label="Select Month"
+                >
+                  <option value="">Select Month</option>
+                  {Array.from({ length: 12 }, (_, i) => (
+                    <option key={i + 1} value={i + 1}>
+                      {`Month ${i + 1}`}
+                    </option>
+                  ))}
+                </select>
                 <input
-                  type="month"
-                  id="daily-picker"
-                  value={`${dailyFilters.year}-${dailyFilters.month}`}
-                  onChange={(e) => {
-                    const [year, month] = e.target.value.split("-");
-                    setDailyFilters({ year, month });
-                  }}
+                  type="number"
+                  value={dailyFilters.year}
+                  onChange={(e) =>
+                    setDailyFilters({ ...dailyFilters, year: e.target.value })
+                  }
                   className="filter-input"
-                  aria-label="Select Month and Year"
+                  placeholder="Year"
+                  aria-label="Enter Year"
                 />
               </div>
             )}
 
-            {tempPeriodType === "monthly" && (
-              <div className="dynamic-filters">
-                <label className="filter-label">Select Year and Quarter:</label>
-                <select
+            {periodType === "monthly" && (
+              <div className="time-filters">
+                <input
+                  type="number"
                   value={monthlyFilters.year}
                   onChange={(e) =>
                     setMonthlyFilters({
@@ -394,14 +229,10 @@ export const AnalyticPage = () => {
                       year: e.target.value,
                     })
                   }
-                  className="filter-select"
-                  aria-label="Select Year"
-                >
-                  <option value="">Select Year</option>
-                  <option value="2022">2022</option>
-                  <option value="2023">2023</option>
-                  <option value="2024">2024</option>
-                </select>
+                  className="filter-input"
+                  placeholder="Year"
+                  aria-label="Enter Year"
+                />
                 <select
                   value={monthlyFilters.quarter}
                   onChange={(e) =>
@@ -422,32 +253,28 @@ export const AnalyticPage = () => {
               </div>
             )}
 
-            {tempPeriodType === "quarterly" && (
-              <div className="dynamic-filters">
-                <label htmlFor="quarterly-picker" className="filter-label">
-                  Select Year:
-                </label>
-                <select
-                  id="quarterly-picker"
+            {periodType === "quarterly" && (
+              <div className="time-filters">
+                <input
+                  type="number"
                   value={quarterlyFilters.year}
                   onChange={(e) =>
-                    setQuarterlyFilters({ year: e.target.value })
+                    setQuarterlyFilters({
+                      ...quarterlyFilters,
+                      year: e.target.value,
+                    })
                   }
-                  className="filter-select"
-                  aria-label="Select Year"
-                >
-                  <option value="">Select Year</option>
-                  <option value="2022">2022</option>
-                  <option value="2023">2023</option>
-                  <option value="2024">2024</option>
-                </select>
+                  className="filter-input"
+                  placeholder="Year"
+                  aria-label="Enter Year"
+                />
               </div>
             )}
 
-            {tempPeriodType === "overall" && (
-              <div className="dynamic-filters">
-                <label className="filter-label">Select Year Range:</label>
-                <select
+            {periodType === "overall" && (
+              <div className="time-filters">
+                <input
+                  type="number"
                   value={overallFilters.startYear}
                   onChange={(e) =>
                     setOverallFilters({
@@ -455,19 +282,12 @@ export const AnalyticPage = () => {
                       startYear: e.target.value,
                     })
                   }
-                  className="filter-select"
-                  aria-label="Select Start Year"
-                >
-                  <option value="">From Year</option>
-                  <option value="2018">2018</option>
-                  <option value="2019">2019</option>
-                  <option value="2020">2020</option>
-                  <option value="2021">2021</option>
-                  <option value="2022">2022</option>
-                  <option value="2023">2023</option>
-                  <option value="2024">2024</option>
-                </select>
-                <select
+                  className="filter-input"
+                  placeholder="Start Year"
+                  aria-label="Enter Start Year"
+                />
+                <input
+                  type="number"
                   value={overallFilters.endYear}
                   onChange={(e) =>
                     setOverallFilters({
@@ -475,54 +295,30 @@ export const AnalyticPage = () => {
                       endYear: e.target.value,
                     })
                   }
-                  className="filter-select"
-                  aria-label="Select End Year"
-                >
-                  <option value="">To Year</option>
-                  <option value="2018">2018</option>
-                  <option value="2019">2019</option>
-                  <option value="2020">2020</option>
-                  <option value="2021">2021</option>
-                  <option value="2022">2022</option>
-                  <option value="2023">2023</option>
-                  <option value="2024">2024</option>
-                </select>
+                  className="filter-input"
+                  placeholder="End Year"
+                  aria-label="Enter End Year"
+                />
               </div>
             )}
 
-            {/* Actions */}
-            <div className="actions">
-              <button
-                onClick={handleApply}
-                className="apply-button"
-                aria-label="Apply Filters"
-              >
-                Apply
-              </button>
-              <button
-                onClick={handleExport}
-                className="export-button"
-                aria-label="Download Report"
-              >
-                <FiDownload className="icon" />
-                Export
-              </button>
-            </div>
+            <button onClick={handleApply} className="apply-button">
+              Apply
+            </button>
           </div>
         </div>
 
-        {/* Statistics Section */}
         <div className="stats">
           <StatCard
             icon={FaStore}
-            title="Total Sales"
-            value={`$${data.sales.toLocaleString()}`}
+            title="Total Revenue"
+            value={`$${data.totalRevenue.toLocaleString()}`}
             color="bg-blue-500"
           />
           <StatCard
             icon={FaFileInvoice}
-            title="Invoices"
-            value={data.invoices.toLocaleString()}
+            title="Orders"
+            value={data.orders.toLocaleString()}
             color="bg-green-500"
           />
           <StatCard
@@ -533,25 +329,21 @@ export const AnalyticPage = () => {
           />
         </div>
 
-        {/* Charts Section */}
         <div className="charts">
           <div className="chart-container">
             <h2 className="chart-title">Revenue Statistics</h2>
             <Line data={data.revenueStats} options={{ responsive: true }} />
           </div>
           <div className="chart-container">
-            <h2 className="chart-title">Customer Service Type Statistics</h2>
+            <h2 className="chart-title">Service Rate</h2>
             <Bar
-              data={data.customerStats}
+              data={data.servicesRate}
               options={{
                 responsive: true,
                 scales: {
                   y: {
                     beginAtZero: true,
-                    title: {
-                      display: true,
-                      text: "Number of Customers",
-                    },
+                    title: { display: true, text: "Rate" },
                   },
                 },
               }}

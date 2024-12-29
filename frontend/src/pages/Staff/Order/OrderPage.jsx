@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FiShoppingCart,
   FiSearch,
@@ -11,11 +11,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import "./OrderPage.css";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { http } from "../../../helpers/http";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 
 export const OrderPage = () => {
   const [cart, setCart] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
   const [memberId, setMemberId] = useState("");
   const [discount, setDiscount] = useState(0);
   const [notification, setNotification] = useState({
@@ -29,74 +30,60 @@ export const OrderPage = () => {
   const [branchId, setBranchId] = useState("1"); // Mã chi nhánh
   const [waiterId, setWaiterId] = useState("12"); // ID người phục vụ
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 9; // Số mục hiển thị mỗi trang
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+  });
 
-  const menuCategories = [
-    {
-      name: "Starters",
-      items: [
-        {
-          id: 1,
-          name: "Crispy Spring Rolls",
-          description:
-            "Vegetable stuffed crispy rolls served with sweet chili sauce",
-          price: 8.99,
-          image: "images.unsplash.com/photo-1677679619800-666cd4f41c99",
-        },
-        {
-          id: 2,
-          name: "Buffalo Wings",
-          description: "Spicy chicken wings with blue cheese dip",
-          price: 12.99,
-          image: "images.unsplash.com/photo-1614398751058-eb2e0bf63e53",
-        },
-        {
-          id: 3,
-          name: "Buffalo Wings",
-          description: "Spicy chicken wings with blue cheese dip",
-          price: 12.99,
-          image: "images.unsplash.com/photo-1614398751058-eb2e0bf63e53",
-        },
-      ],
-    },
-    {
-      name: "Main Dishes",
-      items: [
-        {
-          id: 3,
-          name: "Grilled Salmon",
-          description: "Fresh salmon with herbs and lemon butter sauce",
-          price: 24.99,
-          image: "images.unsplash.com/photo-1567121938596-cf8d2c8dbf17",
-        },
-        {
-          id: 4,
-          name: "Mushroom Risotto",
-          description: "Creamy Italian rice with wild mushrooms and parmesan",
-          price: 18.99,
-          image: "images.unsplash.com/photo-1476124369491-e7addf5db371",
-        },
-      ],
-    },
-    {
-      name: "Desserts",
-      items: [
-        {
-          id: 5,
-          name: "Chocolate Lava Cake",
-          description: "Warm chocolate cake with molten center",
-          price: 9.99,
-          image: "images.unsplash.com/photo-1606313564200-e75d5e30476c",
-        },
-        {
-          id: 6,
-          name: "Tiramisu",
-          description: "Classic Italian coffee-flavored dessert",
-          price: 8.99,
-          image: "images.unsplash.com/photo-1571877897669-02ac5eb24a0d",
-        },
-      ],
-    },
-  ];
+  const [menuCategories, setMenuCategories] = useState([]);
+
+  useEffect(() => {
+    fetchMenu();
+  }, []);
+
+  useEffect(() => {
+    fetchMenu(currentPage, itemsPerPage, "price,asc", searchQuery);
+  }, [currentPage, searchQuery]);
+
+  const fetchMenu = async (
+    page = 1,
+    limit = itemsPerPage,
+    sort = "price,asc",
+    query = ""
+  ) => {
+    try {
+      const branchId = localStorage.getItem("staff_branch");
+      if (!branchId) throw new Error("Branch ID not found in localStorage");
+
+      const params = new URLSearchParams({
+        limit,
+        sort,
+        page,
+        query, // Truyền query trực tiếp vào API
+      });
+
+      const response = await http(
+        `/menu/${branchId}?${params.toString()}`,
+        "GET"
+      );
+      const data = response.data;
+
+      if (data) {
+        setMenuCategories(data.listDish);
+        setPagination({
+          currentPage: data.pagination.currentPage,
+          totalPages: data.pagination.totalPages,
+        });
+      } else {
+        throw new Error("No data received from API");
+      }
+    } catch (error) {
+      console.error("Error fetching menu:", error);
+    }
+  };
 
   const updateItemQuantity = (itemId, change) => {
     setQuantities((prev) => {
@@ -107,21 +94,31 @@ export const OrderPage = () => {
   };
 
   const addToCart = (item) => {
-    const quantity = quantities[item.id] || 1;
-    const existingItem = cart.find((cartItem) => cartItem.id === item.id);
+    const quantity = quantities[item.dish_id] || 1;
+    const existingItem = cart.find(
+      (cartItem) => cartItem.dish_id === item.dish_id
+    );
     if (existingItem) {
       setCart(
         cart.map((cartItem) =>
-          cartItem.id === item.id
+          cartItem.dish_id === item.dish_id
             ? { ...cartItem, quantity: cartItem.quantity + quantity }
             : cartItem
         )
       );
     } else {
-      setCart([...cart, { ...item, quantity }]);
+      setCart([
+        ...cart,
+        {
+          ...item,
+          quantity,
+          name: item.dish_name, // Thêm thuộc tính name
+          image: item.image_link, // Thêm thuộc tính image
+        },
+      ]);
     }
-    setQuantities((prev) => ({ ...prev, [item.id]: 0 }));
-    showNotification(`${item.name} added to cart`);
+    setQuantities((prev) => ({ ...prev, [item.dish_id]: 0 }));
+    showNotification(`${item.dish_name} added to cart`);
   };
 
   const showNotification = (message) => {
@@ -131,20 +128,18 @@ export const OrderPage = () => {
 
   const updateQuantity = (itemId, change) => {
     setCart(
-      cart
-        .map((item) => {
-          if (item.id === itemId) {
-            const newQuantity = item.quantity + change;
-            return newQuantity > 0 ? { ...item, quantity: newQuantity } : null;
-          }
-          return item;
-        })
-        .filter(Boolean)
+      cart.map((item) => {
+        if (item.dish_id === itemId) {
+          const newQuantity = item.quantity + change;
+          return newQuantity > 0 ? { ...item, quantity: newQuantity } : null;
+        }
+        return item;
+      })
     );
   };
 
   const removeFromCart = (itemId) => {
-    setCart(cart.filter((item) => item.id !== itemId));
+    setCart(cart.filter((item) => item.dish_id !== itemId));
   };
 
   // const fakeDiscountCodes = {
@@ -172,13 +167,6 @@ export const OrderPage = () => {
     const discountAmount = subtotal * (discount / 100);
     return subtotal - discountAmount; // Return as a number
   };
-
-  const filteredMenu = menuCategories.map((category) => ({
-    ...category,
-    items: category.items.filter((item) =>
-      item.name.toLowerCase().includes(searchQuery.toLowerCase())
-    ),
-  }));
 
   const handleCheckout = async () => {
     const body = {
@@ -210,18 +198,11 @@ export const OrderPage = () => {
       if (response.ok) {
         const result = await response.json();
         showNotification("Order submitted successfully!");
-        // toast.success(`Order submitted successfully!`, {
-        //   position: "top-right",
-        //   autoClose: 1500,
-        // });
-        setCart([]); // Reset cart sau khi gửi thành công
-        // navigate("/activity-history");
+
+        setCart([]);
+        // navigate("/staff/reservation-list");
       } else {
         showNotification("Failed to submit the order.");
-        // toast.danger(`Failed to submit the order!`, {
-        //   position: "top-right",
-        //   autoClose: 1500,
-        // });
       }
     } catch (error) {
       showNotification("Error submitting the order.");
@@ -242,7 +223,10 @@ export const OrderPage = () => {
                 placeholder="Search menu..."
                 className="search-input"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
             </div>
             <button className="cart-button" onClick={() => setIsCartOpen(true)}>
@@ -256,66 +240,61 @@ export const OrderPage = () => {
 
         {/* Menu Categories */}
         <div className="menu-grid">
-          {filteredMenu.map((category) => (
-            <div key={category.name} className="category">
-              <h2 className="category-title">{category.name}</h2>
-              <div className="items-grid">
-                {category.items.map((item) => (
-                  <motion.div
-                    key={item.id}
-                    className="menu-item"
-                    whileHover={{ scale: 1.02 }}
-                  >
-                    <img
-                      src={`https://${item.image}`}
-                      alt={item.name}
-                      className="item-image"
-                      onError={(e) => {
-                        e.target.src =
-                          "https://images.unsplash.com/photo-1546069901-ba9599a7e63c";
-                      }}
-                    />
-                    <div className="item-details">
-                      <div>
-                        <h3 className="item-name">{item.name}</h3>
-                        <p className="item-description">{item.description}</p>
+          <div className="items-grid">
+            {menuCategories.map((item) => (
+              <motion.div
+                key={item.dish_id}
+                className="menu-item"
+                whileHover={{ scale: 1.02 }}
+              >
+                <img
+                  src={item.image_link}
+                  alt={item.dish_name}
+                  className="item-image"
+                  onError={(e) => {
+                    e.target.src =
+                      "https://images.unsplash.com/photo-1546069901-ba9599a7e63c";
+                  }}
+                />
+                <div className="item-details">
+                  <div>
+                    <h3 className="item-name">{item.dish_name}</h3>
+                    <p className="item-description">{item.description}</p>
+                  </div>
+                  <div className="item-footer">
+                    <span className="item-price">${item.price}</span>
+                    <div className="item-actions">
+                      <div className="quantity-controls">
+                        <button
+                          onClick={() => updateItemQuantity(item.dish_id, -1)}
+                          className="quantity-button"
+                          disabled={!quantities[item.dish_id]}
+                        >
+                          <FiMinus size={16} />
+                        </button>
+                        <span className="quantity-display">
+                          {quantities[item.dish_id] || 0}
+                        </span>
+                        <button
+                          onClick={() => updateItemQuantity(item.dish_id, 1)}
+                          className="quantity-button"
+                        >
+                          <FiPlus size={16} />
+                        </button>
                       </div>
-                      <div className="item-footer">
-                        <span className="item-price">${item.price}</span>
-                        <div className="item-actions">
-                          <div className="quantity-controls">
-                            <button
-                              onClick={() => updateItemQuantity(item.id, -1)}
-                              className="quantity-button"
-                              disabled={!quantities[item.id]}
-                            >
-                              <FiMinus size={16} />
-                            </button>
-                            <span className="quantity-display">
-                              {quantities[item.id] || 0}
-                            </span>
-                            <button
-                              onClick={() => updateItemQuantity(item.id, 1)}
-                              className="quantity-button"
-                            >
-                              <FiPlus size={16} />
-                            </button>
-                          </div>
-                          <button
-                            onClick={() => addToCart(item)}
-                            className="add-to-cart-button"
-                            disabled={!quantities[item.id]}
-                          >
-                            Add to Cart
-                          </button>
-                        </div>
-                      </div>
+                      <button
+                        onClick={() => addToCart(item)}
+                        className="add-to-cart-button"
+                        disabled={!quantities[item.dish_id]}
+                      >
+                        Add to Cart
+                      </button>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          ))}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
 
         {/* Cart Sidebar */}
@@ -344,9 +323,9 @@ export const OrderPage = () => {
                   ) : (
                     <div className="cart-item-list">
                       {cart.map((item) => (
-                        <div key={item.id} className="cart-item">
+                        <div key={item.dish_id} className="cart-item">
                           <img
-                            src={`https://${item.image}`}
+                            src={item.image}
                             alt={item.name}
                             className="cart-item-image"
                             onError={(e) => {
@@ -361,7 +340,7 @@ export const OrderPage = () => {
                             </p>
                             <div className="cart-item-actions">
                               <button
-                                onClick={() => updateQuantity(item.id, -1)}
+                                onClick={() => updateQuantity(item.dish_id, -1)}
                                 className="cart-quantity-button"
                               >
                                 <FiMinus size={16} />
@@ -370,13 +349,13 @@ export const OrderPage = () => {
                                 {item.quantity}
                               </span>
                               <button
-                                onClick={() => updateQuantity(item.id, 1)}
+                                onClick={() => updateQuantity(item.dish_id, 1)}
                                 className="cart-quantity-button"
                               >
                                 <FiPlus size={16} />
                               </button>
                               <button
-                                onClick={() => removeFromCart(item.id)}
+                                onClick={() => removeFromCart(item.dish_id)}
                                 className="remove-item-button"
                               >
                                 <FiTrash2 size={16} />
@@ -473,6 +452,33 @@ export const OrderPage = () => {
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* pagination */}
+        <div className="pagination">
+          <button
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+            className="pagination-button"
+            aria-label="Previous page"
+          >
+            <FiChevronLeft className="pagination-icon" />
+          </button>
+          <span className="pagination-info">
+            Page {currentPage} of {pagination.totalPages}
+          </span>
+          <button
+            onClick={() =>
+              setCurrentPage((prev) =>
+                Math.min(prev + 1, pagination.totalPages)
+              )
+            }
+            disabled={currentPage === pagination.totalPages}
+            className="pagination-button"
+            aria-label="Next page"
+          >
+            <FiChevronRight className="pagination-icon" />
+          </button>
+        </div>
 
         {/* Notification */}
         <AnimatePresence>
