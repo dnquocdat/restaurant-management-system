@@ -181,6 +181,7 @@ export const searchEmployeesController = async (req, res, next) => {
       employee_salary: emp.salary,
       branch_id: emp.branch_id,
       department_id: emp.department_id,
+      department_name: emp.department_name,
       start_date_branch: emp.start_date,
       end_date_branch: emp.end_date,
     })),

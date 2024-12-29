@@ -20,7 +20,7 @@ export async function searchEmployees({
   const p_category = department_id;
   const p_id_name = "employee_id";
   const p_selectFields =
-    "employees.employee_id, employees.employee_name, employees.employee_email, employees.date_of_birth, employees.gender, employees.employee_phone_number, employees.employee_address, employees.employee_rating, employees.hire_date, employees.quit_date, employee_branches.branch_id, employee_branches.department_id, employee_branches.start_date, employee_branches.end_date, departments.salary";
+    "employees.employee_id, employees.employee_name, employees.employee_email, employees.date_of_birth, employees.gender, employees.employee_phone_number, employees.employee_address, employees.employee_rating, employees.hire_date, employees.quit_date, employee_branches.branch_id, employee_branches.department_id, employee_branches.start_date, employee_branches.end_date, departments.salary, departments.department_name";
   const p_joinClause =
     "JOIN employee_branches ON employees.current_work_id = employee_branches.employee_branches_id JOIN departments ON employee_branches.department_id = departments.department_id";
   const p_branch_name = "employee_branches.branch_id";
