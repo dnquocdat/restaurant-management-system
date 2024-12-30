@@ -138,7 +138,7 @@ export const OrderOnlinePage = () => {
               onChange={(e) => setNewStatus(e.target.value)}
             >
               <option value="billed">Billed</option>
-              <option value="in-delivery">In Delivery</option>
+              <option value="in_delivery">In_delivery</option>
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
             </select>
