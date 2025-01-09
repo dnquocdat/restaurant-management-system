@@ -2,6 +2,9 @@
 
 This repository demonstrates a sample restaurant management system, providing both a frontend (React, Vite) and a backend (Node.js, Express). It aims to streamline basic operations such as menu management and integrations (e.g., MySQL, nodemailer).
 
+## Database Design
+![Data](DB.png)
+
 ## Technologies Used
 - Frontend:  
     - React  
